@@ -53,13 +53,13 @@ end
 local function mouseClickCallbackInternal()
 	x,y = drawingLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
 	if MOAIInputMgr.device.mouseLeft:down() then
-		for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 			for i=#input.manager.callbacks.down[l],1,-1 do
 				if input.manager.callbacks.down[l][i](1, x, y) then return end
 			end
 	    end
 	else -- mouseLeft is up
-		for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 			for i=#input.manager.callbacks.up[l],1,-1 do
 				if input.manager.callbacks.up[l][i](1, x, y) then return end
 		    end
@@ -69,7 +69,7 @@ end
 
 local function mouseMoveCallbackInternal()
 	x,y = drawingLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
-	for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+	for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 		for i=#input.manager.callbacks.moved[l],1,-1 do
 			if input.manager.callbacks.moved[l][i](1, x, y) then return end
 		end
@@ -81,21 +81,21 @@ local function touchCallbackInternal( eventType, id, x_wnd, y_wnd, tapCount )
 	x,y = drawingLayer:wndToWorld ( x_wnd, y_wnd  )
 
 	if eventType == MOAITouchSensor.TOUCH_DOWN then
-		for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 			for i=#input.manager.callbacks.down[l],1,-1 do
 				if input.manager.callbacks.down[l][i](id, x, y) then return end
 		    end
 	    end
 	    	
 	elseif eventType == MOAITouchSensor.TOUCH_UP  then
-		for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 			for i=#input.manager.callbacks.up[l],1,-1 do
 				if input.manager.callbacks.up[l][i](id, x, y) then return end
 		    end
 	    end
 	    
 	elseif eventType == MOAITouchSensor.TOUCH_MOVE  then
-		for l = input.manager.UILAYER,input.manager.DRAWINGLAYER do
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
 			for i=#input.manager.callbacks.moved[l],1,-1 do
 				if input.manager.callbacks.moved[l][i](id, x, y) then return end
 			end
