@@ -27,6 +27,11 @@ require "test/test"
 -- set up window
 WIDTH = MOAIEnvironment.screenWidth or 800
 HEIGHT = MOAIEnvironment.screenHeight or 650
+if MOAIEnvironment.iosRetinaDisplay then
+	WIDTH = WIDTH/2
+	HEIGHT = HEIGHT/2
+end
+
 MOAISim.openWindow ( "playsketch2", WIDTH, HEIGHT )
 
 -- set up viewport
@@ -61,12 +66,12 @@ end
 
 
 --Button for generating random lines
-widgets.newSimpleButton(-WIDTH/2+250,-HEIGHT/2+150,100,100, 
+widgets.newSimpleButton(-WIDTH/2+125,-HEIGHT/2+75,50,50, 
 						"resources/button_generate_lines.png", "resources/button_down.png",
-						function() test.helpers.generateLines(100,100) end )
+						function() test.helpers.generateLines(50,50) end )
 
 --Timeline slider
-local slider = widgets.newSlider(50, -HEIGHT/2+50, WIDTH-100, 100,
+local slider = widgets.newSlider(25, -HEIGHT/2+25, WIDTH-50, 50,
 							"resources/slider_background.png",
 							"resources/slider_button.png", 
 							"resources/slider_button_down.png", 
@@ -74,28 +79,28 @@ local slider = widgets.newSlider(50, -HEIGHT/2+50, WIDTH-100, 100,
 controllers.timeline.setSlider(slider)
 
 -- Timeline Play/Pause button					 
-widgets.newSimpleButton(-WIDTH/2+50,-HEIGHT/2+50, 100, 100, 
+widgets.newSimpleButton(-WIDTH/2+25,-HEIGHT/2+25, 50, 50, 
 							"resources/button_play.png", "resources/button_down.png", 
 							controllers.timeline.playPause)
 
 --picking draw mode vs selection mode
-widgets.newToggleButton(-WIDTH/2+350,-HEIGHT/2+150, 100, 100, 
+widgets.newToggleButton(-WIDTH/2+175,-HEIGHT/2+75, 50, 50, 
 						{"resources/button_draw.png", "resources/button_select.png"}, 
 						"resources/button_down.png",
 						input.strokecapture.setMode)
 
 --Photo library buttons
 if MOAIPhotoPickerIOS then
-	local b1x,b1y = -WIDTH/2+50,  -HEIGHT/2+150
-	local b2x,b2y = -WIDTH/2+150, -HEIGHT/2+150
-	widgets.newSimpleButton(b1x,b1y,100,100, 
+	local b1x,b1y = -WIDTH/2+25,  -HEIGHT/2+75
+	local b2x,b2y = -WIDTH/2+75, -HEIGHT/2+75
+	widgets.newSimpleButton(b1x,b1y,50,50, 
 							"resources/button_photolibrary.png", "resources/button_down.png",
 							function() 
 								local wx,wy=drawingLayer:worldToWnd(b1x,b1y) 
 								MOAIPhotoPickerIOS:showPhotoPicker(MOAIPhotoPickerIOS.PhotoPicker_LIBRARY, wx,wy, addImage)
 							end)
 	
-	widgets.newSimpleButton(b2x,b2y,100,100, 
+	widgets.newSimpleButton(b2x,b2y,50,50, 
 							"resources/button_photocamera.png", "resources/button_down.png",
 							function() 
 								local wx,wy=drawingLayer:worldToWnd(b2x,b2y) 
