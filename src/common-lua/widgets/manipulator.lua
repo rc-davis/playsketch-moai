@@ -19,77 +19,73 @@
 
 --]]
 
+--constants
+local innerDiameterPcnt = 0.4 --as percentage of the width of the box
+local outerDiameterPcnt = 0.8
+local defaultWidth = 200 --todo: ??
+local ROOT_2 = 1.414213562
+local scaleHandleFillColor = {0, 0.8, 0.01, 1.0}
+local scaleHandleStrokeColor = {0, 0.5, 0.01, 1.0}
+local rotationBackgroundColor = {0.452, 0.432, 0.772, 1.000}
+local rotationHandleColor = {1.0, 1.0, 1.0, 1.000}
+local rotationStrokeColor = {0.160, 0.122, 0.772, 1.000}
+local translateHandleColor = {0.95, 0.95, 1.0, 1.000}
+
 function widgets.newManipulator(x,y, movedCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
-	-- Build a prop
-	local b = MOAIProp2D.new ()
-	b:setLoc ( x, y )
-	widgets.layer:insertProp ( b )	
+	local scriptDeck = MOAIScriptDeck.new ()
+	scriptDeck:setRect ( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
 
-	-- load up required images
-	local imageGfxNormal = MOAIGfxQuad2D.new ()
-	imageGfxNormal:setTexture ("resources/manipulator.png")
-	imageGfxNormal:setRect ( -50, -50, 100, 100 )
-	b:setDeck(imageGfxNormal)
-	
-	--initialize state tracking				
-	b.touchID = nil
-	b.callbackMoved = movedCallback
-	
-	
-	input.manager.addDownCallback(input.manager.UILAYER, function (id,px,py)
-		if b.touchID == nil and b:inside(px,py) then
-			b.touchID = id
-			local bx,by = b:getLoc()
-			b.offsetX = (px-bx)
-			b.offsetY = (py-by)
-			b.startX = px
-			b.startY = py
-			return true
-		end
-		return false
-	end)
-	
-	input.manager.addMovedCallback(input.manager.UILAYER, function (id,px,py)
-		if b.touchID ~= nil and id == b.touchID then
-		
-			b:setLoc(px-b.offsetX, py-b.offsetY)
+	local prop = MOAIProp2D.new ()
+	prop:setDeck ( scriptDeck )	
+	--prop:setBlendMode(MOAIProp.GL_DST_COLOR, MOAIProp.GL_ONE_MINUS_SRC_ALPHA)
+	--todo, make translucent
+
+	scriptDeck:setDrawCallback(
+		function ( index, xOff, yOff, xFlip, yFlip )
+
+			--draw background
+			MOAIGfxDevice.setPenColor (unpack(scaleHandleFillColor))
+			MOAIDraw.fillRect( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
+
+			--draw scale handles
+			local scaleLoc = (defaultWidth/2)*(outerDiameterPcnt/ROOT_2) -- x/y for the handle corner
+			MOAIGfxDevice.setPenColor (unpack(scaleHandleStrokeColor))
+			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
+				MOAIDraw.fillRect( i*defaultWidth/2, j*defaultWidth/2, i*scaleLoc, j*scaleLoc)
+			end end
+			
+			--draw the rotation background
+			MOAIGfxDevice.setPenColor (unpack(rotationBackgroundColor))
+			MOAIDraw.fillCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
+			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))
+			MOAIDraw.drawCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
+
+			-- draw the rotation handles
+			local rotHandleRad = defaultWidth/2*(outerDiameterPcnt-innerDiameterPcnt)/2
+			local rotHandleX = (defaultWidth/2*outerDiameterPcnt - rotHandleRad)/ROOT_2
+
+			MOAIGfxDevice.setPenColor (unpack(rotationHandleColor))
+			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
+				MOAIDraw.fillCircle( i*rotHandleX, j*rotHandleX, rotHandleRad, 50)
+			end end
+			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))
+			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
+				MOAIDraw.drawCircle( i*rotHandleX, j*rotHandleX, rotHandleRad, 50)
+			end end
+
+			-- draw the translation handle
+			MOAIGfxDevice.setPenColor (unpack(translateHandleColor))	
+			MOAIDraw.fillCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
+			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
+			MOAIDraw.drawCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
 
 			
-			--SET THINGS HERE
-			if b.callbackMoved then
-				b.callbackMoved(px - b.startX, py - b.startY)
-				b.startX = px
-				b.startY = py
-			end
-			
-			return true
-		end
-		return false
-	end)
-	
-	
-	--input manager callback for finishing a touch
-	input.manager.addUpCallback(input.manager.UILAYER, function (id,px,py)
-		if b.touchID ~= nil and id == b.touchID then
-			b.touchID = nil
-
-			--if b:inside(px,py) and b.callback then
-				
-			--	b:callback(
-				
-				
-			--end
-			
-			return true
-		end
-		return false
-	end)
-	
+		end)
 
 
-	return b
-
+	widgets.layer:insertProp(prop)
+	return prop
 end
