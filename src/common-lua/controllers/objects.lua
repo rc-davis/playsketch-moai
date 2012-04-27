@@ -91,6 +91,19 @@ function controllers.objects.storePropAsNewObject(o)
 		return new_points
 	end
 	
+	-- getSpan():	Return a list of the max & min points in the x & y dimensions
+	--				Note these are not corrected to a timestep
+	function o:getSpan()
+		local span = {width={max=-1e100, min=1e100}, height={max=-1e100, min=1e100}}
+		for j=1,#self.points,2 do
+			span.width.min  = math.min(span.width.min, self.points[j])
+			span.width.max  = math.max(span.width.max, self.points[j])
+			span.height.min = math.min(span.height.min, self.points[j+1])
+			span.height.max = math.max(span.height.max, self.points[j+1])
+		end
+		return span
+	end
+	
 end
 
 
