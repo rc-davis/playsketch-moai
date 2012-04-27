@@ -19,6 +19,7 @@
 
 --]]
 
+
 --constants
 local innerDiameterPcnt = 0.4 --as percentage of the width of the box
 local outerDiameterPcnt = 0.8
@@ -30,8 +31,11 @@ local rotationBackgroundColor = {0.452, 0.432, 0.772, 1.000}
 local rotationHandleColor = {1.0, 1.0, 1.0, 1.000}
 local rotationStrokeColor = {0.160, 0.122, 0.772, 1.000}
 local translateHandleColor = {0.95, 0.95, 1.0, 1.000}
+local highlightColor = {1.0, 0, 0, 1.0}
 
-function widgets.newManipulator(x,y, movedCallback)
+local actions = {SCALE=1, ROTATE=2, TRANSLATE=3}
+
+function widgets.newManipulator(x,y, translateCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -42,6 +46,14 @@ function widgets.newManipulator(x,y, movedCallback)
 	prop:setDeck ( scriptDeck )	
 	--prop:setBlendMode(MOAIProp.GL_DST_COLOR, MOAIProp.GL_ONE_MINUS_SRC_ALPHA)
 	--todo, make translucent
+	widgets.layer:insertProp(prop)
+
+	--set instance variables
+	prop.touchID = nil
+	prop.touchLoc = nil
+	prop.currentAction = nil
+	prop.translateCallback = translateCallback
+
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -77,15 +89,85 @@ function widgets.newManipulator(x,y, movedCallback)
 			end end
 
 			-- draw the translation handle
-			MOAIGfxDevice.setPenColor (unpack(translateHandleColor))	
+			if prop.currentAction == actions.TRANSLATE then
+				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
+			else
+				MOAIGfxDevice.setPenColor (unpack(translateHandleColor))	
+			end
 			MOAIDraw.fillCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
 			MOAIDraw.drawCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
-
-			
 		end)
 
+	-- Add our callbacks
+	
+	input.manager.addDownCallback(input.manager.UILAYER, 
+		function (id,px,py)
 
-	widgets.layer:insertProp(prop)
+			if not prop:inside(px,py) then return false end
+
+			if prop.touchID == nil then
+				print("touch ID beginning")
+
+				assert(prop.currentAction == nil, 
+					"There should be no currentAction when we are starting one")
+
+				prop.touchID = id
+				prop.touchLoc = {x=px,y=py}
+				local x,y = prop:getLoc()				
+			
+				-- figure out which widget we are interacting with
+				local distanceFromCenterSq = math.sqrt((px-x)*(px-x)+(py-y)*(py-y))
+				
+				if distanceFromCenterSq < innerDiameterPcnt*defaultWidth/2 then			
+					-- touching the translate manipulator
+					prop.currentAction = actions.TRANSLATE
+				end
+				--todo: also compare to  rotate and scale here
+				
+			end
+			return true
+		end)
+		
+		
+	--moved callback
+	input.manager.addMovedCallback(input.manager.UILAYER, 
+		function (id,px,py)
+			if prop.touchID == id then
+			
+				if prop.currentAction == actions.TRANSLATE then
+				
+					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
+					prop.touchLoc = {x=px, y=py}
+				
+					if prop.translateCallback then prop.translateCallback(dx,dy) end
+				end
+				
+				--TODO: support rotate and scale here as well
+				return true
+			end
+
+		end)	
+		
+	input.manager.addUpCallback(input.manager.UILAYER, 
+		function (id,px,py)
+		
+			if prop.touchID == id then
+			
+				prop.touchID = nil
+				prop.currentAction = nil
+				prop.touchLoc = nil
+				return true
+			end
+
+		end)
+	
+		--check if we are being interacted with
+		
+		--unhilight
+
+
+
+
 	return prop
 end
