@@ -20,6 +20,9 @@
 	the lasso.
 	After a selection is made, the manipulator widget is displayed.
 	
+	--TODO: The logic for displaying the manipulator and responding	to it will 
+	probably move out into an independent controller
+	
 --]]
 
 require "model/model"
@@ -28,20 +31,17 @@ require "widgets/widgets"
 controllers.selection = {}
 controllers.selection.selectedSet = {}
 
+-- create a single manipulator widget for controlling the selection
+local manipulatorWidget = nil
+local manipulatorWidgetThread = nil
 
 -- startStroke(): begin a new selection lasso stroke
 function controllers.selection.startStroke()
-
-	if controllers.selection.manipulator ~= nil then
-		widgets.layer:removeProp (controllers.selection.manipulator)
-		--todo, manipulator should do this to itself
-	end
 
 	local selection_stroke = controllers.drawing.startStroke()
 	selection_stroke.color = {1, 1, 0}
 	selection_stroke.penWidth = 10.0
 	
-	local selected_set = {}
 	local last_x, last_y, first_x, first_y = nil,nil,nil,nil
 	local crossing_counts = {}
 
@@ -51,7 +51,10 @@ function controllers.selection.startStroke()
 	local current_time = controllers.timeline.currentTime()
 	for i,o in ipairs(model.all_objects) do
 		cached_points[o] = o:getCorrectedPointsAtTime(current_time)
+		o.isSelected = false
 	end
+
+	if manipulatorWidget then controllers.selection.hideManipulator() end
 
 
 	--addPoint(x,y):	Add a point to the selection lasso.
@@ -143,23 +146,70 @@ function controllers.selection.startStroke()
 				table.insert(controllers.selection.selectedSet, o)
 			end
 		end
-
-		if #controllers.selection.selectedSet > 0 then
-			controllers.selection.manipulator = widgets.newManipulator(100,100, 
-			function(dx,dy)
-				for i,o in ipairs(controllers.selection.selectedSet) do
-					local old_loc = o:getInterpolatedValueForTime(model.keys.LOCATION, controllers.timeline:currentTime())
-					o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
-					o:setLoc(old_loc.x+dx, old_loc.y+dy)
-					o:dump()
-				end
-			end)
-			
-		end
+		
+		controllers.selection.showManipulator()
 	end
 
 	return selection_stroke
 end
 
+
+-- showManipulator(): Start a coroutine to keep the manipulator centered on the selected objects
+function controllers.selection.showManipulator()
+	
+	assert(manipulatorWidgetThread == nil, "Don't call showManipulator() while it is already running")
+	
+	--create the manipulator widget if it doesn't exist
+	if not manipulatorWidget then
+		manipulatorWidget = widgets.newManipulator(
+			function(dx,dy)
+				for i,o in ipairs(controllers.selection.selectedSet) do
+					local old_loc = o:getInterpolatedValueForTime(model.keys.LOCATION, controllers.timeline:currentTime())
+					o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
+					o:setLoc(old_loc.x+dx, old_loc.y+dy)
+				end
+			end)
+	end
+
+	-- selectionMain(): Loops as long as there are items in the selected set
+	-- 					On each step, we center the manipulatorWidget	
+	local function selectionMain()
+
+		while #controllers.selection.selectedSet > 0 do
+		
+			-- average the centers of all the objects
+			local avgX,avgY = 0,0
+			for i,o in ipairs(controllers.selection.selectedSet) do
+				local x,y = o:getLoc()
+				avgX = avgX + x
+				avgY = avgY + y
+			end
+			avgX = avgX/#controllers.selection.selectedSet
+			avgY = avgY/#controllers.selection.selectedSet			
+		
+			--ensure we are still on the screen
+			avgX = math.min(WIDTH/2, math.max(-WIDTH/2, avgX))
+			avgY = math.min(HEIGHT/2, math.max(-HEIGHT/2, avgY))
+		
+			--show it there
+			manipulatorWidget:showAt(avgX, avgY)
+			
+			coroutine.yield ()
+		end
+		controllers.selection.hideManipulator()
+	end
+	
+	manipulatorWidgetThread = MOAIThread.new ()
+	manipulatorWidgetThread:run ( selectionMain, nil )
+
+end
+
+function controllers.selection.hideManipulator()
+	if manipulatorWidgetThread then
+		manipulatorWidgetThread:stop()
+		manipulatorWidgetThread = nil
+	end
+	manipulatorWidget:hide()
+end
 
 return controllers.selection

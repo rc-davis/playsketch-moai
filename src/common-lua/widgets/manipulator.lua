@@ -35,7 +35,7 @@ local highlightColor = {1.0, 0, 0, 1.0}
 
 local actions = {SCALE=1, ROTATE=2, TRANSLATE=3}
 
-function widgets.newManipulator(x,y, translateCallback)
+function widgets.newManipulator(translateCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -49,11 +49,11 @@ function widgets.newManipulator(x,y, translateCallback)
 	widgets.layer:insertProp(prop)
 
 	--set instance variables
+	prop.visible = true
 	prop.touchID = nil
 	prop.touchLoc = nil
 	prop.currentAction = nil
 	prop.translateCallback = translateCallback
-
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -104,10 +104,9 @@ function widgets.newManipulator(x,y, translateCallback)
 	input.manager.addDownCallback(input.manager.UILAYER, 
 		function (id,px,py)
 
-			if not prop:inside(px,py) then return false end
+			if not prop:inside(px,py) or not prop.visible then return false end
 
 			if prop.touchID == nil then
-				print("touch ID beginning")
 
 				assert(prop.currentAction == nil, 
 					"There should be no currentAction when we are starting one")
@@ -139,7 +138,7 @@ function widgets.newManipulator(x,y, translateCallback)
 				
 					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
 					prop.touchLoc = {x=px, y=py}
-				
+					prop:moveLoc(dx,dy)				
 					if prop.translateCallback then prop.translateCallback(dx,dy) end
 				end
 				
@@ -153,7 +152,6 @@ function widgets.newManipulator(x,y, translateCallback)
 		function (id,px,py)
 		
 			if prop.touchID == id then
-			
 				prop.touchID = nil
 				prop.currentAction = nil
 				prop.touchLoc = nil
@@ -162,12 +160,18 @@ function widgets.newManipulator(x,y, translateCallback)
 
 		end)
 	
-		--check if we are being interacted with
-		
-		--unhilight
+	function prop:showAt(x,y)
+		self.visible = true
+		self:setLoc(x,y)
+		self:setVisible(true)
+	end
+
+	function prop:hide()
+		self.visible = false
+		self:setVisible(false)
+	end
 
 
-
-
+	prop:hide()
 	return prop
 end
