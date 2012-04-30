@@ -92,6 +92,10 @@ widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+75, 50, 50,
 						"resources/button_down.png",
 						input.strokecapture.changeMode)
 
+widgets.newSimpleButton(-SCALED_WIDTH/2+225,-SCALED_HEIGHT/2+75,50,50, 
+						"resources/button.png", "resources/button_down.png",
+						controllers.disk.saveToDisk)
+
 --Photo library buttons
 if MOAIPhotoPickerIOS then
 	local b1x,b1y = -SCALED_WIDTH/2+25,  -SCALED_HEIGHT/2+75

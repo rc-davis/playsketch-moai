@@ -146,6 +146,10 @@ function model.addObject(o)
 		end
 		print("====/DUMP")	
 	end
+
+	function o:modelToSave()
+		return {streams=self.streams}
+	end
 	
 	return o
 end

@@ -19,7 +19,8 @@
 	- objects:		adding objects and updating their state
 	- selection:	turning user input into a selection lasso and manipulating the result
 	- drawing: 		turning user input into an ink stroke and storing it as an object
-
+	- disk: 		manage saving and loading files
+	
 --]]
 
 
@@ -30,5 +31,6 @@ require "controllers/timeline"
 require "controllers/objects"
 require "controllers/selection"
 require "controllers/drawing"
+require "controllers/disk"
 
 return controllers

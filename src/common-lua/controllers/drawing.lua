@@ -88,6 +88,10 @@ function controllers.drawing.startStroke()
 		controllers.objects.storePropAsNewObject(self)
 	end
 
+	function new_stroke:propToSave()
+		return {points=self.points}
+	end
+
 	return new_stroke
 
 end
