@@ -15,7 +15,9 @@
 
 	The k-sketch SRT manipulator.
 	
-	TODO: JUST A SKELETON RIGHT NOW
+	TODO: 
+		- No scaling
+		- semi-transparent
 
 --]]
 
@@ -23,7 +25,7 @@
 --constants
 local innerDiameterPcnt = 0.4 --as percentage of the width of the box
 local outerDiameterPcnt = 0.8
-local defaultWidth = 200 --todo: ??
+local defaultWidth = 250
 local ROOT_2 = 1.414213562
 local scaleHandleFillColor = {0, 0.8, 0.01, 1.0}
 local scaleHandleStrokeColor = {0, 0.5, 0.01, 1.0}
@@ -35,7 +37,7 @@ local highlightColor = {1.0, 0, 0, 1.0}
 
 local actions = {SCALE=1, ROTATE=2, TRANSLATE=3}
 
-function widgets.newManipulator(translateCallback)
+function widgets.newManipulator(translateCallback, rotateCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -54,6 +56,7 @@ function widgets.newManipulator(translateCallback)
 	prop.touchLoc = nil
 	prop.currentAction = nil
 	prop.translateCallback = translateCallback
+	prop.rotateCallback = rotateCallback
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -70,16 +73,20 @@ function widgets.newManipulator(translateCallback)
 			end end
 			
 			--draw the rotation background
-			MOAIGfxDevice.setPenColor (unpack(rotationBackgroundColor))
+			MOAIGfxDevice.setPenColor (unpack(rotationBackgroundColor))			
 			MOAIDraw.fillCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
-			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))
+			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))			
 			MOAIDraw.drawCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
 
 			-- draw the rotation handles
 			local rotHandleRad = defaultWidth/2*(outerDiameterPcnt-innerDiameterPcnt)/2
 			local rotHandleX = (defaultWidth/2*outerDiameterPcnt - rotHandleRad)/ROOT_2
 
-			MOAIGfxDevice.setPenColor (unpack(rotationHandleColor))
+			if prop.currentAction == actions.ROTATE then
+				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
+			else
+				MOAIGfxDevice.setPenColor (unpack(rotationHandleColor))
+			end			
 			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
 				MOAIDraw.fillCircle( i*rotHandleX, j*rotHandleX, rotHandleRad, 50)
 			end end
@@ -99,7 +106,7 @@ function widgets.newManipulator(translateCallback)
 			MOAIDraw.drawCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
 		end)
 
-	-- Add our callbacks
+	-- Add our input response callbacks
 	
 	input.manager.addDownCallback(input.manager.UILAYER, 
 		function (id,px,py)
@@ -121,8 +128,12 @@ function widgets.newManipulator(translateCallback)
 				if distanceFromCenterSq < innerDiameterPcnt*defaultWidth/2 then			
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
+				elseif distanceFromCenterSq < outerDiameterPcnt*defaultWidth/2 then
+					-- touching the rotate manipulator
+					prop.currentAction = actions.ROTATE
+
 				end
-				--todo: also compare to  rotate and scale here
+				--todo: also compare to scale here
 				
 			end
 			return true
@@ -135,14 +146,29 @@ function widgets.newManipulator(translateCallback)
 			if prop.touchID == id then
 			
 				if prop.currentAction == actions.TRANSLATE then
-				
+					--update the translation deltas and inform the callback
 					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
 					prop.touchLoc = {x=px, y=py}
-					prop:moveLoc(dx,dy)				
+					prop:addLoc(dx,dy)				
 					if prop.translateCallback then prop.translateCallback(dx,dy) end
+
+				elseif prop.currentAction == actions.ROTATE then				
+					--update the rotation deltas and inform the callback
+					local xCenter,yCenter = prop:getLoc()
+					local angleLast = math.atan2(prop.touchLoc.y - yCenter, 
+												prop.touchLoc.x - xCenter)
+					local angleNew = math.atan2(py - yCenter, 
+												px - xCenter)
+					--calculate the angle between current touch and touchLoc
+					local dAngle = math.deg(angleNew - angleLast)
+					prop.touchLoc = {x=px, y=py}
+					prop:addRot(dAngle, dAngle)
+					if prop.rotateCallback then prop.rotateCallback(dAngle) end
+
 				end
 				
 				--TODO: support rotate and scale here as well
+				
 				return true
 			end
 
@@ -160,10 +186,14 @@ function widgets.newManipulator(translateCallback)
 
 		end)
 	
-	function prop:showAt(x,y)
+	function prop:show()
 		self.visible = true
-		self:setLoc(x,y)
 		self:setVisible(true)
+		self:setRot(0,0)
+	end
+
+	function prop:moveTo(x,y)
+		self:setLoc(x,y)
 	end
 
 	function prop:hide()

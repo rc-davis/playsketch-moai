@@ -168,12 +168,18 @@ function controllers.selection.showManipulator()
 					o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
 					o:setLoc(old_loc.x+dx, old_loc.y+dy)
 				end
-			end)
+			end,
+
+			nil -- TODO rotate callback
+
+			)
 	end
 
 	-- selectionMain(): Loops as long as there are items in the selected set
 	-- 					On each step, we center the manipulatorWidget	
 	local function selectionMain()
+
+		manipulatorWidget:show()
 
 		while #controllers.selection.selectedSet > 0 do
 		
@@ -192,7 +198,7 @@ function controllers.selection.showManipulator()
 			avgY = math.min(HEIGHT/2, math.max(-HEIGHT/2, avgY))
 		
 			--show it there
-			manipulatorWidget:showAt(avgX, avgY)
+			manipulatorWidget:moveTo(avgX, avgY)
 			
 			coroutine.yield ()
 		end
