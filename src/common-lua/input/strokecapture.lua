@@ -39,6 +39,7 @@ function input.strokecapture.changeMode(button)
 		button:setIndex(2)
 	else
 		input.strokecapture.mode = input.strokecapture.MODE_DRAW
+		controllers.selection.clearSelection()
 		button:setIndex(1)
 	end
 end

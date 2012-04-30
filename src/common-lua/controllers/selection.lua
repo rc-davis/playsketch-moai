@@ -54,7 +54,7 @@ function controllers.selection.startStroke()
 		o.isSelected = false
 	end
 
-	if manipulatorWidget then controllers.selection.hideManipulator() end
+	controllers.selection.clearSelection()
 
 
 	--addPoint(x,y):	Add a point to the selection lasso.
@@ -202,7 +202,7 @@ function controllers.selection.showManipulator()
 			
 			coroutine.yield ()
 		end
-		controllers.selection.hideManipulator()
+		controllers.selection.clearSelection()
 	end
 	
 	manipulatorWidgetThread = MOAIThread.new ()
@@ -210,12 +210,14 @@ function controllers.selection.showManipulator()
 
 end
 
-function controllers.selection.hideManipulator()
+function controllers.selection.clearSelection()
 	if manipulatorWidgetThread then
 		manipulatorWidgetThread:stop()
 		manipulatorWidgetThread = nil
 	end
-	manipulatorWidget:hide()
+	if manipulatorWidget then manipulatorWidget:hide() end
+	controllers.selection.selectedSet = {}
+
 end
 
 return controllers.selection
