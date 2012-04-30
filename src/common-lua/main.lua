@@ -27,16 +27,18 @@ require "test/test"
 -- set up window
 WIDTH = MOAIEnvironment.screenWidth or 800
 HEIGHT = MOAIEnvironment.screenHeight or 650
+SCALED_WIDTH = WIDTH
+SCALED_HEIGHT = HEIGHT
 if MOAIEnvironment.iosRetinaDisplay then
-	WIDTH = WIDTH/2
-	HEIGHT = HEIGHT/2
+	SCALED_WIDTH = WIDTH/2
+	SCALED_HEIGHT = HEIGHT/2
 end
 
 MOAISim.openWindow ( "playsketch2", WIDTH, HEIGHT )
 
 -- set up viewport
 viewport = MOAIViewport.new ()
-viewport:setScale ( WIDTH, HEIGHT )
+viewport:setScale ( SCALED_WIDTH, SCALED_HEIGHT )
 viewport:setSize ( WIDTH, HEIGHT )
 
 -- set up a layer to draw to
@@ -66,12 +68,12 @@ end
 
 
 --Button for generating random lines
-widgets.newSimpleButton(-WIDTH/2+125,-HEIGHT/2+75,50,50, 
+widgets.newSimpleButton(-SCALED_WIDTH/2+125,-SCALED_HEIGHT/2+75,50,50, 
 						"resources/button_generate_lines.png", "resources/button_down.png",
 						function() test.helpers.generateLines(50,50) end )
 
 --Timeline slider
-local slider = widgets.newSlider(25, -HEIGHT/2+25, WIDTH-50, 50,
+local slider = widgets.newSlider(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
 							"resources/slider_background.png",
 							"resources/slider_button.png", 
 							"resources/slider_button_down.png", 
@@ -79,20 +81,20 @@ local slider = widgets.newSlider(25, -HEIGHT/2+25, WIDTH-50, 50,
 controllers.timeline.setSlider(slider)
 
 -- Timeline Play/Pause button					 
-widgets.newSimpleButton(-WIDTH/2+25,-HEIGHT/2+25, 50, 50, 
 							"resources/button_play.png", "resources/button_down.png", 
+local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+25, 50, 50, 
 							controllers.timeline.playPause)
 
 --picking draw mode vs selection mode
-widgets.newToggleButton(-WIDTH/2+175,-HEIGHT/2+75, 50, 50, 
+widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+75, 50, 50, 
 						{"resources/button_draw.png", "resources/button_select.png"}, 
 						"resources/button_down.png",
 						input.strokecapture.setMode)
 
 --Photo library buttons
 if MOAIPhotoPickerIOS then
-	local b1x,b1y = -WIDTH/2+25,  -HEIGHT/2+75
-	local b2x,b2y = -WIDTH/2+75, -HEIGHT/2+75
+	local b1x,b1y = -SCALED_WIDTH/2+25,  -SCALED_HEIGHT/2+75
+	local b2x,b2y = -SCALED_WIDTH/2+75, -SCALED_HEIGHT/2+75
 	widgets.newSimpleButton(b1x,b1y,50,50, 
 							"resources/button_photolibrary.png", "resources/button_down.png",
 							function() 
