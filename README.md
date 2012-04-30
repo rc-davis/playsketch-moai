@@ -29,13 +29,15 @@ To get the code:
 4. Building and Running on the Mac (for development & testing work)
 ---------------
 
-1.	Install xcode (you can get it from the Mac App Store)
+1.	Install Xcode (you can get it from the Mac App Store)
 
-2.	If this is a new install of Xcode, you'll have to set up the environment to point at your build tools. Assuming you've installed Xcode from the App store:
+2.	Launch Xcode and install the command-line tools. Under Xcode->Preferences->Downloads->Components, install the "Command Line Tools".
+
+3.	If this is a new install of Xcode, you'll have to set up the environment to point at your build tools. Assuming you've installed Xcode from the App store:
 
 	**> sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer**
 
-3.	Build moai-dev:
+4.	Build moai-dev:
 
 	**> cd sketch/moai-dev/xcode/osx**
 	
@@ -43,9 +45,25 @@ To get the code:
 	
 	This will put the moai binaries in sketch/moai-dev/osx/
 	
-4.	To run playsketch2:
+5.	To run playsketch2:
 
 	**> cd sketch/playsketch2/src/common-lua**
 	
 	**> ../../../moai-dev/bin/osx/Release/moai config.lua main.lua**
 	
+
+5. Building and deploying on iPad simulator
+---------------
+**[Note: without a developer certificate, you can only run it in the simulator]**
+
+1.	Install Xcode
+
+2.	From within Xcode, ensure you have installed a version of the iOS simulator (I've been developing against 5.0). Do this under Xcode->Preferences->Downloads. It will require a (free) apple developer account.
+
+3.	Open **sketch/playsketch2/src/PlaySketch2-ios/PlaySketch2.xcodeproj**
+
+4.	On the toolbar, where you select the scheme to build, make sure you have selected **PlaySketch2 - Release** and **iPad x.x Simulator**.
+
+5. Hit the play button to build and run. The build will take a while the first time. It should launch in the iOS simulator.
+	
+
