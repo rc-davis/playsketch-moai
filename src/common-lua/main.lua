@@ -53,13 +53,13 @@ local function addImage(path)
 	print ("requested to add image at ", path)
 	local userGfx = MOAIGfxQuad2D.new ()
 	userGfx:setTexture (path)
-	userGfx:setRect ( -400, -400, 400, 400 )
+	userGfx:setRect ( -130, -100, 130, 130 )
 	local userprop = MOAIProp2D.new ()
 	userprop:setDeck ( userGfx )
 	userprop:setLoc(0,0)
 	userprop.isSelected = false
-	userprop.points = {-400, -400, 400, -400, 400, 400, -400, 400 }
-	objects.storePropAsNewObject(userprop)
+	userprop.points = {-130, -130, 130, -130, 130, 130, -130, 130 }
+	controllers.objects.storePropAsNewObject(userprop)
 	
 end
 
