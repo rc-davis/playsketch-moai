@@ -10,6 +10,8 @@ playsketch2
 --------------
 **src/common-lua** contains the bulk of the interesting code. This is all of the application code, written in lua against the MOAI sdk.
 
+**src/PlaySketch2-ios** contains the Xcode project that combines the common-lua source with the moai binaries to deploy to iPad (or iPad simulator).
+
 See **src/common-lua/main.lua** for the application entry point.
 
 
