@@ -50,6 +50,16 @@ local function newButtonInternal( centerX, centerY, width, height,
 	b.callbackDown = callbackDown
 	b.callbackUp = callbackUp
 	b.callbackMoved = callbackMoved
+	
+	function b:setIndex(i)
+		assert(i <= #graphics, "must be a valid index to the list of button images")
+		self.index = i
+		self:setDeck(graphics[i])
+	end
+	
+	function b:getIndex()
+		return self.index
+	end
 
 	--Set up callback for down events
 	input.manager.addDownCallback(input.manager.UILAYER, 
@@ -59,7 +69,7 @@ local function newButtonInternal( centerX, centerY, width, height,
 				b.touchX,b.touchY = px,py				
 				b:setDeck(graphicsDown)
 				if b.callbackDown then
-					b.callbackDown(b.index, px, py)
+					b.callbackDown(b, px, py)
 				end
 				return true
 			end
@@ -74,7 +84,7 @@ local function newButtonInternal( centerX, centerY, width, height,
 				local dx,dy = (px-b.touchX),(py-b.touchY)
 				b.touchX,b.touchY = px,py
 				if b.callbackMoved then
-					b.callbackMoved(b.index, dx, dy, px, py)
+					b.callbackMoved(b, dx, dy, px, py)
 				end
 			end
 			return false
@@ -84,10 +94,9 @@ local function newButtonInternal( centerX, centerY, width, height,
 	input.manager.addUpCallback(input.manager.UILAYER, 
 		function (id,px,py)
 			if b.touchID ~= nil and id == b.touchID then
-				b.index = (b.index)%(#imgUpPathList) + 1
 				b:setDeck(graphics[b.index])
 				if b:inside(px,py) and b.callbackUp then
-					b.callbackUp(b.index, px, py)
+					b.callbackUp(b, px, py)
 				end
 				b.touchID = nil
 				return true
@@ -102,15 +111,15 @@ end
 
 
 -- newSimpleButton(): 	A plain pushbutton, which calls the callback after being pushed
--- 						the callback has the form: callback()
+-- 						the callback has the form: callback(button)
 function widgets.newSimpleButton( centerX, centerY, width, height, 
 					imgUpPath, imgDownPath, callbackUp)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
 					{imgUpPath}, imgDownPath,
 					nil, nil, nil)
-	b.callbackUp =	function(index, _, _) 
-						if b.callbackUp_Simple then b.callbackUp_Simple() end
+	b.callbackUp =	function(_, _, _) 
+						if b.callbackUp_Simple then b.callbackUp_Simple(b) end
 					end
 	b.callbackUp_Simple = callbackUp
 	return b
@@ -118,31 +127,32 @@ end
 
 
 -- newToggleButton(): 	Flips through the images in imgUpPathList
--- 						the callback has the form: callback(index)
+-- 						the callback has the form: callback(button)
 function widgets.newToggleButton( centerX, centerY, width, height, 
 					imgUpPathList, imgDownPath, callbackUp )
 					
 	local b = newButtonInternal( centerX, centerY, width, height, 
 					imgUpPathList, imgDownPath, 
 					nil, nil, nil)
-	b.callbackUp = 	function(index,_,_) 
-						if b.callbackUp_Toggle then b.callbackUp_Toggle(index) end
+
+	b.state = 1	
+	b.callbackUp = 	function(_,_,_) 
+						if b.callbackUp_Toggle then b.callbackUp_Toggle(b) end
 					end
 	b.callbackUp_Toggle = callbackUp
 	return b
 end
 
-
 -- newSimpleDragableButton(): 	a sprite that can be dragged around the screen
---		 						the callback has the form: callback(dx,dy)
+--		 						the callback has the form: callback(button,dx,dy)
 function widgets.newSimpleDragableButton( centerX, centerY, width, height, 
 					imgUpPath, imgDownPath, callbackDrag)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
 					{imgUpPath}, imgDownPath, nil, nil, nil)
-	b.callbackMoved = function (index,dx,dy,px,py) 
+	b.callbackMoved = function (_,dx,dy,px,py) 
 						b:moveLoc(dx,dy,0)
-						if b.callbackDrag then b.callbackDrag(dx,dy) end
+						if b.callbackDrag then b.callbackDrag(b,dx,dy) end
 					end
 	b.callbackDrag = callbackDrag
 	return b
@@ -150,7 +160,7 @@ end
 
 
 -- newSlider(): 	A slider that can be used to select a value (used for timelines)
--- 					the callback has the form: callback(value), when the value changes
+-- 					the callback has the form: callback(button,value), when the value changes
 --					Use :setValueSpan(min,max) to set the allowable range of values
 function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSlider, imgSliderDown, callback)
 
@@ -172,12 +182,12 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 	
 	--jump to a time when 
 	slider.background.callbackUp = 
-		function (index, px, py)
+		function (button, px, py)
 			slider:setAtX(x, 0)
 		end
 
 	slider.scrubber.callbackDrag = 
-		function (index, dx, dy)
+		function (button, dx, dy)
 			local px,_ = slider.scrubber:getLoc()
 			slider:setAtX(px, 0)
 		end
@@ -211,7 +221,7 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 
 		--callback
 		if self.callback and duration == 0 then --todo: should we skip callback?
-			self.callback(self.value)
+			self.callback(self, self.value)
 		end
 	end
 	

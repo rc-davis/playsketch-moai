@@ -28,8 +28,9 @@ controllers.timeline.playing = false
 
 
 -- setSlider(slider): Associates the timeline controller with the specified slider widget
-function controllers.timeline.setSlider(slider)
+function controllers.timeline.setButtons(slider, playButton)
 	controllers.timeline.slider = slider
+	controllers.timeline.playButton = playButton
 	controllers.timeline.slider:setValueSpan(controllers.timeline.span.min, 
 											controllers.timeline.span.max)
 end
@@ -44,8 +45,8 @@ local function bringModelToTime(new_time)
 end
 
 
---sliderMoved(time): Respond to the slider having been moved manually
-function controllers.timeline.sliderMoved(new_time)
+--sliderMoved(slider, time): Respond to the slider having been moved manually
+function controllers.timeline.sliderMoved(slider, new_time)
 	assert(new_time >= controllers.timeline.span.min and
 			new_time <= controllers.timeline.span.max,
 			"slider should stay within timeline's bounds")
@@ -64,13 +65,13 @@ end
 
 
 -- playPause():	Toggle the play/pause button
-function controllers.timeline.playPause() 
+function controllers.timeline.playPause(_) 
 
-	--TODO: should also flip the state of the button's graphic!
-
-	if not controllers.timeline.playing then controllers.timeline.play()
-	else controllers.timeline.pause() end
-
+	if not controllers.timeline.playing then 
+		controllers.timeline.play()
+	else
+		controllers.timeline.pause() 
+	end
 end
 
 
@@ -84,6 +85,7 @@ function controllers.timeline.play()
 	assert(not controllers.timeline.playing, 
 			"Timeline should be paused before calling controllers.timeline.play()")
 	controllers.timeline.playing = true
+	controllers.timeline.playButton:setIndex(2)
 
 	for i,o in ipairs(model.all_objects) do
 		o:playBack(controllers.timeline.slider:currentValue())
@@ -101,6 +103,7 @@ function controllers.timeline.pause()
 	assert(controllers.timeline.playing, 
 			"Timeline should be playing before calling controllers.timeline.pause()")
 	controllers.timeline.playing = false
+	controllers.timeline.playButton:setIndex(1)	
 	
 	--todo: figure out current time better?
 	controllers.timeline.slider:stop()

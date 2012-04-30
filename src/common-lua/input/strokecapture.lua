@@ -30,11 +30,15 @@ input.strokecapture.mode = input.strokecapture.MODE_DRAW
 local activeStrokes = {}
 
 
---setMode(mode):	Select who the stroke should be passed along to
-function input.strokecapture.setMode(mode)
-	print(mode)
-	if input.strokecapture.mode ~= mode then
-		input.strokecapture.mode = mode 
+--changeMode(button):	Respond to the button to specify if we are drawing or selecting
+function input.strokecapture.changeMode(button)
+
+	if button.index == 1 then 
+		input.strokecapture.mode = input.strokecapture.MODE_SELECT
+		button:setIndex(2)
+	else
+		input.strokecapture.mode = input.strokecapture.MODE_DRAW
+		button:setIndex(1)
 	end
 end
 
