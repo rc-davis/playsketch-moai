@@ -28,6 +28,7 @@ input.strokecapture.MODE_DRAW = 1
 input.strokecapture.MODE_SELECT = 2
 input.strokecapture.mode = input.strokecapture.MODE_DRAW
 local activeStrokes = {}
+local selectionStroke = nil
 
 
 --changeMode(button):	Respond to the button to specify if we are drawing or selecting
@@ -48,8 +49,10 @@ local function downCallback(id,x,y)
 	
 		if input.strokecapture.mode == input.strokecapture.MODE_DRAW then
 			activeStrokes[id] = controllers.drawing.startStroke()
-		elseif input.strokecapture.mode == input.strokecapture.MODE_SELECT then
+		elseif input.strokecapture.mode == input.strokecapture.MODE_SELECT 
+			and selectionStroke == nil then
 			activeStrokes[id] = controllers.selection.startStroke()	
+			selectionStroke = id
 		end
 
 		return true
@@ -71,6 +74,7 @@ local function upCallback(id,x,y)
 		activeStrokes[id] = nil	
 		drawingLayer:removeProp (stroke)
 		stroke:doneStroke()
+		if id == selectionStroke then selectionStroke = nil end
 	end
 	return false
 end
