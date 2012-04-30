@@ -30,8 +30,8 @@ function test.helpers.generateLines(nLines, nPointsPerLine)
 		local o = controllers.drawing.startStroke()
 
 		--make the points!
-		local x = math.random(-WIDTH/2, WIDTH/2)
-		local y = math.random(-HEIGHT/2, HEIGHT)
+		local x = math.random(-SCALED_WIDTH/2, SCALED_WIDTH/2)
+		local y = math.random(-SCALED_HEIGHT/2, SCALED_HEIGHT/2)
 		
 		for j=1,nPointsPerLine do	
 	
