@@ -106,17 +106,23 @@ function model.addObject(o, modeltable)
 		assert(frame_before ~= nil, "must retrieve a non-nil frame for any given time")
 		local frame_after = frame_before.nextFrame
 		
-		--TODO: test for type to interpolate (check if it is a table, then interpolate each value, otherwise, interpolate the values themselves
 		if frame_after == nil or frame_after.value == nil then 
 			return frame_before.value 
 		elseif frame_before.value == nil then 
 			return frame_after.value 
 		else
 			local pcnt = (time-frame_before.time)/(frame_after.time - frame_before.time)
-			local interp = {}
-			for k,v in pairs(frame_before.value) do
-				if frame_after.value then
-					interp[k] = v*(1-pcnt) + frame_after.value[k]*(pcnt)
+			local interp = nil
+			
+			--interpolate tables and single numbers
+			if type(frame_before.value) == "number" then
+				interp = frame_before.value*(1-pcnt) + frame_after.value*(pcnt)
+			elseif type(frame_before.value) == "table" then
+				interp = {}
+				for k,v in pairs(frame_before.value) do
+					if frame_after.value then
+						interp[k] = v*(1-pcnt) + frame_after.value[k]*(pcnt)
+					end
 				end
 			end
 			return interp
