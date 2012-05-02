@@ -68,10 +68,10 @@ end
 function controllers.disk.saveToDisk()
 
 	local modelstrings = {}
-	for i,o in ipairs(model.all_objects) do
-		modelstrings[i] = {}
-		modelstrings[i]['prop'] = o:propToSave()
-		modelstrings[i]['model'] = o:modelToSave()
+	for _,o in pairs(model.all_objects) do
+		modelstrings[o] = {}
+		modelstrings[o]['prop'] = o:propToSave()
+		modelstrings[o]['model'] = o:modelToSave()
 	end
 
 	--Dump modelstrings

@@ -30,8 +30,7 @@ model.keys = {LOCATION=1}
 -- addObject(o): Adds all of the state and functions to o to track lists of time-information
 function model.addObject(o)
 
-	table.insert(model.all_objects, o)
-	print("! Created object # " .. #model.all_objects) 
+	model.all_objects[o] = o
 
 	-- add state
 	o.streams = {}

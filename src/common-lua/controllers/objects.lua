@@ -71,9 +71,7 @@ function controllers.objects.storePropAsNewObject(o)
 		if self.currentAnimation then
 			self.currentAnimation:stop()
 		end
-		
 	end
-	
 	
 	-- getCorrectedPointsAtTime(t): Helper for selection lasso. 
 	--								Returns the points corrected to the supplied time

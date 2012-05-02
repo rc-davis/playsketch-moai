@@ -38,7 +38,7 @@ end
 
 --LOCAL bringModelToTime(new_time):	Sets all objects to their state for a given time
 local function bringModelToTime(new_time)
-	for i, o in ipairs(model.all_objects) do
+	for _, o in pairs(model.all_objects) do
 		local p = o:getInterpolatedValueForTime(model.keys.LOCATION, new_time)
 		o:setLoc(p.x, p.y)
 	end
@@ -87,7 +87,7 @@ function controllers.timeline.play()
 	controllers.timeline.playing = true
 	controllers.timeline.playButton:setIndex(2)
 
-	for i,o in ipairs(model.all_objects) do
+	for _,o in pairs(model.all_objects) do
 		o:playBack(controllers.timeline.slider:currentValue())
 	end
 
@@ -108,7 +108,7 @@ function controllers.timeline.pause()
 	--todo: figure out current time better?
 	controllers.timeline.slider:stop()
 
-	for i,o in ipairs(model.all_objects) do
+	for _,o in pairs(model.all_objects) do
 		o:stopPlayback()
 	end
 	

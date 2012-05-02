@@ -49,7 +49,7 @@ function controllers.selection.startStroke()
 	-- this might get expensive?
 	local cached_points = {}
 	local current_time = controllers.timeline.currentTime()
-	for i,o in ipairs(model.all_objects) do
+	for _,o in pairs(model.all_objects) do
 		cached_points[o] = o:getCorrectedPointsAtTime(current_time)
 		o.isSelected = false
 	end
@@ -141,7 +141,7 @@ function controllers.selection.startStroke()
 	function selection_stroke:doneStroke()
 
 		controllers.selection.selectedSet = {}
-		for i,o in ipairs(model.all_objects) do
+		for _,o in pairs(model.all_objects) do
 			if o.isSelected then 
 				table.insert(controllers.selection.selectedSet, o)
 			end
