@@ -194,8 +194,8 @@ function controllers.selection.showManipulator()
 			avgY = avgY/#controllers.selection.selectedSet			
 		
 			--ensure we are still on the screen
-			avgX = math.min(WIDTH/2, math.max(-WIDTH/2, avgX))
-			avgY = math.min(HEIGHT/2, math.max(-HEIGHT/2, avgY))
+			avgX = math.min(SCALED_WIDTH/2, math.max(-SCALED_WIDTH/2, avgX))
+			avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 		
 			--show it there
 			manipulatorWidget:moveTo(avgX, avgY)
