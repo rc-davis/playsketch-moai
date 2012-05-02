@@ -21,6 +21,18 @@ require "util/util"
 
 controllers.disk = {}
 
+-- pathToSaveFile(): "out.data" in the current directory, or in the docs directory on iOS
+local function pathToSaveFile()
+	local path = ""
+	if MOAIAppIOS then
+		path = MOAIAppIOS.getDirectoryInDomain(MOAIAppIOS.DOMAIN_DOCUMENTS).."/out.data"
+	else
+		path = "out.data"
+	end	
+	return path
+end
+
+
 -- saveToDisk():	Queries the model.all_objects for the values needed to reconstruct them
 --					This includes propToSave (for the drawable aspects) and modelToSave.
 function controllers.disk.saveToDisk()
@@ -33,7 +45,7 @@ function controllers.disk.saveToDisk()
 	end
 
 	--Dump to disk
-	io.output("out.data", "w")
+	io.output(pathToSaveFile(), "w")
 	io.write(util.pickle.pickle(objectmodels))
 	io.output():close()
 end
@@ -42,10 +54,12 @@ end
 -- loadFromDisk():	Loads out.data and rebuilds the objects using the objects controller
 function controllers.disk.loadFromDisk()
 
+	local file = io.open(pathToSaveFile(), 'r')
+	if not file then return end
+	
 	--Load the text from disk
-	io.input("out.data", "r")
-	local objecttables = util.pickle.unpickle(io.read("*all"))
-	io.input():close()
+	local objecttables = util.pickle.unpickle(file:read("*all"))
+	file:close()
 	if not objecttables then return end
 
 	--Clear any objects already there
