@@ -27,6 +27,7 @@ controllers.objects = {}
 -- storePropAsNewObject(o): Add a new object to the collection
 function controllers.objects.storePropAsNewObject(o)
 	controllers.objects.storeProp(o, {})
+	local x,y = o:getLoc()	
 	o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=x,y=y})
 	
 end
@@ -35,7 +36,6 @@ function controllers.objects.storeProp(o, modeltable)
 
 	drawingLayer:insertProp (o)
 	model.addObject(o, modeltable)
-	local x,y = o:getLoc()
 
 	-- playBack(time):	this object will immediately start to perform its animations
 	--					beginning at 'time'
