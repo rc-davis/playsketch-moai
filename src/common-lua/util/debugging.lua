@@ -25,7 +25,7 @@ function util.debugging.recursivePrint(t, depth)
 		end
 		print(prefix.."}")		
 	else
-		print(prefix..type(t)..": "..t)
+		print(prefix..type(t)..tostring(t))
 	end
 end
 
