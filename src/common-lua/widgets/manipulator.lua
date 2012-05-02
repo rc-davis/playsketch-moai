@@ -165,7 +165,10 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 					local angleNew = math.atan2(py - yCenter, 
 												px - xCenter)
 					--calculate the angle between current touch and touchLoc
-					local dAngle = math.deg(angleNew - angleLast)
+					local dAngleRad = angleNew - angleLast
+					if dAngleRad > math.pi then dAngleRad = dAngleRad - 2*math.pi end
+					if dAngleRad < -math.pi then dAngleRad = dAngleRad + 2*math.pi end
+					local dAngle = math.deg(dAngleRad)
 					prop.touchLoc = {x=px, y=py}
 					prop:addRot(dAngle, dAngle)
 					if prop.rotateCallback then prop.rotateCallback(dAngle) end
