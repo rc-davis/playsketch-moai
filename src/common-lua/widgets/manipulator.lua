@@ -209,6 +209,7 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 		self.visible = true
 		self:setVisible(true)
 		self:setRot(0,0)
+		self:setScl(1)
 	end
 
 	function prop:moveTo(x,y)
