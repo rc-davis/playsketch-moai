@@ -93,11 +93,16 @@ widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+75, 50, 50,
 						input.strokecapture.changeMode)
 
 widgets.newSimpleButton(-SCALED_WIDTH/2+225,-SCALED_HEIGHT/2+75,50,50, 
-						"resources/button.png", "resources/button_down.png",
+						"resources/button_save.png", "resources/button_down.png",
 						controllers.disk.saveToDisk)
 
-
 widgets.newSimpleButton(-SCALED_WIDTH/2+275,-SCALED_HEIGHT/2+75,50,50, 
+						"resources/button_load.png", "resources/button_down.png",
+						controllers.disk.loadFromDisk)
+
+
+
+widgets.newSimpleButton(-SCALED_WIDTH/2+325,-SCALED_HEIGHT/2+75,50,50, 
 						"resources/button_clear.png", "resources/button_down.png",
 						controllers.objects.deleteAll)
 
