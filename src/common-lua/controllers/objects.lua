@@ -105,5 +105,20 @@ function controllers.objects.storePropAsNewObject(o)
 end
 
 
+-- deleteAll(): Removes all objects from the model
+function controllers.objects.deleteAll()
+	for _,o in pairs(model.all_objects) do
+		controllers.objects.delete(o)
+	end
+end
+
+
+-- delete(o): Cleans up any associated properties and deletes an object from the model
+function controllers.objects.delete(o)
+	o:stopPlayback()
+	drawingLayer:removeProp(o)
+	model.deleteObject(o)
+end
+
 
 return controllers.objects

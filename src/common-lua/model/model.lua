@@ -153,4 +153,10 @@ function model.addObject(o)
 	return o
 end
 
+
+-- deleteObject(o):	Removes the object from the model
+function model.deleteObject(o)
+	model.all_objects[o] = nil
+end
+
 return model
