@@ -30,6 +30,7 @@ function controllers.objects.storePropAsNewObject(o)
 	local x,y = o:getLoc()	
 	o:setValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime(), {x=x,y=y})
 	o:setValueForTime(model.keys.ROTATION, controllers.timeline:currentTime(), 0)
+	o:setValueForTime(model.keys.SCALE, controllers.timeline:currentTime(), 1)	
 	
 end
 
@@ -75,6 +76,10 @@ function controllers.objects.storeProp(o, modeltable)
 		self.thread[model.keys.ROTATION]:run ( playThread, model.keys.ROTATION,
 							function (o,rot) o:setRot(rot) end,
 							function (o,rot, timeDelta) return o:seekRot(rot, timeDelta, MOAIEaseType.LINEAR) end)
+		self.thread[model.keys.SCALE] = MOAIThread.new ()
+		self.thread[model.keys.SCALE]:run ( playThread, model.keys.SCALE,
+							function (o,scale) o:setScl(scale) end,
+							function (o,scale, timeDelta) return o:seekScl(scale, scale, timeDelta, MOAIEaseType.LINEAR) end)
 
 	end
 	
@@ -98,7 +103,7 @@ function controllers.objects.storeProp(o, modeltable)
 			new_points[j+1] = self.points[j+1] + dy
 		end
 		
-		--TODO: correct for rotation here too!
+		--TODO: correct for rotation AND SCALE here too!
 		
 		return new_points
 	end

@@ -178,8 +178,13 @@ function controllers.selection.showManipulator()
 				end
 			end,
 
-			nil -- TODO scale callback
-
+			function(dScale)
+				for i,o in ipairs(controllers.selection.selectedSet) do
+					local old_scale = o:getInterpolatedValueForTime(model.keys.SCALE, controllers.timeline:currentTime())
+					o:setValueForTime(model.keys.SCALE, controllers.timeline:currentTime(), old_scale + dScale)
+					o:setScl(old_scale + dScale)
+				end
+			end
 			)
 	end
 

@@ -43,6 +43,9 @@ local function bringModelToTime(new_time)
 		o:setLoc(p.x, p.y)
 		local r = o:getInterpolatedValueForTime(model.keys.ROTATION, new_time)
 		o:setRot(r)
+		local s = o:getInterpolatedValueForTime(model.keys.SCALE, new_time)
+		o:setScl(s)
+		
 	end
 end
 
