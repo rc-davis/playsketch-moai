@@ -28,12 +28,15 @@ controllers.objects = {}
 function controllers.objects.storePropAsNewObject(o)
 	controllers.objects.storeProp(o, {})
 	local x,y = o:getLoc()	
-	o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=x,y=y})
+	o:setValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime(), {x=x,y=y})
+	o:setValueForTime(model.keys.ROTATION, controllers.timeline:currentTime(), 0)
 	
 end
 
 function controllers.objects.storeProp(o, modeltable)
 
+	o.thread = {}
+	o.currentAnimation = {}
 	drawingLayer:insertProp (o)
 	model.addObject(o, modeltable)
 
@@ -41,39 +44,45 @@ function controllers.objects.storeProp(o, modeltable)
 	--					beginning at 'time'
 	function o:playBack(start_time)
 	
-		function playThread()
+	
+		-- playThread():start a coroutine that tracks changes in the 'KEY' list of the model
+		--				immediateCallback is the code for setting the value immediately (setLoc)
+		--				timedCallback is the code for moving to the new state (seekLoc)
+		function playThread(KEY, immediateCallback, timedCallback)
 			local current_time = start_time
-			local loc = o:getInterpolatedValueForTime(model.keys.LOCATION, current_time)			
-			local s = o:getFrameForTime(model.keys.LOCATION, start_time)
-			o:setLoc(loc.x, loc.y)
+			local loc = o:getInterpolatedValueForTime(KEY, current_time)
+			local s = o:getFrameForTime(KEY, start_time)
+			immediateCallback(o, loc)
+
 			
 			while s ~= nil and s.nextFrame ~= nil and s.nextFrame.value ~= nil do
 			
 				local timeDelta = s.nextFrame.time - current_time
 				local loc_new = s.nextFrame.value
-				self.currentAnimation = self:seekLoc(loc_new.x, loc_new.y, timeDelta, MOAIEaseType.LINEAR)
-				MOAIThread.blockOnAction(self.currentAnimation)
+				o.currentAnimation[KEY] = timedCallback(o, loc_new, timeDelta)
+				MOAIThread.blockOnAction(self.currentAnimation[KEY])
 				current_time = s.nextFrame.time
 				s = s.nextFrame
 			end
 		end
 		
-		self.thread = MOAIThread.new ()
-		self.thread:run ( playThread, self )
-	
+		-- start our animation threads for each kind of transition (SRT)
+		self.thread[model.keys.TRANSLATION] = MOAIThread.new ()
+		self.thread[model.keys.TRANSLATION]:run ( playThread, model.keys.TRANSLATION, 
+							function (o,loc) o:setLoc(loc.x, loc.y) end,
+							function (o,loc, timeDelta) return o:seekLoc(loc.x, loc.y, timeDelta, MOAIEaseType.LINEAR) end)
+		self.thread[model.keys.ROTATION] = MOAIThread.new ()
+		self.thread[model.keys.ROTATION]:run ( playThread, model.keys.ROTATION,
+							function (o,rot) o:setRot(rot) end,
+							function (o,rot, timeDelta) return o:seekRot(rot, timeDelta, MOAIEaseType.LINEAR) end)
+
 	end
 	
 	
 	-- stopPlayback():	if the object is being animated, it will stop immediately
 	function o:stopPlayback()
-
-		if self.thread then
-			self.thread:stop()
-		end
-		
-		if self.currentAnimation then
-			self.currentAnimation:stop()
-		end
+		for _,t in pairs(self.thread) do if t then t:stop() end end
+		for _,a in pairs(self.currentAnimation) do if a then a:stop() end end		
 	end
 	
 	-- getCorrectedPointsAtTime(t): Helper for selection lasso. 
@@ -81,13 +90,15 @@ function controllers.objects.storeProp(o, modeltable)
 	-- TODO: VERY TEMPORARY. This will need to get much much fancier!	
 	function o:getCorrectedPointsAtTime(t)	
 
-		local loc = o:getInterpolatedValueForTime(model.keys.LOCATION, t)
+		local loc = o:getInterpolatedValueForTime(model.keys.TRANSLATION, t)
 		local dx,dy = loc.x, loc.y
 		new_points = {}
 		for j=1,#self.points,2 do
 			new_points[j] = self.points[j] + dx
 			new_points[j+1] = self.points[j+1] + dy
 		end
+		
+		--TODO: correct for rotation here too!
 		
 		return new_points
 	end

@@ -164,13 +164,21 @@ function controllers.selection.showManipulator()
 		manipulatorWidget = widgets.newManipulator(
 			function(dx,dy)
 				for i,o in ipairs(controllers.selection.selectedSet) do
-					local old_loc = o:getInterpolatedValueForTime(model.keys.LOCATION, controllers.timeline:currentTime())
-					o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
+					local old_loc = o:getInterpolatedValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime())
+					o:setValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
 					o:setLoc(old_loc.x+dx, old_loc.y+dy)
 				end
 			end,
 
-			nil -- TODO rotate callback
+			function(dRot)
+				for i,o in ipairs(controllers.selection.selectedSet) do
+					local old_rot = o:getInterpolatedValueForTime(model.keys.ROTATION, controllers.timeline:currentTime())
+					o:setValueForTime(model.keys.ROTATION, controllers.timeline:currentTime(), old_rot + dRot)
+					o:setRot(old_rot + dRot)
+				end
+			end,
+
+			nil -- TODO scale callback
 
 			)
 	end

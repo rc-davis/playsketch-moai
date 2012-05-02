@@ -39,8 +39,10 @@ end
 --LOCAL bringModelToTime(new_time):	Sets all objects to their state for a given time
 local function bringModelToTime(new_time)
 	for _, o in pairs(model.all_objects) do
-		local p = o:getInterpolatedValueForTime(model.keys.LOCATION, new_time)
+		local p = o:getInterpolatedValueForTime(model.keys.TRANSLATION, new_time)
 		o:setLoc(p.x, p.y)
+		local r = o:getInterpolatedValueForTime(model.keys.ROTATION, new_time)
+		o:setRot(r)
 	end
 end
 

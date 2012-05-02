@@ -24,7 +24,7 @@
 
 model = {}
 model.all_objects = {}
-model.keys = {LOCATION=1}
+model.keys = {TRANSLATION=1, ROTATION=2}
 
 
 -- addObject(o): Adds all of the state and functions to o to track lists of time-information
