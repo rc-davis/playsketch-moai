@@ -26,13 +26,16 @@ controllers.objects = {}
 
 -- storePropAsNewObject(o): Add a new object to the collection
 function controllers.objects.storePropAsNewObject(o)
+	controllers.objects.storeProp(o, {})
+	o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=x,y=y})
+	
+end
+
+function controllers.objects.storeProp(o, modeltable)
 
 	drawingLayer:insertProp (o)
-	model.addObject(o)
+	model.addObject(o, modeltable)
 	local x,y = o:getLoc()
-
-	o:setValueForTime(model.keys.LOCATION, controllers.timeline:currentTime(), {x=x,y=y})
-
 
 	-- playBack(time):	this object will immediately start to perform its animations
 	--					beginning at 'time'
@@ -120,5 +123,18 @@ function controllers.objects.delete(o)
 	model.deleteObject(o)
 end
 
+
+function controllers.objects.loadFromTable(objecttable)
+	assert(objecttable.prop and objecttable.prop.proptype and objecttable.model,
+		"To restore a prop, it needs a proptype, model, and prop tables")
+
+	if objecttable.prop.proptype == "DRAWING" then
+		local o = controllers.drawing.loadSavedProp(objecttable.prop)
+		o:loadSavedModel(objecttable.model)
+	else
+		assert(false, "attempting to load unknown object type: "..objecttable.prop.proptype)
+		--todo: load other proptypes here
+	end
+end
 
 return controllers.objects

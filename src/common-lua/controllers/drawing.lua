@@ -25,7 +25,8 @@ require "model/model"
 
 controllers.drawing = {}
 
-function controllers.drawing.startStroke()
+
+function controllers.drawing.newStroke()
 
 	local strokeDeck = MOAIScriptDeck.new ()
 	local new_stroke = MOAIProp2D.new ()
@@ -89,11 +90,38 @@ function controllers.drawing.startStroke()
 	end
 
 	function new_stroke:propToSave()
-		return {points=self.points}
+		local x,y = self:getLoc()
+		return {points=self.points, proptype="DRAWING", location={x=x,y=y}}
+	end
+
+	function new_stroke:loadSaved(proptable)
+		self.points = {}
+		local max_id = 0
+		for k,v in pairs(proptable.points) do
+			max_id = math.max(max_id, k)
+		end
+		for i=1,max_id do
+			table.insert(self.points, proptable.points[i])
+		end
+		self:doneStroke()
+		self:setLoc(proptable.location.x, proptable.location.y)		
 	end
 
 	return new_stroke
 
+end
+
+
+function controllers.drawing.startStroke()
+	return controllers.drawing.newStroke()
+end
+
+
+function controllers.drawing.loadSavedProp(proptable)
+
+	local new_stroke = controllers.drawing.newStroke()
+	new_stroke:loadSaved(proptable)
+	return new_stroke
 end
 
 

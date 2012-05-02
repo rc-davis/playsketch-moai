@@ -28,12 +28,12 @@ model.keys = {LOCATION=1}
 
 
 -- addObject(o): Adds all of the state and functions to o to track lists of time-information
-function model.addObject(o)
+function model.addObject(o, modeltable)
 
 	model.all_objects[o] = o
 
 	-- add state
-	o.streams = {}
+	o.streams = modeltable
 
 	
 	-- createStream(key):	initialize a new list with the specified key
@@ -150,6 +150,11 @@ function model.addObject(o)
 		return {streams=self.streams}
 	end
 	
+
+	function o:loadSavedModel(table)
+		self.streams=table.streams
+	end
+
 	return o
 end
 
