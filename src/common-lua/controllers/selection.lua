@@ -212,6 +212,9 @@ function controllers.selection.showManipulator()
 		
 			--show it there
 			manipulatorWidget:moveTo(avgX, avgY)
+			--TODO: this should also update the rotation and the scaling of the widget
+			-- it isn't clear what this means for a group right now, until we
+			-- have a better model that lets us having this independently
 			
 			coroutine.yield ()
 		end
