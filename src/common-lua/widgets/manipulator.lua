@@ -15,10 +15,6 @@
 
 	The k-sketch SRT manipulator.
 	
-	TODO: 
-		- No scaling
-		- semi-transparent
-
 --]]
 
 
@@ -27,12 +23,12 @@ local innerDiameterPcnt = 0.4 --as percentage of the width of the box
 local outerDiameterPcnt = 0.8
 local defaultWidth = 250
 local ROOT_2 = 1.414213562
-local scaleHandleFillColor = {0, 0.8, 0.01, 1.0}
-local scaleHandleStrokeColor = {0, 0.5, 0.01, 1.0}
-local rotationBackgroundColor = {0.452, 0.432, 0.772, 1.000}
-local rotationHandleColor = {1.0, 1.0, 1.0, 1.000}
+local scaleHandleBackgroundColor = {0, 0.4, 0.005, 0.5}
+local scaleHandleHandleColor = {0, 0.25, 0.005, 0.5}
+local rotationBackgroundColor = {0.23, 0.21, 0.35, 0.5}
+local rotationHandleColor = {0.5, 0.5, 0.5, 0.5}
 local rotationStrokeColor = {0.160, 0.122, 0.772, 1.000}
-local translateHandleColor = {0.95, 0.95, 1.0, 1.000}
+local translateHandleColor = {0.5, 0.5, 0.5, 0.5}
 local highlightColor = {1.0, 0, 0, 1.0}
 
 local actions = {SCALE=1, ROTATE=2, TRANSLATE=3}
@@ -46,8 +42,6 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 
 	local prop = MOAIProp2D.new ()
 	prop:setDeck ( scriptDeck )	
-	--prop:setBlendMode(MOAIProp.GL_DST_COLOR, MOAIProp.GL_ONE_MINUS_SRC_ALPHA)
-	--todo, make translucent
 	widgets.layer:insertProp(prop)
 
 	--set instance variables
@@ -63,14 +57,14 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 		function ( index, xOff, yOff, xFlip, yFlip )
 
 			--draw background
-			MOAIGfxDevice.setPenColor (unpack(scaleHandleFillColor))
+			MOAIGfxDevice.setPenColor (unpack(scaleHandleBackgroundColor))
 			MOAIDraw.fillRect( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
 
 			--draw scale handles
 			if prop.currentAction == actions.SCALE then
 				MOAIGfxDevice.setPenColor (unpack(highlightColor))
 			else
-				MOAIGfxDevice.setPenColor (unpack(scaleHandleStrokeColor))			
+				MOAIGfxDevice.setPenColor (unpack(scaleHandleHandleColor))			
 			end
 			local scaleLoc = (defaultWidth/2)*(outerDiameterPcnt/ROOT_2) -- x/y for the handle corner
 			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
