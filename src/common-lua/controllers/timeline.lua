@@ -24,6 +24,7 @@ controllers.timeline = {}
 controllers.timeline.span = {min=0, max=15}
 controllers.timeline.slider = nil
 controllers.timeline.playing = false
+controllers.timeline.playingStartTime = nil
 
 
 
@@ -65,7 +66,11 @@ end
 
 -- currentTime():	Global way of exposing the current timeline time! Use this!
 function controllers.timeline.currentTime()
-	return controllers.timeline.slider:currentValue()
+	if controllers.timeline.playing then
+		return MOAISim.getDeviceTime() - controllers.timeline.playingStartTime
+	else
+		return controllers.timeline.slider:currentValue()
+	end
 end
 
 
@@ -90,6 +95,7 @@ function controllers.timeline.play()
 	assert(not controllers.timeline.playing, 
 			"Timeline should be paused before calling controllers.timeline.play()")
 	controllers.timeline.playing = true
+	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - controllers.timeline.slider:currentValue()
 	controllers.timeline.playButton:setIndex(2)
 
 	for _,o in pairs(model.all_objects) do
@@ -108,6 +114,7 @@ function controllers.timeline.pause()
 	assert(controllers.timeline.playing, 
 			"Timeline should be playing before calling controllers.timeline.pause()")
 	controllers.timeline.playing = false
+	controllers.timeline.playingStartTime = nil
 	controllers.timeline.playButton:setIndex(1)	
 	
 	--todo: figure out current time better?
