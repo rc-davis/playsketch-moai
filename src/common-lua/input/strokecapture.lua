@@ -81,7 +81,6 @@ local function upCallback(id,x,y)
 end
 
 local function cancelledCallback()
-	print("cancel callback")
 	for i,_ in pairs(activeStrokes) do
 		activeStrokes[i]:cancel()
 		activeStrokes[i] = nil	
