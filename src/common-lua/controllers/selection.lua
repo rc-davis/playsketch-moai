@@ -150,6 +150,13 @@ function controllers.selection.startStroke()
 		controllers.selection.showManipulator()
 	end
 
+	--cancel():	Cancel the drawing of the selection stroke	
+	function selection_stroke:cancel()
+		drawingLayer:removeProp (self)
+		controllers.selection.clearSelection()
+	end
+
+
 	return selection_stroke
 end
 
@@ -231,6 +238,11 @@ function controllers.selection.clearSelection()
 		manipulatorWidgetThread:stop()
 		manipulatorWidgetThread = nil
 	end
+	
+	for _,o in pairs(model.all_objects) do
+		o.isSelected = false
+	end
+	
 	if manipulatorWidget then manipulatorWidget:hide() end
 	controllers.selection.selectedSet = {}
 

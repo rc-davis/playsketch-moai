@@ -15,7 +15,7 @@
 
 	- Abstract away whether we have touches or mouses depending on platform
 	- multiplex the input events from moai
-	- to register for mouse events, use: add{Up,Down,Moved}Callback()
+	- to register for mouse events, use: add{Up,Down,Moved,Cancelled}Callback()
 	- NOTE: Callbacks get called in the order of each layer they are on.
 			A callback can return 'true' to say the event has been consumed and it will 
 			not get passed on to any other callbacks.
@@ -47,6 +47,12 @@ function input.manager.addMovedCallback(layer, c)
 	table.insert(input.manager.callbacks.moved[layer], c)
 end
 
+
+-- addCancelledCallback(layer,c): Has the form callback()
+function input.manager.addCancelledCallback(layer, c)
+	input.manager.callbacks.cancelled[layer] = input.manager.callbacks.cancelled[layer] or {}
+	table.insert(input.manager.callbacks.cancelled[layer], c)
+end
 
 
 -- Internal Callbacks for passing along input we've received
@@ -82,22 +88,36 @@ local function touchCallbackInternal( eventType, id, x_wnd, y_wnd, tapCount )
 
 	if eventType == MOAITouchSensor.TOUCH_DOWN then
 		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
-			for i=#input.manager.callbacks.down[l],1,-1 do
-				if input.manager.callbacks.down[l][i](id, x, y) then return end
-		    end
+			if input.manager.callbacks.down[l] then
+				for i=#input.manager.callbacks.down[l],1,-1 do
+					if input.manager.callbacks.down[l][i](id, x, y) then return end
+				end
+			end
 	    end
 	    	
 	elseif eventType == MOAITouchSensor.TOUCH_UP  then
 		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
-			for i=#input.manager.callbacks.up[l],1,-1 do
-				if input.manager.callbacks.up[l][i](id, x, y) then return end
-		    end
+			if input.manager.callbacks.up[l] then
+				for i=#input.manager.callbacks.up[l],1,-1 do
+					if input.manager.callbacks.up[l][i](id, x, y) then return end
+				end
+			end
 	    end
 	    
 	elseif eventType == MOAITouchSensor.TOUCH_MOVE  then
 		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
-			for i=#input.manager.callbacks.moved[l],1,-1 do
-				if input.manager.callbacks.moved[l][i](id, x, y) then return end
+			if input.manager.callbacks.moved[l] then
+				for i=#input.manager.callbacks.moved[l],1,-1 do
+					if input.manager.callbacks.moved[l][i](id, x, y) then return end
+				end
+			end
+		end
+	elseif eventType == MOAITouchSensor.TOUCH_CANCEL then
+		for i,l in ipairs({input.manager.UILAYER,input.manager.DRAWINGLAYER}) do
+			if input.manager.callbacks.cancelled[l] then
+				for i=#input.manager.callbacks.cancelled[l],1,-1 do
+					if input.manager.callbacks.cancelled[l][i]() then return end
+				end
 			end
 		end
 	end
@@ -109,6 +129,7 @@ input.manager.callbacks = {}
 input.manager.callbacks.down = {}
 input.manager.callbacks.up = {}
 input.manager.callbacks.moved = {}
+input.manager.callbacks.cancelled = {}
 
 -- Set up the moai callbacks for mouse and touch!
 

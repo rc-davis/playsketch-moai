@@ -79,12 +79,21 @@ local function upCallback(id,x,y)
 	end
 	return false
 end
-	
+
+local function cancelledCallback()
+	print("cancel callback")
+	for i,_ in pairs(activeStrokes) do
+		activeStrokes[i]:cancel()
+		activeStrokes[i] = nil	
+	end
+	selectionStroke = nil
+	return false
+end	
 
 -- INIT!
 input.manager.addDownCallback( input.manager.DRAWINGLAYER, downCallback)
 input.manager.addMovedCallback( input.manager.DRAWINGLAYER, movedCallback)
 input.manager.addUpCallback( input.manager.DRAWINGLAYER, upCallback)
-
+input.manager.addCancelledCallback( input.manager.DRAWINGLAYER, cancelledCallback)
 
 return input.strokecapture

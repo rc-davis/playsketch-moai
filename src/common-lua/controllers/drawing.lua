@@ -88,6 +88,13 @@ function controllers.drawing.newStroke()
 		strokeDeck:setRect (-width/2, -height/2, width/2, height/2)
 		controllers.objects.storePropAsNewObject(self)
 	end
+	
+	--cancel():	Cancel the drawing of the stroke	
+	function new_stroke:cancel()
+		drawingLayer:removeProp (self)
+		print("CANCELLING")
+	end
+
 
 	function new_stroke:propToSave()
 		local x,y = self:getLoc()
