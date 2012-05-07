@@ -45,7 +45,6 @@ function DrawableObject:init(prop)
 end
 
 function DrawableObject:delete()
-	self:stopPlayback()
 	drawingLayer:removeProp(self.prop)
 end
 

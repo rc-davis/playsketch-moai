@@ -61,14 +61,23 @@ function model.addFromTable(table)
 end
 
 
-function model.deleteDrawble(drawable)
+function model.deleteDrawable(drawable)
 	drawable:delete()
 	all_drawables[drawable] = nil
 end
 
+function model.deleteUserTransform(usertransform)
+	usertransform:delete()
+	all_user_transforms[usertransform] = nil
+end
+
 function model.deleteAll()
 	for _,d in pairs(all_drawables) do
-		model.delete(d)
+		model.deleteDrawable(d)
+	end
+	
+	for _,ut in pairs(all_user_transforms) do
+		model.deleteUserTransform(d)
 	end
 end
 

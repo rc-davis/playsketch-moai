@@ -159,4 +159,10 @@ function UserTransform:stopPlayback()
 end
 
 
+function UserTransform:delete()
+	self:stopPlayback()
+	--todo: remove all of the dependent transforms!!
+end
+
+
 return model.usertransform
