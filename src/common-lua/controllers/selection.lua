@@ -49,7 +49,7 @@ function controllers.selection.startStroke()
 	-- this might get expensive?
 	local cached_points = {}
 	local current_time = controllers.timeline.currentTime()
-	for _,o in pairs(model.all_objects) do
+	for _,o in pairs(model.allDrawables()) do
 		cached_points[o] = o:getCorrectedPointsAtTime(current_time)
 		o.isSelected = false
 	end
@@ -141,7 +141,7 @@ function controllers.selection.startStroke()
 	function selection_stroke:doneStroke()
 
 		controllers.selection.selectedSet = {}
-		for _,o in pairs(model.all_objects) do
+		for _,o in pairs(model.allDrawables()) do
 			if o.isSelected then 
 				table.insert(controllers.selection.selectedSet, o)
 			end
@@ -169,30 +169,18 @@ function controllers.selection.showManipulator()
 	--create the manipulator widget if it doesn't exist
 	if not manipulatorWidget then
 		manipulatorWidget = widgets.newManipulator(
-			function(dx,dy)
-				for i,o in ipairs(controllers.selection.selectedSet) do
-					local old_loc = o:getInterpolatedValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime())
-					o:setValueForTime(model.keys.TRANSLATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
-					o:setLoc(old_loc.x+dx, old_loc.y+dy)
-				end
+
+			function(dx,dy) 
+				model.updateSelectionTranslate(controllers.selection.selectedSet,dx,dy)
 			end,
 
-			function(dRot)
-				for i,o in ipairs(controllers.selection.selectedSet) do
-					local old_rot = o:getInterpolatedValueForTime(model.keys.ROTATION, controllers.timeline:currentTime())
-					o:setValueForTime(model.keys.ROTATION, controllers.timeline:currentTime(), old_rot + dRot)
-					o:setRot(old_rot + dRot)
-				end
+			function(dRot) 
+				model.updateSelectionRotate(controllers.selection.selectedSet,dRot)
 			end,
 
-			function(dScale)
-				for i,o in ipairs(controllers.selection.selectedSet) do
-					local old_scale = o:getInterpolatedValueForTime(model.keys.SCALE, controllers.timeline:currentTime())
-					o:setValueForTime(model.keys.SCALE, controllers.timeline:currentTime(), old_scale + dScale)
-					o:setScl(old_scale + dScale)
-				end
-			end
-			)
+			function(dScale) 
+				model.updateSelectionScale(controllers.selection.selectedSet,dScale)
+			end)
 	end
 
 	-- selectionMain(): Loops as long as there are items in the selected set
@@ -239,7 +227,7 @@ function controllers.selection.clearSelection()
 		manipulatorWidgetThread = nil
 	end
 	
-	for _,o in pairs(model.all_objects) do
+	for _,o in pairs(model.allDrawables()) do
 		o.isSelected = false
 	end
 	

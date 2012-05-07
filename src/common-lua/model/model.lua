@@ -12,162 +12,194 @@
 --[[
 
 	model/model.lua
-
-	The most basic data structure for holding the animation steps for an object in time.
-	For any supplied key, it creates a list of nodes with values for that key, associated with a time.
-	When looking up the value at a point in time, it returns the node immediately <= to the requested time
-
-	-- TODO: REPLACE OUR streams LISTS with some btrees with iterator, for faster lookup
+	
+	The interface point for ALL logic on creating/grouping objects and
+	interacting with the model.
 
 --]]
 
 
 model = {}
-model.all_objects = {}
-model.keys = {TRANSLATION=1, ROTATION=2, SCALE=3}
+
+require "model/datastructure"
+
+local DrawableObject = {}
 
 
--- addObject(o): Adds all of the state and functions to o to track lists of time-information
-function model.addObject(o, modeltable)
-
-	model.all_objects[o] = o
-
-	-- add state
-	o.streams = modeltable
-
-	
-	-- createStream(key):	initialize a new list with the specified key
-	function o:createStream(key)
-		self.streams[key] = { time=-1e100, value=nil, nextFrame={ time = 1e100, value=nil }}
+function model.deleteAll()
+	for _,o in pairs(model.datastructure.all_objects) do
+		model.delete(o)
 	end
+end
 
+-- delete(o): Cleans up any associated properties and deletes an object from the model
+function model.delete(o)
+	o:stopPlayback()
+	drawingLayer:removeProp(o)
+	model.datastructure.deleteObject(o)
+end
 
-	-- getFrameForTime(key, time):	Returns the node with the time <= 'time'
-	function o:getFrameForTime(key, time)
+function model.newDrawableFromTable(objecttable)
+	assert(objecttable.prop and objecttable.prop.proptype and objecttable.model,
+		"To restore a prop, it needs a proptype, model, and prop tables")
 
-		assert(self.streams[key], "KEY "..key.." should be present in our time-streams")
-
-		local frame = self.streams[key]
-		
-		while 	frame ~= nil and
-				frame.nextFrame ~= nil 
-				and frame.nextFrame.time <= time do
-			frame = frame.nextFrame	
-		end
-	
-		return frame
+	if objecttable.prop.proptype == "DRAWING" then
+		local o = controllers.drawing.loadSavedProp(objecttable.prop)
+		o:loadSavedModel(objecttable.model)
+	else
+		assert(false, "attempting to load unknown object type: "..objecttable.prop.proptype)
+		--todo: load other proptypes here
 	end
-	
-	
-	-- makeFrameForTime(key, time):	Creates and returns a new frame at the right place in the linked list
-	function o:makeFrameForTime(key, time)
-				
-		if self.streams[key] == nil then
-			self:createStream(key)
-		end
+end
 
-		local previousFrame = self:getFrameForTime(key, time)
-		assert(previousFrame ~= nil, "shouldn't be making a frame without a previous frame")
-		
-		if previousFrame.time == time then
-			return previousFrame
-		else
-			assert(previousFrame.time < time and previousFrame.nextFrame.time > time, 
-				"we should be inserting a frame to maintain a strict ordering!")
-
-			--make a new frame
-			local newFrame = {	time=time,
-								nextFrame = previousFrame.nextFrame }
-			previousFrame.nextFrame = newFrame
-			return newFrame
-		end
+function model.newDrawableFromProp(p)
+	--clone the DrawableObject methods
+	for i, v in pairs(DrawableObject) do
+		p[i]=v
 	end
+	p:init()
 	
-	
-	-- setValueForTime(key, time, value): Sets 'value' for 'key' at 'time', replacing a pre-existing value at the EXACT same time
-	function o:setValueForTime(key, time, value)	
-		local frame = self:makeFrameForTime(key, time)
-		assert(frame ~= nil, "must retrieve a non-nil frame for any given time")		
-		frame.value = value
-	end
-
-
-	-- getValueForTime(key,time): returns the value from the frame immediately <= 'time'
-	function o:getValueForTime(key, time)
-		local frame = self:getFrameForTime(key, time)
-		assert(frame ~= nil, "must retrieve a non-nil frame for any given time")
-		return frame.value
-	end
-	
-	
-	-- getInterpolatedValueForTime(key,time): interpolates the value for 'key' between the frames around 'time' 
-	function o:getInterpolatedValueForTime(key, time)
-		local frame_before = self:getFrameForTime(key, time)
-		assert(frame_before ~= nil, "must retrieve a non-nil frame for any given time")
-		local frame_after = frame_before.nextFrame
-		
-		if frame_after == nil or frame_after.value == nil then 
-			return frame_before.value 
-		elseif frame_before.value == nil then 
-			return frame_after.value 
-		else
-			local pcnt = (time-frame_before.time)/(frame_after.time - frame_before.time)
-			local interp = nil
-			
-			--interpolate tables and single numbers
-			if type(frame_before.value) == "number" then
-				interp = frame_before.value*(1-pcnt) + frame_after.value*(pcnt)
-			elseif type(frame_before.value) == "table" then
-				interp = {}
-				for k,v in pairs(frame_before.value) do
-					if frame_after.value then
-						interp[k] = v*(1-pcnt) + frame_after.value[k]*(pcnt)
-					end
-				end
-			end
-			return interp
-		end
-	end
-	
-	
-	-- dump(): For debugging, dump the lists for o.
-	function o:dump()
-
-		print("====DUMP: ", o)
-
-		for k,v in pairs(self.streams) do 
-			print("stream:{"..k.."}")
-			local f = v
-			local c = 1
-			while f ~= nil do
-				print("\t"..c..":\t")
-				for j,w in pairs(f) do
-					print ("\t", j, w)
-				end
-				f = f.nextFrame
-				c = c+1
-			end
-		
-		end
-		print("====/DUMP")	
-	end
-
-	function o:modelToSave()
-		return {streams=self.streams}
-	end
-	
-
-	function o:loadSavedModel(table)
-		self.streams=table.streams
-	end
-
-	return o
+	model.datastructure.addObject(p, {})
+	local x,y = p:getLoc()	
+	p:setValueForTime(model.datastructure.keys.TRANSLATION, controllers.timeline:currentTime(), {x=x,y=y})
+	p:setValueForTime(model.datastructure.keys.ROTATION, controllers.timeline:currentTime(), 0)
+	p:setValueForTime(model.datastructure.keys.SCALE, controllers.timeline:currentTime(), 1)	
 end
 
 
--- deleteObject(o):	Removes the object from the model
-function model.deleteObject(o)
-	model.all_objects[o] = nil
+----- model passthroughs
+function model.allDrawables()
+	return model.datastructure.all_objects
 end
+
+function model.allToSave()
+	return model.datastructure.all_objects
+end
+
+
+--selection responders
+
+		
+		--TODO: MOVE ALL OF THIS INTO THE OBJECT!!!
+function model.updateSelectionTranslate(set, dx, dy)
+	for i,o in ipairs(set) do
+		local old_loc = o:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, controllers.timeline:currentTime())
+		o:setValueForTime(model.datastructure.keys.TRANSLATION, controllers.timeline:currentTime(), {x=old_loc.x+dx, y=old_loc.y+dy})
+		o:setLoc(old_loc.x+dx, old_loc.y+dy)
+	end
+end
+
+function model.updateSelectionRotate(set, dRot)
+	for i,o in ipairs(set) do
+		local old_rot = o:getInterpolatedValueForTime(model.datastructure.keys.ROTATION, controllers.timeline:currentTime())
+		o:setValueForTime(model.datastructure.keys.ROTATION, controllers.timeline:currentTime(), old_rot + dRot)
+		o:setRot(old_rot + dRot)
+	end
+end
+
+function model.updateSelectionScale(set, dScale)
+	for i,o in ipairs(set) do
+		local old_scale = o:getInterpolatedValueForTime(model.datastructure.keys.SCALE, controllers.timeline:currentTime())
+		o:setValueForTime(model.datastructure.keys.SCALE, controllers.timeline:currentTime(), old_scale + dScale)
+		o:setScl(old_scale + dScale)
+	end
+end
+
+---------------------------------------------
+-- temporary helpers below here
+
+
+function DrawableObject:init()
+
+	self.thread = {}
+	self.currentAnimation = {}
+	drawingLayer:insertProp (self)
+
+end
+
+function DrawableObject:playBack(start_time)
+	-- start our animation threads for each kind of transition (SRT)
+	self.thread[model.datastructure.keys.TRANSLATION] = MOAIThread.new ()
+	self.thread[model.datastructure.keys.TRANSLATION]:run ( self.playThread, self, start_time, model.datastructure.keys.TRANSLATION, 
+						function (o,loc) o:setLoc(loc.x, loc.y) end,
+						function (o,loc, timeDelta) return o:seekLoc(loc.x, loc.y, timeDelta, MOAIEaseType.LINEAR) end)
+	self.thread[model.datastructure.keys.ROTATION] = MOAIThread.new ()
+	self.thread[model.datastructure.keys.ROTATION]:run ( self.playThread, self, start_time, model.datastructure.keys.ROTATION,
+						function (o,rot) o:setRot(rot) end,
+						function (o,rot, timeDelta) return o:seekRot(rot, timeDelta, MOAIEaseType.LINEAR) end)
+	self.thread[model.datastructure.keys.SCALE] = MOAIThread.new ()
+	self.thread[model.datastructure.keys.SCALE]:run ( self.playThread, self, start_time, model.datastructure.keys.SCALE,
+						function (o,scale) o:setScl(scale) end,
+						function (o,scale, timeDelta) return o:seekScl(scale, scale, timeDelta, MOAIEaseType.LINEAR) end)
+end
+
+
+-- playThread():start a coroutine that tracks changes in the 'KEY' list of the model
+--				immediateCallback is the code for setting the value immediately (setLoc)
+--				timedCallback is the code for moving to the new state (seekLoc)
+function DrawableObject:playThread(start_time, KEY, immediateCallback, timedCallback)
+	local current_time = start_time
+	local loc = self:getInterpolatedValueForTime(KEY, current_time)
+	local s = self:getFrameForTime(KEY, start_time)
+	immediateCallback(self, loc)
+
+	while s ~= nil and s.nextFrame ~= nil and s.nextFrame.value ~= nil do
+	
+		local timeDelta = s.nextFrame.time - current_time
+		local loc_new = s.nextFrame.value
+		self.currentAnimation[KEY] = timedCallback(self, loc_new, timeDelta)
+		MOAIThread.blockOnAction(self.currentAnimation[KEY])
+		current_time = s.nextFrame.time
+		s = s.nextFrame
+	end
+end
+	
+
+-- stopPlayback():	if the object is being animated, it will stop immediately
+function DrawableObject:stopPlayback()
+	for _,t in pairs(self.thread) do if t then t:stop() end end
+	for _,a in pairs(self.currentAnimation) do if a then a:stop() end end		
+end
+	
+
+-- getCorrectedPointsAtTime(t): Helper for selection lasso. 
+--								Returns the points corrected to the supplied time
+-- TODO: VERY TEMPORARY. This will need to get much much fancier!	
+function DrawableObject:getCorrectedPointsAtTime(t)	
+
+	local loc = self:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, t)
+	local dx,dy = loc.x, loc.y
+	new_points = {}
+	for j=1,#self.points,2 do
+		new_points[j] = self.points[j] + dx
+		new_points[j+1] = self.points[j+1] + dy
+	end
+	
+	--TODO: correct for rotation AND SCALE here too!	
+	return new_points
+end
+	
+-- getSpan():	Return a list of the max & min points in the x & y dimensions
+--				Note these are not corrected to a timestep
+function DrawableObject:getSpan()
+	local span = {width={max=-1e100, min=1e100}, height={max=-1e100, min=1e100}}
+	for j=1,#self.points,2 do
+		span.width.min  = math.min(span.width.min, self.points[j])
+		span.width.max  = math.max(span.width.max, self.points[j])
+		span.height.min = math.min(span.height.min, self.points[j+1])
+		span.height.max = math.max(span.height.max, self.points[j+1])
+	end
+	return span
+end
+
+
+function DrawableObject:bringToTime(time)
+	local p = self:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, time)
+	self:setLoc(p.x, p.y)
+	local r = self:getInterpolatedValueForTime(model.datastructure.keys.ROTATION, time)
+	self:setRot(r)
+	local s = self:getInterpolatedValueForTime(model.datastructure.keys.SCALE, time)
+	self:setScl(s)
+end	
 
 return model

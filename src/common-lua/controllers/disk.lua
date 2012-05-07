@@ -33,12 +33,12 @@ local function pathToSaveFile()
 end
 
 
--- saveToDisk():	Queries the model.all_objects for the values needed to reconstruct them
+-- saveToDisk():	Queries the all drawables for the values needed to reconstruct them
 --					This includes propToSave (for the drawable aspects) and modelToSave.
 function controllers.disk.saveToDisk()
 
 	local objectmodels = {}
-	for _,o in pairs(model.all_objects) do
+	for _,o in pairs(model.allToSave()) do
 		table.insert(objectmodels, 
 			{	prop=o:propToSave(),
 				model=o:modelToSave() })
@@ -63,11 +63,11 @@ function controllers.disk.loadFromDisk()
 	if not objecttables then return end
 
 	--Clear any objects already there
-	controllers.objects.deleteAll()
+	model.deleteAll()
 
 	--Rebuild props and model from the file
 	for _,objecttable in ipairs(objecttables) do
-		controllers.objects.loadFromTable(objecttable)
+		model.newDrawableFromTable(objecttable)
 	end
 end
 

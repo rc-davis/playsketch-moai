@@ -59,7 +59,7 @@ local function addImage(path)
 	userprop:setLoc(0,0)
 	userprop.isSelected = false
 	userprop.points = {-130, -130, 130, -130, 130, 130, -130, 130 }
-	controllers.objects.storePropAsNewObject(userprop)
+	model.newDrawableFromProp(userprop)
 	
 end
 
@@ -104,7 +104,7 @@ widgets.newSimpleButton(-SCALED_WIDTH/2+275,-SCALED_HEIGHT/2+75,50,50,
 
 widgets.newSimpleButton(-SCALED_WIDTH/2+325,-SCALED_HEIGHT/2+75,50,50, 
 						"resources/button_clear.png", "resources/button_down.png",
-						controllers.objects.deleteAll)
+						model.deleteAll)
 
 --Photo library buttons
 if MOAIPhotoPickerIOS then

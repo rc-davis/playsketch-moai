@@ -28,7 +28,6 @@
 controllers = {}
 
 require "controllers/timeline"
-require "controllers/objects"
 require "controllers/selection"
 require "controllers/drawing"
 require "controllers/disk"

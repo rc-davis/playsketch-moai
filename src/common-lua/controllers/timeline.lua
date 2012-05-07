@@ -39,14 +39,8 @@ end
 
 --LOCAL bringModelToTime(new_time):	Sets all objects to their state for a given time
 local function bringModelToTime(new_time)
-	for _, o in pairs(model.all_objects) do
-		local p = o:getInterpolatedValueForTime(model.keys.TRANSLATION, new_time)
-		o:setLoc(p.x, p.y)
-		local r = o:getInterpolatedValueForTime(model.keys.ROTATION, new_time)
-		o:setRot(r)
-		local s = o:getInterpolatedValueForTime(model.keys.SCALE, new_time)
-		o:setScl(s)
-		
+	for _, o in pairs(model.allDrawables()) do	
+		o:bringToTime(new_time)
 	end
 end
 
@@ -98,7 +92,7 @@ function controllers.timeline.play()
 	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - controllers.timeline.slider:currentValue()
 	controllers.timeline.playButton:setIndex(2)
 
-	for _,o in pairs(model.all_objects) do
+	for _,o in pairs(model.allDrawables()) do
 		o:playBack(controllers.timeline.slider:currentValue())
 	end
 
@@ -120,7 +114,7 @@ function controllers.timeline.pause()
 	--todo: figure out current time better?
 	controllers.timeline.slider:stop()
 
-	for _,o in pairs(model.all_objects) do
+	for _,o in pairs(model.allDrawables()) do
 		o:stopPlayback()
 	end
 	
