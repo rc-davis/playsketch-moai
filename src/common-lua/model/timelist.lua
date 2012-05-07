@@ -26,7 +26,7 @@ model.timelist = {}
 
 local TimeList = {}
 
-function model.newTimelist()
+function model.timelist.new()
 	local l = {}
 	for i,v in pairs(TimeList) do
 		l[i] = v
@@ -34,8 +34,8 @@ function model.newTimelist()
 	return l
 end
 
-function model.newTimelistFromTable(t)
-	local l = model.newTimelist()
+function model.timelist.newFromTable(t)
+	local l = model.timelist.new()
 	l:loadFromTable(t)
 	return l
 end
