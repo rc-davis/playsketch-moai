@@ -20,9 +20,6 @@
 	the lasso.
 	After a selection is made, the manipulator widget is displayed.
 	
-	--TODO: The logic for displaying the manipulator and responding	to it will 
-	probably move out into an independent controller
-	
 --]]
 
 require "model/model"
@@ -196,7 +193,7 @@ function controllers.selection.showManipulator()
 			-- average the centers of all the objects
 			local avgX,avgY = 0,0
 			for i,o in ipairs(controllers.selection.selectedSet) do
-				local x,y = 0,0 --o:getLoc()
+				local x,y = o:getCorrectedLocAtCurrentTime()
 				--TODO! need to update to average this
 				avgX = avgX + x
 				avgY = avgY + y

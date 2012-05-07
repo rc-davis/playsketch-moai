@@ -60,6 +60,11 @@ function DrawableObject:getCorrectedPointsAtCurrentTime()
 	end
 	return new_points
 end
+
+function DrawableObject:getCorrectedLocAtCurrentTime()
+	return self.prop:modelToWorld(0,0)
+end
+
 	
 -- getSpan():	Return a list of the max & min points in the x & y dimensions
 --				Note these are not corrected to a timestep
