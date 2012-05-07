@@ -50,49 +50,6 @@ function DrawableObject:delete()
 end
 
 
-function DrawableObject:playBack(start_time)
-	-- start our animation threads for each kind of transition (SRT)
-	self.thread[model.datastructure.keys.TRANSLATION] = MOAIThread.new ()
-	self.thread[model.datastructure.keys.TRANSLATION]:run ( self.playThread, self, start_time, model.datastructure.keys.TRANSLATION, 
-						function (o,loc) o:setLoc(loc.x, loc.y) end,
-						function (o,loc, timeDelta) return o:seekLoc(loc.x, loc.y, timeDelta, MOAIEaseType.LINEAR) end)
-	self.thread[model.datastructure.keys.ROTATION] = MOAIThread.new ()
-	self.thread[model.datastructure.keys.ROTATION]:run ( self.playThread, self, start_time, model.datastructure.keys.ROTATION,
-						function (o,rot) o:setRot(rot) end,
-						function (o,rot, timeDelta) return o:seekRot(rot, timeDelta, MOAIEaseType.LINEAR) end)
-	self.thread[model.datastructure.keys.SCALE] = MOAIThread.new ()
-	self.thread[model.datastructure.keys.SCALE]:run ( self.playThread, self, start_time, model.datastructure.keys.SCALE,
-						function (o,scale) o:setScl(scale) end,
-						function (o,scale, timeDelta) return o:seekScl(scale, scale, timeDelta, MOAIEaseType.LINEAR) end)
-end
-
-
--- playThread():start a coroutine that tracks changes in the 'KEY' list of the model
---				immediateCallback is the code for setting the value immediately (setLoc)
---				timedCallback is the code for moving to the new state (seekLoc)
-function DrawableObject:playThread(start_time, KEY, immediateCallback, timedCallback)
-	local current_time = start_time
-	local loc = self:getInterpolatedValueForTime(KEY, current_time)
-	local s = self:getFrameForTime(KEY, start_time)
-	immediateCallback(self, loc)
-
-	while s ~= nil and s.nextFrame ~= nil and s.nextFrame.value ~= nil do
-	
-		local timeDelta = s.nextFrame.time - current_time
-		local loc_new = s.nextFrame.value
-		self.currentAnimation[KEY] = timedCallback(self, loc_new, timeDelta)
-		MOAIThread.blockOnAction(self.currentAnimation[KEY])
-		current_time = s.nextFrame.time
-		s = s.nextFrame
-	end
-end
-	
-
--- stopPlayback():	if the object is being animated, it will stop immediately
-function DrawableObject:stopPlayback()
-	for _,t in pairs(self.thread) do if t then t:stop() end end
-	for _,a in pairs(self.currentAnimation) do if a then a:stop() end end		
-end
 	
 
 -- getCorrectedPointsAtCurrentTime(): Helper for selection lasso. 

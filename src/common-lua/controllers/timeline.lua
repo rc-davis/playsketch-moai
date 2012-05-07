@@ -92,7 +92,7 @@ function controllers.timeline.play()
 	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - controllers.timeline.slider:currentValue()
 	controllers.timeline.playButton:setIndex(2)
 
-	for _,o in pairs(model.allDrawables()) do
+	for _,o in pairs(model.allUserTransforms()) do
 		o:playBack(controllers.timeline.slider:currentValue())
 	end
 
@@ -114,7 +114,7 @@ function controllers.timeline.pause()
 	--todo: figure out current time better?
 	controllers.timeline.slider:stop()
 
-	for _,o in pairs(model.allDrawables()) do
+	for _,o in pairs(model.allUserTransforms()) do
 		o:stopPlayback()
 	end
 	
