@@ -21,8 +21,9 @@
 	deleteDrawble(drawable)
 	deleteAll()
 	allDrawables()
+	allUserTransforms()
 	tableToSave()
-	startUserTransform(propset)
+	startUserTransformSinglePoint(propset)
 
 --]]
 
@@ -32,8 +33,10 @@ model = {}
 require "model/timelist"
 require "model/usertransform"
 require "model/drawableobject"
+require "model/dependenttransform"
 
 local all_drawables = {}
+local all_user_transforms = {}
 
 function model.addProp(prop)
 	local d = model.drawableobject.newFromProp(prop)
@@ -73,18 +76,32 @@ function model.allDrawables()
 	return all_drawables
 end
 
+function model.allUserTransforms()
+	return all_user_transforms
+end
+
 function model.tableToSave()
 	return all_drawables
 	--TODO: might need others as well?
 end
 
 -- Responding to selection updates (main logic for building and updating transforms!)
-function model.startUserTransform(propset)
+function model.startUserTransformSinglePoint(propset)
 
-	--todo: save this here?
-	--todo: check for an existing one to add on to?
-	--todo: split others?
-	return model.usertransform.new(propset)
+	-- Figure out the extents of this user transform
+	-- starts at either 0 or the end of the previous transform
+	-- ends at either now or the start of the next transform
+	local startTime = 0 --TODO!!
+	local endTime = 10 --TODO!!
+	
+	--todo: smarter logic here. check for an existing one to add on to?
+	--todo: or do it at the commit?
+
+	local ut = model.usertransform.new(propset)
+	ut:setSpan(startTime, stopTime)
+	all_user_transforms[ut] = ut
+	return ut
 end
+
 
 return model

@@ -17,7 +17,7 @@
 	intentions. It captures a span of time and a set of SRT actions (three timelists).
 	
 	It is applied to Drawable objects by creating Transforms in the draw hierarchy.
-	Each object a user transform applies to gets its own transform for simplicity.
+	Each object a user transform applies to gets its own dependent transform for simplicity.
 
 --]]
 
@@ -28,64 +28,78 @@ local UserTransform = {}
 
 function model.usertransform.new(drawables)
 	local l = {}
-	for i,v in pairs(TimeList) do
+	for i,v in pairs(UserTransform) do
 		l[i] = v
 	end
-	l:init(drawableset)
+	l:init(drawables)
 	return l
 end
-
 
 ----- UserTransform methods -----
 function UserTransform:init(drawables)
 
 	self.span = {start=1e100,stop=-1e100}
-	--TODO: self.objects = {} track the objects this applies to!
+	self.drawables = drawables
 	
 	self.scaleTimelist = model.timelist.new()
 	self.rotateTimelist = model.timelist.new()
 	self.translateTimelist = model.timelist.new()	
-	self.drawables = drawableset
-	
-	--todo: create a transform for each object!
 
+	--create a transform for each object
+	self.dependentTransforms = {}
+	for _,d in pairs(drawables) do
+		self.dependentTransforms[d] = model.dependenttransform.new(d, self)		
+	end
 end
 
 
---TODO: what format does this information arrive in??
---function UserTransform:setSpan(start, stop)
---	self.span.start = start
---	self.span.stop = stop
---end
+function UserTransform:setSpan(start, stop)
+	self.span.start = start
+	self.span.stop = stop
+	
+	--TODO: set to identity at "start" time and zero out everything before that!
+	self.scaleTimelist:setValueForTime(start, 1)
+	self.rotateTimelist:setValueForTime(start, 0)
+	self.translateTimelist:setValueForTime(start, {x=0,y=0})		
+	
+end
 
 function UserTransform:updateSelectionTranslate(time, dx, dy)
-	--TODO: modify only ourself!
-	for i,o in ipairs(self.drawables) do
-		local old_loc = o:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, time)
-		o:setValueForTime(model.datastructure.keys.TRANSLATION, time, {x=old_loc.x+dx, y=old_loc.y+dy})
-		o:setLoc(old_loc.x+dx, old_loc.y+dy)
+	local old_loc = self.translateTimelist:getInterpolatedValueForTime(time)
+	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
+	self.translateTimelist:setValueForTime(time, {x=new_x, y=new_y})
+	for _,dt in pairs(self.dependentTransforms) do
+		dt:refresh(nil, nil, new_x, new_y)
 	end
 end
 
 function UserTransform:updateSelectionRotate(time, dRot)
-	--TODO: modify only ourself!
-	for i,o in ipairs(self.drawables) do
-		local old_rot = o:getInterpolatedValueForTime(model.datastructure.keys.ROTATION, time)
-		o:setValueForTime(model.datastructure.keys.ROTATION, time, old_rot + dRot)
-		o:setRot(old_rot + dRot)
+	local old_rot = self.rotateTimelist:getInterpolatedValueForTime(time)
+	local new_rot = old_rot + dRot
+	self.rotateTimelist:setValueForTime(time, new_rot)
+	for _,dt in pairs(self.dependentTransforms) do
+		dt:refresh(nil, new_rot, nil, nil)
 	end
+	self.rotateTimelist:dump()
 end
 
 function UserTransform:updateSelectionScale(time, dScale)
-	--TODO: modify only ourself!
-	for i,o in ipairs(self.drawables) do
-		local old_scale = o:getInterpolatedValueForTime(model.datastructure.keys.SCALE, time)
-		o:setValueForTime(model.datastructure.keys.SCALE, time, old_scale + dScale)
-		o:setScl(old_scale + dScale)
+	local old_scl = self.scaleTimelist:getInterpolatedValueForTime(time)
+	local new_scl = old_scl + dScale
+	self.scaleTimelist:setValueForTime(time, new_scl)
+	for _,dt in pairs(self.dependentTransforms) do
+		dt:refresh(new_scl, nil, nil, nil)
 	end
 end
 
-
+function UserTransform:displayAtFixedTime(time)
+	local s = self.scaleTimelist:getInterpolatedValueForTime(time)
+	local r = self.rotateTimelist:getInterpolatedValueForTime(time)
+	local p = self.translateTimelist:getInterpolatedValueForTime(time)
+	for _,dt in pairs(self.dependentTransforms) do
+		dt:refresh(s, r, p.x, p.y)
+	end
+end
 
 
 return model.usertransform

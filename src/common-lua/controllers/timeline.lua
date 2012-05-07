@@ -39,8 +39,8 @@ end
 
 --LOCAL bringModelToTime(new_time):	Sets all objects to their state for a given time
 local function bringModelToTime(new_time)
-	for _, o in pairs(model.allDrawables()) do	
-		o:bringToTime(new_time)
+	for _, ut in pairs(model.allUserTransforms()) do	
+		ut:displayAtFixedTime(new_time)
 	end
 end
 

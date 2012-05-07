@@ -40,6 +40,7 @@ function DrawableObject:init(prop)
 	self.currentAnimation = {}
 	self.prop = prop
 	self.isSelected = false
+	self.toplevelTransform = prop
 	drawingLayer:insertProp (prop)
 end
 
@@ -101,7 +102,6 @@ function DrawableObject:getCorrectedPointsAtCurrentTime()
 		new_points[j],new_points[j+1] = 
 			self.prop:modelToWorld(self.prop.points[j],self.prop.points[j+1])
 	end
-	print_deep(new_points)
 	return new_points
 end
 	
@@ -119,22 +119,18 @@ function DrawableObject:getSpan()
 end
 
 
-function DrawableObject:bringToTime(time)
-	local p = self:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, time)
-	self:setLoc(p.x, p.y)
-	local r = self:getInterpolatedValueForTime(model.datastructure.keys.ROTATION, time)
-	self:setRot(r)
-	local s = self:getInterpolatedValueForTime(model.datastructure.keys.SCALE, time)
-	self:setScl(s)
-end	
-
-
 function DrawableObject:setSelected(sel)
 	self.prop.isSelected = sel
 end
 
 function DrawableObject:selected()
 	return self.prop.isSelected
+end
+
+function DrawableObject:addTopLevelTransform(parent)
+	self.toplevelTransform:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, parent, MOAIProp2D.TRANSFORM_TRAIT )
+	drawingLayer:insertProp (parent)
+	self.toplevelTransform = parent
 end
 
 return model.drawableobject

@@ -31,6 +31,7 @@ function model.timelist.new()
 	for i,v in pairs(TimeList) do
 		l[i] = v
 	end
+	l:init()
 	return l
 end
 

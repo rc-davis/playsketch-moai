@@ -34,6 +34,7 @@ controllers.selection.selectedSet = {}
 -- create a single manipulator widget for controlling the selection
 local manipulatorWidget = nil
 local manipulatorWidgetThread = nil
+local current_transform = nil
 
 -- startStroke(): begin a new selection lasso stroke
 function controllers.selection.startStroke()
@@ -164,21 +165,22 @@ end
 function controllers.selection.showManipulator()
 	
 	assert(manipulatorWidgetThread == nil, "Don't call showManipulator() while it is already running")
+	assert(current_transform == nil, "Shouldn't have a current_transform still active")
 	
 	--create the manipulator widget if it doesn't exist
 	if not manipulatorWidget then
 		manipulatorWidget = widgets.newManipulator(
 
 			function(dx,dy) 
-				model.updateSelectionTranslate(controllers.selection.selectedSet,dx,dy)
+				current_transform:updateSelectionTranslate(controllers.timeline.currentTime(), dx,dy)
 			end,
 
 			function(dRot) 
-				model.updateSelectionRotate(controllers.selection.selectedSet,dRot)
+				current_transform:updateSelectionRotate(controllers.timeline.currentTime(), dRot)
 			end,
 
 			function(dScale) 
-				model.updateSelectionScale(controllers.selection.selectedSet,dScale)
+				current_transform:updateSelectionScale(controllers.timeline.currentTime(), dScale)
 			end)
 	end
 
@@ -186,6 +188,7 @@ function controllers.selection.showManipulator()
 	-- 					On each step, we center the manipulatorWidget	
 	local function selectionMain()
 
+		current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
 		manipulatorWidget:show()
 
 		while #controllers.selection.selectedSet > 0 do
@@ -193,7 +196,8 @@ function controllers.selection.showManipulator()
 			-- average the centers of all the objects
 			local avgX,avgY = 0,0
 			for i,o in ipairs(controllers.selection.selectedSet) do
-				local x,y = o:getLoc()
+				local x,y = 0,0 --o:getLoc()
+				--TODO! need to update to average this
 				avgX = avgX + x
 				avgY = avgY + y
 			end
@@ -232,6 +236,7 @@ function controllers.selection.clearSelection()
 	
 	if manipulatorWidget then manipulatorWidget:hide() end
 	controllers.selection.selectedSet = {}
+	current_transform = nil
 
 end
 
