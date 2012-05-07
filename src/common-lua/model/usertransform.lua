@@ -26,18 +26,18 @@ model.usertransform = {}
 
 local UserTransform = {}
 
-function model.usertransform.new()
+function model.usertransform.new(drawables)
 	local l = {}
 	for i,v in pairs(TimeList) do
 		l[i] = v
 	end
-	l:init()
+	l:init(drawableset)
 	return l
 end
 
 
 ----- UserTransform methods -----
-function UserTransform:init()
+function UserTransform:init(drawables)
 
 	self.span = {start=1e100,stop=-1e100}
 	--TODO: self.objects = {} track the objects this applies to!
@@ -45,6 +45,9 @@ function UserTransform:init()
 	self.scaleTimelist = model.timelist.new()
 	self.rotateTimelist = model.timelist.new()
 	self.translateTimelist = model.timelist.new()	
+	self.drawables = drawableset
+	
+	--todo: create a transform for each object!
 
 end
 
@@ -54,6 +57,35 @@ end
 --	self.span.start = start
 --	self.span.stop = stop
 --end
+
+function UserTransform:updateSelectionTranslate(time, dx, dy)
+	--TODO: modify only ourself!
+	for i,o in ipairs(self.drawables) do
+		local old_loc = o:getInterpolatedValueForTime(model.datastructure.keys.TRANSLATION, time)
+		o:setValueForTime(model.datastructure.keys.TRANSLATION, time, {x=old_loc.x+dx, y=old_loc.y+dy})
+		o:setLoc(old_loc.x+dx, old_loc.y+dy)
+	end
+end
+
+function UserTransform:updateSelectionRotate(time, dRot)
+	--TODO: modify only ourself!
+	for i,o in ipairs(self.drawables) do
+		local old_rot = o:getInterpolatedValueForTime(model.datastructure.keys.ROTATION, time)
+		o:setValueForTime(model.datastructure.keys.ROTATION, time, old_rot + dRot)
+		o:setRot(old_rot + dRot)
+	end
+end
+
+function UserTransform:updateSelectionScale(time, dScale)
+	--TODO: modify only ourself!
+	for i,o in ipairs(self.drawables) do
+		local old_scale = o:getInterpolatedValueForTime(model.datastructure.keys.SCALE, time)
+		o:setValueForTime(model.datastructure.keys.SCALE, time, old_scale + dScale)
+		o:setScl(old_scale + dScale)
+	end
+end
+
+
 
 
 return model.usertransform

@@ -48,10 +48,9 @@ function controllers.selection.startStroke()
 	--cache the current pixel points for ALL objects 
 	-- this might get expensive?
 	local cached_points = {}
-	local current_time = controllers.timeline.currentTime()
 	for _,o in pairs(model.allDrawables()) do
-		cached_points[o] = o:getCorrectedPointsAtTime(current_time)
-		o.isSelected = false
+		cached_points[o] = o:getCorrectedPointsAtCurrentTime()
+		o:setSelected(false)
 	end
 
 	controllers.selection.clearSelection()
@@ -126,7 +125,7 @@ function controllers.selection.startStroke()
 					o_matches = o_matches or ( (crossing_counts[i][j] + inferred_count)%2 == 1)
 				
 				end
-				o.isSelected = o_matches
+				o:setSelected(o_matches)
 			end
 		end
 		
@@ -142,7 +141,7 @@ function controllers.selection.startStroke()
 
 		controllers.selection.selectedSet = {}
 		for _,o in pairs(model.allDrawables()) do
-			if o.isSelected then 
+			if o:selected() then 
 				table.insert(controllers.selection.selectedSet, o)
 			end
 		end
@@ -228,7 +227,7 @@ function controllers.selection.clearSelection()
 	end
 	
 	for _,o in pairs(model.allDrawables()) do
-		o.isSelected = false
+		o:setSelected(false)
 	end
 	
 	if manipulatorWidget then manipulatorWidget:hide() end

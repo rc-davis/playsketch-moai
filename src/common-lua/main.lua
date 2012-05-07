@@ -59,7 +59,7 @@ local function addImage(path)
 	userprop:setLoc(0,0)
 	userprop.isSelected = false
 	userprop.points = {-130, -130, 130, -130, 130, 130, -130, 130 }
-	model.newDrawableFromProp(userprop)
+	model.addProp(userprop)
 	
 end
 

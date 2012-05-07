@@ -86,7 +86,7 @@ function controllers.drawing.newStroke()
 		
 		new_stroke:setLoc(minx + width/2, miny + height/2)		
 		strokeDeck:setRect (-width/2, -height/2, width/2, height/2)
-		model.newDrawableFromProp(self)
+		model.addProp(self)
 	end
 	
 	--cancel():	Cancel the drawing of the stroke	
