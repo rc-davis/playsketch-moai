@@ -22,6 +22,7 @@
 model = {}
 
 require "model/datastructure"
+require "model/usertransform"
 
 local DrawableObject = {}
 
