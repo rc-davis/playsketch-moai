@@ -12,8 +12,8 @@
 util.debugging = {}
 
 
--- recursivePrint(): a print function that recurses into tables
-function util.debugging.recursivePrint(t, depth)
+-- print_deep(): a print function that recurses into tables
+function print_deep(t, depth)
 	depth = depth or 0
 	local prefix = "" for i=1,depth,1 do prefix = prefix .. "  " end
 
@@ -21,11 +21,11 @@ function util.debugging.recursivePrint(t, depth)
 		print(prefix.."{")
 		for k,v in pairs(t) do
 			print(prefix..k.."=")
-			util.debugging.recursivePrint(v, depth+1)
+			print_deep(v, depth+1)
 		end
 		print(prefix.."}")		
 	else
-		print(prefix..type(t)..tostring(t))
+		print(prefix..type(t)..":\t"..tostring(t))
 	end
 end
 
