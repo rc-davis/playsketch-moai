@@ -28,6 +28,7 @@ model.usertransform = {}
 local UserTransform = {}
 
 function model.usertransform.new(drawables, startTime)
+	print("init: usertransform")
 	local l = {}
 	for i,v in pairs(UserTransform) do
 		l[i] = v
@@ -48,6 +49,7 @@ function UserTransform:init(drawables, startTime)
 	self.activeThreads = {}
 	self.activeAnimations = {}
 	self.pivot = {x=0,y=0}
+	self.isIdentity = true
 
 	--create a transform for each object
 	self.dependentTransforms = {}
@@ -86,6 +88,7 @@ function UserTransform:updateSelectionTranslate(time, dx, dy)
 		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.isIdentity = false
 end
 
 function UserTransform:updateSelectionRotate(time, dRot)
@@ -96,6 +99,7 @@ function UserTransform:updateSelectionRotate(time, dRot)
 		dt:refresh(nil, new_rot, nil, nil)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.isIdentity = false
 end
 
 function UserTransform:updateSelectionScale(time, dScale)
@@ -106,6 +110,7 @@ function UserTransform:updateSelectionScale(time, dScale)
 		dt:refresh(new_scl, nil, nil, nil)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.isIdentity = false
 end
 
 

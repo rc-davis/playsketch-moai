@@ -181,12 +181,15 @@ function controllers.selection.showManipulator()
 			end,
 			
 			function(pivot_dx, pivot_dy)
+				-- We need to start a new transform if the pivot has moved
 				local old_pivot = current_transform.pivot
 				local old_loc = current_transform.timelists['translate']:getInterpolatedValueForTime(controllers.timeline.currentTime())
-				current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet,
+				--unless the current transform doesn't contain any rotation or scaling information
+				if not current_transform.isIdentity then
+					current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet,
 													controllers.timeline.currentTime())
+				end				
 				current_transform:setPivot(old_loc.x + old_pivot.x + pivot_dx, old_loc.y + old_pivot.y + pivot_dy)
-				--todo! we are creating a new one on every movement! shouldn't do that! (maybe check for identity?)
 			end)
 	end
 
