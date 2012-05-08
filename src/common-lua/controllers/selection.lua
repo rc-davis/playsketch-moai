@@ -185,11 +185,6 @@ function controllers.selection.showManipulator()
 	-- 					On each step, we center the manipulatorWidget	
 	local function selectionMain()
 
-		current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
-		manipulatorWidget:show()
-
-		while #controllers.selection.selectedSet > 0 do
-		
 			-- average the centers of all the objects
 			local avgX,avgY = 0,0
 			for i,o in ipairs(controllers.selection.selectedSet) do
@@ -204,7 +199,15 @@ function controllers.selection.showManipulator()
 			--ensure we are still on the screen
 			avgX = math.min(SCALED_WIDTH/2, math.max(-SCALED_WIDTH/2, avgX))
 			avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
+
+
+		current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
+		current_transform:setPivot(avgX,avgY)
+		manipulatorWidget:show()
+
+		while #controllers.selection.selectedSet > 0 do
 		
+--TODO, clean up, get zero point, etc
 			--show it there
 			manipulatorWidget:moveTo(avgX, avgY)
 			--TODO: this should also update the rotation and the scaling of the widget

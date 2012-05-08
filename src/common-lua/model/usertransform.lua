@@ -46,6 +46,7 @@ function UserTransform:init(drawables)
 						translate=model.timelist.new()	}
 	self.activeThreads = {}
 	self.activeAnimations = {}
+	self.pivot = {x=0,y=0}
 
 	--create a transform for each object
 	self.dependentTransforms = {}
@@ -63,7 +64,16 @@ function UserTransform:setSpan(start, stop)
 	self.timelists['scale']:setValueForTime(start, 1)
 	self.timelists['rotate']:setValueForTime(start, 0)
 	self.timelists['translate']:setValueForTime(start, {x=0,y=0})		
-	
+end
+
+function UserTransform:setPivot(pivX, pivY)
+
+	self.pivot.x = pivX
+	self.pivot.y = pivY
+	for _,dt in pairs(self.dependentTransforms) do
+		dt.prop:setPiv(pivX, pivY)
+		dt.prop:setLoc(pivX, pivY)
+	end
 end
 
 function UserTransform:updateSelectionTranslate(time, dx, dy)
@@ -71,7 +81,7 @@ function UserTransform:updateSelectionTranslate(time, dx, dy)
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
 	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y})
 	for _,dt in pairs(self.dependentTransforms) do
-		dt:refresh(nil, nil, new_x, new_y)
+		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
 end
 
@@ -101,7 +111,7 @@ function UserTransform:displayAtFixedTime(time)
 	local r = self.timelists['rotate']:getInterpolatedValueForTime(time)
 	local p = self.timelists['translate']:getInterpolatedValueForTime(time)
 	for _,dt in pairs(self.dependentTransforms) do
-		dt:refresh(s, r, p.x, p.y)
+		dt:refresh(s, r, p.x + self.pivot.x, p.y + self.pivot.y)
 	end
 end
 
@@ -137,7 +147,9 @@ function UserTransform:playThread(start_time, key)
 			elseif key == 'rotate' then
 				nextAnimation = dt.prop:seekRot(newValue, timeDelta, MOAIEaseType.LINEAR)
 			elseif key == 'translate' then
-				nextAnimation = dt.prop:seekLoc(newValue.x, newValue.y, timeDelta, MOAIEaseType.LINEAR)
+				nextAnimation = dt.prop:seekLoc(newValue.x + self.pivot.x,
+												newValue.y + self.pivot.y,
+												timeDelta, MOAIEaseType.LINEAR)
 			end
 			table.insert(self.activeAnimations, nextAnimation)
 		end
