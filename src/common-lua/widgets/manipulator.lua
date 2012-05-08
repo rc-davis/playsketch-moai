@@ -19,8 +19,9 @@
 
 
 --constants
-local innerDiameterPcnt = 0.4 --as percentage of the width of the box
-local outerDiameterPcnt = 0.8
+local pivotAdjustDiameterPcnt = 0.2 --as percentage of the width of the box
+local translateDiameterPcnt = 0.5
+local rotationDiameterPcnt = 0.9
 local defaultWidth = 250
 local ROOT_2 = 1.414213562
 local scaleHandleBackgroundColor = {0, 0.4, 0.005, 0.5}
@@ -29,11 +30,12 @@ local rotationBackgroundColor = {0.23, 0.21, 0.35, 0.5}
 local rotationHandleColor = {0.5, 0.5, 0.5, 0.5}
 local rotationStrokeColor = {0.160, 0.122, 0.772, 1.000}
 local translateHandleColor = {0.5, 0.5, 0.5, 0.5}
-local highlightColor = {1.0, 0, 0, 1.0}
+local pivotAdjustHandleColor = {0.1, 0.5, 0.1, 0.5}
+local highlightColor = {7.0, 0, 0, 0.7}
 
-local actions = {SCALE=1, ROTATE=2, TRANSLATE=3}
+local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
 
-function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback)
+function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -52,6 +54,7 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 	prop.translateCallback = translateCallback
 	prop.rotateCallback = rotateCallback
 	prop.scaleCallback = scaleCallback
+	prop.pivotAdjustCallback = pivotAdjustCallback
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -66,20 +69,20 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 			else
 				MOAIGfxDevice.setPenColor (unpack(scaleHandleHandleColor))			
 			end
-			local scaleLoc = (defaultWidth/2)*(outerDiameterPcnt/ROOT_2) -- x/y for the handle corner
+			local scaleLoc = (defaultWidth/2)*(rotationDiameterPcnt/ROOT_2) -- x/y for the handle corner
 			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
 				MOAIDraw.fillRect( i*defaultWidth/2, j*defaultWidth/2, i*scaleLoc, j*scaleLoc)
 			end end
 			
 			--draw the rotation background
 			MOAIGfxDevice.setPenColor (unpack(rotationBackgroundColor))			
-			MOAIDraw.fillCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
+			MOAIDraw.fillCircle(0,0, defaultWidth/2*rotationDiameterPcnt, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))			
-			MOAIDraw.drawCircle(0,0, defaultWidth/2*outerDiameterPcnt, 50)
+			MOAIDraw.drawCircle(0,0, defaultWidth/2*rotationDiameterPcnt, 50)
 
 			-- draw the rotation handles
-			local rotHandleRad = defaultWidth/2*(outerDiameterPcnt-innerDiameterPcnt)/2
-			local rotHandleX = (defaultWidth/2*outerDiameterPcnt - rotHandleRad)/ROOT_2
+			local rotHandleRad = defaultWidth/2*(rotationDiameterPcnt-translateDiameterPcnt)/2
+			local rotHandleX = (defaultWidth/2*rotationDiameterPcnt - rotHandleRad)/ROOT_2
 
 			if prop.currentAction == actions.ROTATE then
 				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
@@ -100,9 +103,20 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 			else
 				MOAIGfxDevice.setPenColor (unpack(translateHandleColor))	
 			end
-			MOAIDraw.fillCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.fillCircle(0, 0, translateDiameterPcnt*defaultWidth/2, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
-			MOAIDraw.drawCircle(0, 0, innerDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.drawCircle(0, 0, translateDiameterPcnt*defaultWidth/2, 50)
+
+			-- draw the pivot adjustment handle
+			if prop.currentAction == actions.PIVOTADJUST then
+				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
+			else
+				MOAIGfxDevice.setPenColor (unpack(pivotAdjustHandleColor))	
+			end
+			MOAIDraw.fillCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
+			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
+			MOAIDraw.drawCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
+
 		end)
 
 	-- Add our input response callbacks
@@ -123,11 +137,14 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 			
 				-- figure out which widget we are interacting with
 				local distanceFromCenterSq = math.sqrt((px-x)*(px-x)+(py-y)*(py-y))
-				
-				if distanceFromCenterSq < innerDiameterPcnt*defaultWidth/2*prop:getScl() then			
+
+				if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
+					-- touching the translate manipulator
+					prop.currentAction = actions.PIVOTADJUST
+				elseif distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
-				elseif distanceFromCenterSq < outerDiameterPcnt*defaultWidth/2*prop:getScl() then
+				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the rotate manipulator
 					prop.currentAction = actions.ROTATE
 				else
@@ -181,6 +198,12 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 					prop:addScl(dScale)
 					prop.touchLoc = {x=px, y=py}
 					if prop.scaleCallback then prop.scaleCallback(dScale) end
+				elseif prop.currentAction == actions.PIVOTADJUST then
+					--calculate the deltas travelled and inform the callback
+					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
+					prop.touchLoc = {x=px, y=py}
+					prop:addLoc(dx,dy)
+					if prop.pivotAdjustCallback then prop.pivotAdjustCallback(dx,dy) end
 				end
 				return true
 			end
