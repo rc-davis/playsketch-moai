@@ -76,6 +76,12 @@ function UserTransform:setPivot(pivX, pivY)
 	end
 end
 
+function UserTransform:getCorrectedLocAtCurrentTime()
+	for _,dt in pairs(self.dependentTransforms) do
+		return dt.prop:modelToWorld(self.pivot.x, self.pivot.y)
+	end
+end
+
 function UserTransform:updateSelectionTranslate(time, dx, dy)
 	local old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy

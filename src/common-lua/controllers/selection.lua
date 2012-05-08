@@ -185,35 +185,27 @@ function controllers.selection.showManipulator()
 	-- 					On each step, we center the manipulatorWidget	
 	local function selectionMain()
 
-			-- average the centers of all the objects
-			local avgX,avgY = 0,0
-			for i,o in ipairs(controllers.selection.selectedSet) do
-				local x,y = o:getCorrectedLocAtCurrentTime()
-				--TODO! need to update to average this
-				avgX = avgX + x
-				avgY = avgY + y
-			end
-			avgX = avgX/#controllers.selection.selectedSet
-			avgY = avgY/#controllers.selection.selectedSet			
-		
-			--ensure we are still on the screen
-			avgX = math.min(SCALED_WIDTH/2, math.max(-SCALED_WIDTH/2, avgX))
-			avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
+		-- First! Pick a default center point for the manipulator widgets
+		-- (averaging the centres of all the objects)
+		local avgX,avgY = 0,0
+		for i,o in ipairs(controllers.selection.selectedSet) do
+			local x,y = o:getCorrectedLocAtCurrentTime()
+			avgX = avgX + x
+			avgY = avgY + y
+		end
+		avgX = avgX/#controllers.selection.selectedSet
+		avgY = avgY/#controllers.selection.selectedSet			
+		--ensure we are still on the screen
+		avgX = math.min(SCALED_WIDTH/2, math.max(-SCALED_WIDTH/2, avgX))
+		avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 
-
+		--Create a new user transform at this location
 		current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
 		current_transform:setPivot(avgX,avgY)
 		manipulatorWidget:show()
 
 		while #controllers.selection.selectedSet > 0 do
-		
---TODO, clean up, get zero point, etc
-			--show it there
-			manipulatorWidget:moveTo(avgX, avgY)
-			--TODO: this should also update the rotation and the scaling of the widget
-			-- it isn't clear what this means for a group right now, until we
-			-- have a better model that lets us having this independently
-			
+			manipulatorWidget:moveTo(current_transform:getCorrectedLocAtCurrentTime())
 			coroutine.yield ()
 		end
 		controllers.selection.clearSelection()
