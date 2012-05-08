@@ -23,7 +23,7 @@
 	allDrawables()
 	allUserTransforms()
 	tableToSave()
-	startUserTransformInterpolated(drawablesSet)
+	newInterpolatedUserTransform(drawablesSet)
 
 --]]
 
@@ -95,7 +95,7 @@ function model.tableToSave()
 end
 
 
-function model.startUserTransformInterpolated(drawablesSet, baseTime)
+function model.newInterpolatedUserTransform(drawablesSet, baseTime)
 
 	-- Figure out the extents this transform should assume
 	-- Since this is an interpolated transform (rather than recorded), we need to guess
