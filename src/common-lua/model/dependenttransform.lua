@@ -46,7 +46,7 @@ function DependentTransform:init(drawable, usertransform)
 	self.prop = MOAIProp2D.new ()
 	
 	-- add it to the current hierarchy
-	self.drawable:addTopLevelTransform(self.prop)
+	self.drawable:addTopLevelTransform(self)
 
 end
 

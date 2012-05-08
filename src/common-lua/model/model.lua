@@ -23,7 +23,7 @@
 	allDrawables()
 	allUserTransforms()
 	tableToSave()
-	startUserTransformSinglePoint(propset)
+	startUserTransformInterpolated(drawablesSet)
 
 --]]
 
@@ -94,23 +94,22 @@ function model.tableToSave()
 	--TODO: might need others as well?
 end
 
--- Responding to selection updates (main logic for building and updating transforms!)
-function model.startUserTransformSinglePoint(propset)
 
-	-- Figure out the extents of this user transform
-	-- starts at either 0 or the end of the previous transform
-	-- ends at either now or the start of the next transform
-	local startTime = 0 --TODO!!
-	local endTime = 10 --TODO!!
-	
-	--todo: smarter logic here. check for an existing one to add on to?
-	--todo: or do it at the commit?
+function model.startUserTransformInterpolated(drawablesSet, baseTime)
 
-	local ut = model.usertransform.new(propset)
-	ut:setSpan(startTime, stopTime)
+	-- Figure out the extents this transform should assume
+	-- Since this is an interpolated transform (rather than recorded), we need to guess
+	-- at when it should start and end
+	local startTime = 0
+	for _,drawable in pairs(drawablesSet) do
+		startTime = math.max(startTime, drawable:lastActionTimeBefore(baseTime))
+	end
+
+	--Create a new transform
+	local ut = model.usertransform.new(drawablesSet, startTime)
 	all_user_transforms[ut] = ut
+
 	return ut
 end
-
 
 return model

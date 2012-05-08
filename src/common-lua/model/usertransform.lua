@@ -19,6 +19,7 @@
 	It is applied to Drawable objects by creating Transforms in the draw hierarchy.
 	Each object a user transform applies to gets its own dependent transform for simplicity.
 
+	A start time is provided to constrain the span of the transform.
 --]]
 
 
@@ -26,19 +27,19 @@ model.usertransform = {}
 
 local UserTransform = {}
 
-function model.usertransform.new(drawables)
+function model.usertransform.new(drawables, startTime)
 	local l = {}
 	for i,v in pairs(UserTransform) do
 		l[i] = v
 	end
-	l:init(drawables)
+	l:init(drawables, startTime)
 	return l
 end
 
 ----- UserTransform methods -----
-function UserTransform:init(drawables)
+function UserTransform:init(drawables, startTime)
 
-	self.span = {start=1e100,stop=-1e100}
+	self.span = {start=startTime,stop=startTime}
 	self.drawables = drawables
 	
 	self.timelists = {	scale=model.timelist.new(),
@@ -53,18 +54,13 @@ function UserTransform:init(drawables)
 	for _,d in pairs(drawables) do
 		self.dependentTransforms[d] = model.dependenttransform.new(d, self)		
 	end
+
+	--insert an identity frame at the start to limit the scope of other transforms
+	self.timelists['scale']:setValueForTime(startTime, 1)
+	self.timelists['rotate']:setValueForTime(startTime, 0)
+	self.timelists['translate']:setValueForTime(startTime, {x=0,y=0})		
 end
 
-
-function UserTransform:setSpan(start, stop)
-	self.span.start = start
-	self.span.stop = stop
-	
-	--TODO: set to identity at "start" time and zero out everything before that!
-	self.timelists['scale']:setValueForTime(start, 1)
-	self.timelists['rotate']:setValueForTime(start, 0)
-	self.timelists['translate']:setValueForTime(start, {x=0,y=0})		
-end
 
 function UserTransform:setPivot(pivX, pivY)
 
@@ -89,6 +85,7 @@ function UserTransform:updateSelectionTranslate(time, dx, dy)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
+	self.span.stop = math.max(self.span.stop, time)
 end
 
 function UserTransform:updateSelectionRotate(time, dRot)
@@ -98,6 +95,7 @@ function UserTransform:updateSelectionRotate(time, dRot)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, new_rot, nil, nil)
 	end
+	self.span.stop = math.max(self.span.stop, time)
 end
 
 function UserTransform:updateSelectionScale(time, dScale)
@@ -107,6 +105,7 @@ function UserTransform:updateSelectionScale(time, dScale)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(new_scl, nil, nil, nil)
 	end
+	self.span.stop = math.max(self.span.stop, time)
 end
 
 

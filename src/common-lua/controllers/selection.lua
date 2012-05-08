@@ -182,7 +182,8 @@ function controllers.selection.showManipulator()
 			
 			function(pivot_dx, pivot_dy) 
 				local old_pivot = current_transform.pivot
-				current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
+				current_transform = model.startUserTransformInterpolated(controllers.selection.selectedSet,
+													controllers.timeline.currentTime())
 				current_transform:setPivot(old_pivot.x + pivot_dx, old_pivot.y + pivot_dy)
 				--todo! we are creating a new one on every movement! shouldn't do that! (maybe check for identity?)
 			end)
@@ -207,7 +208,8 @@ function controllers.selection.showManipulator()
 		avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 
 		--Create a new user transform at this location
-		current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
+		current_transform = model.startUserTransformInterpolated(controllers.selection.selectedSet, 
+										controllers.timeline.currentTime())
 		current_transform:setPivot(avgX,avgY)
 		manipulatorWidget:show()
 

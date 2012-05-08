@@ -40,7 +40,7 @@ function DrawableObject:init(prop)
 	self.currentAnimation = {}
 	self.prop = prop
 	self.isSelected = false
-	self.toplevelTransform = prop
+	self.transforms = {self}
 	drawingLayer:insertProp (prop)
 end
 
@@ -88,10 +88,20 @@ function DrawableObject:selected()
 	return self.prop.isSelected
 end
 
-function DrawableObject:addTopLevelTransform(parent)
-	self.toplevelTransform:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, parent, MOAIProp2D.TRANSFORM_TRAIT )
-	drawingLayer:insertProp (parent)
-	self.toplevelTransform = parent
+function DrawableObject:addTopLevelTransform(new_parent_transform)
+	self.transforms[#self.transforms].prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, new_parent_transform.prop, MOAIProp2D.TRANSFORM_TRAIT )
+	drawingLayer:insertProp (new_parent_transform.prop)
+	table.insert(self.transforms, new_parent_transform)
+end
+
+function DrawableObject:lastActionTimeBefore(time)
+	local most_recent = -1e100
+	for i=2,#self.transforms do
+		for _,timelist in pairs(self.transforms[i].usertransform.timelists) do
+			most_recent = math.max(most_recent, timelist:getFrameForTime(time).time)
+		end
+	end
+	return most_recent
 end
 
 return model.drawableobject
