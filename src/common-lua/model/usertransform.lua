@@ -149,7 +149,7 @@ function UserTransform:playThread(start_time, key)
 		local nextAnimation = nil
 		for _,dt in pairs(self.dependentTransforms) do
 			if key == 'scale' then
-				nextAnimation = dt.prop:seekScl(newValue, timeDelta, MOAIEaseType.LINEAR)
+				nextAnimation = dt.prop:seekScl(newValue, newValue, timeDelta, MOAIEaseType.LINEAR)
 			elseif key == 'rotate' then
 				nextAnimation = dt.prop:seekRot(newValue, timeDelta, MOAIEaseType.LINEAR)
 			elseif key == 'translate' then
