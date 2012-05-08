@@ -178,6 +178,13 @@ function controllers.selection.showManipulator()
 
 			function(dScale) 
 				current_transform:updateSelectionScale(controllers.timeline.currentTime(), dScale)
+			end,
+			
+			function(pivot_dx, pivot_dy) 
+				local old_pivot = current_transform.pivot
+				current_transform = model.startUserTransformSinglePoint(controllers.selection.selectedSet)
+				current_transform:setPivot(old_pivot.x + pivot_dx, old_pivot.y + pivot_dy)
+				--todo! we are creating a new one on every movement! shouldn't do that! (maybe check for identity?)
 			end)
 	end
 
