@@ -45,6 +45,7 @@ end
 ----- TimeList methods -----
 
 function TimeList:init()
+	self.class = "TimeList"
 	self.firstFrame = { time=-1e100, value=nil, nextFrame={ time = 1e100, value=nil }}
 end
 

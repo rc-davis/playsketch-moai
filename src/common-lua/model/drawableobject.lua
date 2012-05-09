@@ -36,6 +36,7 @@ end
 ----- drawableobject methods
 
 function DrawableObject:init(prop)
+	self.class = "DependentTransform"
 	self.thread = {}
 	self.currentAnimation = {}
 	self.prop = prop

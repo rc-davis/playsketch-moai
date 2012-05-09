@@ -40,6 +40,7 @@ end
 ----- UserTransform methods -----
 function UserTransform:init(drawables, startTime)
 
+	self.class = "UserTransform"
 	self.span = {start=startTime,stop=startTime}
 	self.drawables = drawables
 	

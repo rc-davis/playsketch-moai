@@ -37,7 +37,7 @@ end
 
 ----- DependentTransform methods -----
 function DependentTransform:init(drawable, usertransform)
-
+	self.class = "DependentTransform"
 	self.drawable = drawable
 	self.usertransform = usertransform
 
