@@ -218,7 +218,7 @@ function controllers.selection.showManipulator()
 		current_transform = model.getTransform(controllers.timeline.currentTime(),
 												controllers.selection.selectedSet) 
 
-		current_transform:setPivot(avgX,avgY)
+		if current_transform.isIdentity then current_transform:setPivot(avgX,avgY) end
 		manipulatorWidget:show()
 
 		while #controllers.selection.selectedSet > 0 do
