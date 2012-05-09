@@ -23,6 +23,7 @@
 	allDrawables()
 	allUserTransforms()
 	tableToSave()
+	getTransform(time, drawablesSet)
 	newInterpolatedUserTransform(drawablesSet)
 
 --]]
@@ -92,6 +93,41 @@ end
 function model.tableToSave()
 	return all_drawables
 	--TODO: might need others as well?
+end
+
+
+function model.getTransform(time, drawablesSet)
+
+	assert(#drawablesSet > 0, "a transform needs to refer to at least one drawable")
+
+	--find any transforms that contain the *exact* same set
+	--todo: might want to relax this restriction?
+	--pick one drawable in the set and walk up its list of transforms to look for a match
+
+	for i = #drawablesSet[1].transforms,2,-1 do
+		local transform = drawablesSet[1].transforms[i].usertransform
+		
+		-- skip this transform if the time span doesn't overlap
+		-- or if the sets are different sizes
+		if time >= transform.span.start and time <= transform.span.stop and
+			#transform.drawables == #drawablesSet then
+
+			-- compare their actual elements
+			local sets_match = true
+			for _,drawable in pairs(drawablesSet) do
+				if not transform:appliesTo(drawable) then 
+					sets_match = false
+					break
+				end
+			end
+			
+			if sets_match then return transform end
+		end
+	end
+
+	-- no pre-existing matches, so let's make a new one
+	return model.newInterpolatedUserTransform(drawablesSet, time)
+
 end
 
 

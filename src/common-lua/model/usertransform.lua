@@ -191,4 +191,9 @@ function UserTransform:delete()
 end
 
 
+-- implementation-dependent short-cut for O(1) lookup of membership
+function UserTransform:appliesTo(drawable)
+	return (self.dependentTransforms[drawable] ~= nil)
+end
+
 return model.usertransform

@@ -214,8 +214,9 @@ function controllers.selection.showManipulator()
 		avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 
 		--Create a new user transform at this location
-		current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet, 
-										controllers.timeline.currentTime())
+		current_transform = model.getTransform(controllers.timeline.currentTime(),
+												controllers.selection.selectedSet) 
+
 		current_transform:setPivot(avgX,avgY)
 		manipulatorWidget:show()
 
