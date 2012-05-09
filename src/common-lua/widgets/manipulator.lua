@@ -59,6 +59,8 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
 
+			MOAIGfxDevice.setPenWidth(2)
+
 			--draw background
 			MOAIGfxDevice.setPenColor (unpack(scaleHandleBackgroundColor))
 			MOAIDraw.fillRect( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
