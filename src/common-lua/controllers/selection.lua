@@ -188,6 +188,7 @@ function controllers.selection.showManipulator()
 				local old_loc = current_transform.timelists['translate']:getInterpolatedValueForTime(controllers.timeline.currentTime())
 				--unless the current transform doesn't contain any rotation or scaling information
 				if not current_transform.isIdentity then
+					--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
 					current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet,
 													controllers.timeline.currentTime())
 				end				
