@@ -191,6 +191,7 @@ function controllers.selection.showManipulator()
 					--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
 					current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet,
 													controllers.timeline.currentTime())
+					g_keyframeWidget:setUserTransform(current_transform)
 				end				
 				current_transform:setPivot(old_loc.x + old_pivot.x + pivot_dx, old_loc.y + old_pivot.y + pivot_dy)
 			end)
@@ -217,6 +218,7 @@ function controllers.selection.showManipulator()
 		--Create a new user transform at this location
 		current_transform = model.getTransform(controllers.timeline.currentTime(),
 												controllers.selection.selectedSet) 
+		g_keyframeWidget:setUserTransform(current_transform)
 
 		if current_transform.isIdentity then current_transform:setPivot(avgX,avgY) end
 		manipulatorWidget:show()
@@ -250,6 +252,7 @@ function controllers.selection.clearSelection()
 		current_transform:delete()
 	end
 	current_transform = nil
+	g_keyframeWidget:setUserTransform(nil)
 
 end
 

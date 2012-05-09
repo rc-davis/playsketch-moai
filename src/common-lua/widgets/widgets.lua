@@ -35,5 +35,6 @@ end
 --Import all of the parts of this package:
 require "widgets/buttons"
 require "widgets/manipulator"
+require "widgets/keyframes"
 
 return widgets

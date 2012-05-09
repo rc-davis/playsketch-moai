@@ -68,7 +68,7 @@ end
 
 
 --Button for generating random lines
-widgets.newSimpleButton(-SCALED_WIDTH/2+125,-SCALED_HEIGHT/2+75,50,50, 
+widgets.newSimpleButton(-SCALED_WIDTH/2+125,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_generate_lines.png", "resources/button_down.png",
 						function(_) test.helpers.generateLines(50,50) end )
 
@@ -86,30 +86,32 @@ local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+2
 controllers.timeline.setButtons(slider, playButton)
 
 
+g_keyframeWidget= widgets.keyframes.new(25, -SCALED_HEIGHT/2+75, SCALED_WIDTH-50-50, 50)
+
 --picking draw mode vs selection mode
-widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+75, 50, 50, 
+widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+125, 50, 50, 
 						{"resources/button_draw.png", "resources/button_select.png"}, 
 						"resources/button_down.png",
 						input.strokecapture.changeMode)
 
-widgets.newSimpleButton(-SCALED_WIDTH/2+225,-SCALED_HEIGHT/2+75,50,50, 
+widgets.newSimpleButton(-SCALED_WIDTH/2+225,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_save.png", "resources/button_down.png",
 						controllers.disk.saveToDisk)
 
-widgets.newSimpleButton(-SCALED_WIDTH/2+275,-SCALED_HEIGHT/2+75,50,50, 
+widgets.newSimpleButton(-SCALED_WIDTH/2+275,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_load.png", "resources/button_down.png",
 						controllers.disk.loadFromDisk)
 
 
 
-widgets.newSimpleButton(-SCALED_WIDTH/2+325,-SCALED_HEIGHT/2+75,50,50, 
+widgets.newSimpleButton(-SCALED_WIDTH/2+325,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_clear.png", "resources/button_down.png",
 						model.deleteAll)
 
 --Photo library buttons
 if MOAIPhotoPickerIOS then
-	local b1x,b1y = -SCALED_WIDTH/2+25,  -SCALED_HEIGHT/2+75
-	local b2x,b2y = -SCALED_WIDTH/2+75, -SCALED_HEIGHT/2+75
+	local b1x,b1y = -SCALED_WIDTH/2+25,  -SCALED_HEIGHT/2+125
+	local b2x,b2y = -SCALED_WIDTH/2+75, -SCALED_HEIGHT/2+125
 	widgets.newSimpleButton(b1x,b1y,50,50, 
 							"resources/button_photolibrary.png", "resources/button_down.png",
 							function(_) 
