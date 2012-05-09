@@ -49,6 +49,7 @@ function UserTransform:init(drawables, startTime)
 						translate=model.timelist.new()	}
 	self.activeThreads = {}
 	self.activeAnimations = {}
+	self.keyframeTimes = {} -- cached important times for displaying or snapping to
 	self.pivot = {x=0,y=0}
 	self.isIdentity = true
 
@@ -61,7 +62,8 @@ function UserTransform:init(drawables, startTime)
 	--insert an identity frame at the start to limit the scope of other transforms
 	self.timelists['scale']:setValueForTime(startTime, 1)
 	self.timelists['rotate']:setValueForTime(startTime, 0)
-	self.timelists['translate']:setValueForTime(startTime, {x=0,y=0})		
+	self.timelists['translate']:setValueForTime(startTime, {x=0,y=0})
+	self.keyframeTimes[startTime] = startTime
 end
 
 
@@ -90,6 +92,7 @@ function UserTransform:updateSelectionTranslate(time, dx, dy)
 	end
 	self.span.stop = math.max(self.span.stop, time)
 	self.isIdentity = false
+	self.keyframeTimes[time] = time
 end
 
 function UserTransform:updateSelectionRotate(time, dRot)
@@ -101,6 +104,7 @@ function UserTransform:updateSelectionRotate(time, dRot)
 	end
 	self.span.stop = math.max(self.span.stop, time)
 	self.isIdentity = false
+	self.keyframeTimes[time] = time
 end
 
 function UserTransform:updateSelectionScale(time, dScale)
@@ -112,6 +116,7 @@ function UserTransform:updateSelectionScale(time, dScale)
 	end
 	self.span.stop = math.max(self.span.stop, time)
 	self.isIdentity = false
+	self.keyframeTimes[time] = time
 end
 
 
