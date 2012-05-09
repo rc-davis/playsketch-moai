@@ -183,7 +183,10 @@ end
 
 function UserTransform:delete()
 	self:stopPlayback()
-	--todo: remove all of the dependent transforms!!
+	for _,dt in pairs(self.dependentTransforms) do
+		dt.drawable:removeTransform(dt)
+	end
+	self.dependentTransforms = {}
 end
 
 

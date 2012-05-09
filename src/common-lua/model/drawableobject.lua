@@ -94,6 +94,29 @@ function DrawableObject:addTopLevelTransform(new_parent_transform)
 	table.insert(self.transforms, new_parent_transform)
 end
 
+function DrawableObject:removeTransform(dependentTransform)
+	--get index of the transform
+	local tranform_index = nil
+	for i,t in pairs(self.transforms) do
+		if t == dependentTransform then transform_index = i break end
+	end
+
+	--remove it and fix up inheritance
+	if transform_index ~= nil then
+		local previous_index = transform_index - 1
+		local next_index = transform_index + 1
+		
+		assert(previous_index >= 1, "can't remove a drawable from itself")
+		self.transforms[previous_index].prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		if next_index <= #self.transforms then
+			self.transforms[previous_index].prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, 
+							self.transforms[next_index].prop, MOAIProp2D.TRANSFORM_TRAIT)
+		end
+		drawingLayer:removeProp(dependentTransform)		
+		table.remove(self.transforms, transform_index)		
+	end	
+end
+
 function DrawableObject:lastActionTimeBefore(time)
 	local most_recent = -1e100
 	for i=2,#self.transforms do

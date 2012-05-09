@@ -144,7 +144,9 @@ function controllers.selection.startStroke()
 			end
 		end
 		
-		controllers.selection.showManipulator()
+		if #controllers.selection.selectedSet > 0 then 
+			controllers.selection.showManipulator()
+		end
 	end
 
 	--cancel():	Cancel the drawing of the selection stroke	
@@ -241,6 +243,10 @@ function controllers.selection.clearSelection()
 	
 	if manipulatorWidget then manipulatorWidget:hide() end
 	controllers.selection.selectedSet = {}
+
+	if current_transform and current_transform.isIdentity then
+		current_transform:delete()
+	end
 	current_transform = nil
 
 end
