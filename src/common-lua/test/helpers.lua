@@ -48,4 +48,22 @@ function test.helpers.generateLines(nLines, nPointsPerLine)
 end
 
 
+
+-- addDebugGrid()	Adds a background grid image to the supplied prop to help track its
+--					coordinate system
+function test.helpers.addDebugGrid(prop)
+	if test.helpers.gridImg == nil then
+		test.helpers.gridImg = MOAIGfxQuad2D.new ()
+		test.helpers.gridImg:setTexture ( "resources/grid.png" )
+		test.helpers.gridImg:setRect ( -100, -100, 100, 100 )
+	end
+	
+	--create a new prop, which inherits from the provided prop
+	newprop = MOAIProp2D.new ()
+	newprop:setDeck ( test.helpers.gridImg )
+	newprop:setLoc (0,0)
+	drawingLayer:insertProp (newprop)
+	newprop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop, MOAIProp2D.TRANSFORM_TRAIT)	
+end
+
 return test.helpers

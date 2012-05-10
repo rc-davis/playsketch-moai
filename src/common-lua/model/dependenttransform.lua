@@ -48,6 +48,8 @@ function DependentTransform:init(drawable, usertransform)
 	-- add it to the current hierarchy
 	self.drawable:addTopLevelTransform(self)
 
+	-- for debug purposes:
+	--test.helpers.addDebugGrid(self.prop)	
 end
 
 function DependentTransform:refresh(absScale, absRot, absLocX, absLocY)
