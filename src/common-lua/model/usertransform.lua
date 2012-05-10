@@ -201,4 +201,18 @@ function UserTransform:appliesTo(drawable)
 	return (self.dependentTransforms[drawable] ~= nil)
 end
 
+
+function UserTransform:getSnappedTime(time)
+	local nearestTime = 1e100
+	for _,t in pairs(self.keyframeTimes) do
+		if math.abs(t - time) < math.abs(nearestTime - time) then
+			nearestTime = t
+		end
+	end
+	if math.abs(nearestTime - time) < 0.5 then
+		return nearestTime
+	end
+	return nil
+end
+
 return model.usertransform
