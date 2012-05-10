@@ -27,11 +27,12 @@ require "widgets/widgets"
 
 controllers.selection = {}
 controllers.selection.selectedSet = {}
+controllers.selection.currentTransform = nil
 
 -- create a single manipulator widget for controlling the selection
 local manipulatorWidget = nil
 local manipulatorWidgetThread = nil
-local current_transform = nil
+
 
 -- startStroke(): begin a new selection lasso stroke
 function controllers.selection.startStroke()
@@ -164,36 +165,45 @@ end
 function controllers.selection.showManipulator()
 	
 	assert(manipulatorWidgetThread == nil, "Don't call showManipulator() while it is already running")
-	assert(current_transform == nil, "Shouldn't have a current_transform still active")
+	assert(controllers.selection.currentTransform == nil, "Shouldn't have a current transform still active")
 	
 	--create the manipulator widget if it doesn't exist
 	if not manipulatorWidget then
 		manipulatorWidget = widgets.newManipulator(
 
 			function(dx,dy) 
-				current_transform:updateSelectionTranslate(controllers.timeline.currentTime(), dx,dy)
+				controllers.selection.currentTransform:updateSelectionTranslate(
+											controllers.timeline.currentTime(), dx,dy)
 			end,
 
 			function(dRot) 
-				current_transform:updateSelectionRotate(controllers.timeline.currentTime(), dRot)
+				controllers.selection.currentTransform:updateSelectionRotate(
+											controllers.timeline.currentTime(), dRot)
 			end,
 
 			function(dScale) 
-				current_transform:updateSelectionScale(controllers.timeline.currentTime(), dScale)
+				controllers.selection.currentTransform:updateSelectionScale(
+											controllers.timeline.currentTime(), dScale)
 			end,
 			
 			function(pivot_dx, pivot_dy)
+
 				-- We need to start a new transform if the pivot has moved
-				local old_pivot = current_transform.pivot
-				local old_loc = current_transform.timelists['translate']:getInterpolatedValueForTime(controllers.timeline.currentTime())
+				local old_pivot = controllers.selection.currentTransform.pivot
+				local old_loc = controllers.selection.currentTransform.timelists['translate']:
+							getInterpolatedValueForTime(controllers.timeline.currentTime())
+
 				--unless the current transform doesn't contain any rotation or scaling information
-				if not current_transform.isIdentity then
+				if not controllers.selection.currentTransform.isIdentity then
 					--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
-					current_transform = model.newInterpolatedUserTransform(controllers.selection.selectedSet,
-													controllers.timeline.currentTime())
-					g_keyframeWidget:setUserTransform(current_transform)
+					controllers.selection.currentTransform = 
+							model.newInterpolatedUserTransform(controllers.selection.selectedSet,
+														controllers.timeline.currentTime())
+					g_keyframeWidget:setUserTransform(controllers.selection.currentTransform)
 				end				
-				current_transform:setPivot(old_loc.x + old_pivot.x + pivot_dx, old_loc.y + old_pivot.y + pivot_dy)
+				controllers.selection.currentTransform:setPivot(
+											old_loc.x + old_pivot.x + pivot_dx, 
+											old_loc.y + old_pivot.y + pivot_dy)
 			end)
 	end
 
@@ -216,15 +226,17 @@ function controllers.selection.showManipulator()
 		avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 
 		--Create a new user transform at this location
-		current_transform = model.getTransform(controllers.timeline.currentTime(),
+		controllers.selection.currentTransform = model.getTransform(controllers.timeline.currentTime(),
 												controllers.selection.selectedSet) 
-		g_keyframeWidget:setUserTransform(current_transform)
+		g_keyframeWidget:setUserTransform(controllers.selection.currentTransform)
 
-		if current_transform.isIdentity then current_transform:setPivot(avgX,avgY) end
+		if controllers.selection.currentTransform.isIdentity then 
+			controllers.selection.currentTransform:setPivot(avgX,avgY) 
+		end
 		manipulatorWidget:show()
 
 		while #controllers.selection.selectedSet > 0 do
-			manipulatorWidget:moveTo(current_transform:getCorrectedLocAtCurrentTime())
+			manipulatorWidget:moveTo(controllers.selection.currentTransform:getCorrectedLocAtCurrentTime())
 			coroutine.yield ()
 		end
 		controllers.selection.clearSelection()
@@ -248,10 +260,11 @@ function controllers.selection.clearSelection()
 	if manipulatorWidget then manipulatorWidget:hide() end
 	controllers.selection.selectedSet = {}
 
-	if current_transform and current_transform.isIdentity then
-		current_transform:delete()
+	if controllers.selection.currentTransform and 
+		controllers.selection.currentTransform.isIdentity then
+		controllers.selection.currentTransform:delete()
 	end
-	current_transform = nil
+	controllers.selection.currentTransform = nil
 	g_keyframeWidget:setUserTransform(nil)
 
 end
