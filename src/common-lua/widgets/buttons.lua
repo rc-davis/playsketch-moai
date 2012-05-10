@@ -162,7 +162,7 @@ end
 -- newSlider(): 	A slider that can be used to select a value (used for timelines)
 -- 					the callback has the form: callback(button,value), when the value changes
 --					Use :setValueSpan(min,max) to set the allowable range of values
-function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSlider, imgSliderDown, callback)
+function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSlider, imgSliderDown, callbackMoved, callbackMoveFinished)
 
 	assert(widgets.layer, "widgets.layer must be initialized before creating buttons")
 
@@ -171,7 +171,8 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 	slider.minvalue = 0
 	slider.maxvalue = 1
 	slider.value = 0
-	slider.callback = callback
+	slider.callbackMoved = callbackMoved
+	slider.callbackMoveFinished = callbackMoveFinished
 	slider.currentAnimation = nil
 
 	slider.background = newButtonInternal( centerX, centerY, width, height, 
@@ -183,13 +184,18 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 	--jump to a time when 
 	slider.background.callbackUp = 
 		function (button, px, py)
-			slider:setAtX(x, 0)
+			slider:setAtX(x, 0, true)
+			if slider.callbackMoveFinished then slider.callbackMoveFinished(slider, slider.value) end
 		end
 
 	slider.scrubber.callbackDrag = 
 		function (button, dx, dy)
 			local px,_ = slider.scrubber:getLoc()
-			slider:setAtX(px, 0)
+			slider:setAtX(px, 0, true)
+		end
+	slider.scrubber.callbackUp = 
+		function (_,_,_)
+			if slider.callbackMoveFinished then slider.callbackMoveFinished(slider, slider.value) end
 		end
 
 	function slider:xToValue(x)
@@ -203,10 +209,10 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 		local pcnt = self.minvalue + (v - self.minvalue)/(self.maxvalue - self.minvalue)
 		pcnt = math.max(0, math.min(1, pcnt))
 		local new_x = centerX - width/2 + height/2 + pcnt*(width - height)
-		self:setAtX(new_x, duration)
+		self:setAtX(new_x, duration, false)
 	end
 
-	function slider:setAtX(px, duration)
+	function slider:setAtX(px, duration, shouldCallback)
 		
 		--scrubber location
 		px = math.min(px, centerX + width/2 - height/2)
@@ -220,8 +226,8 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 		end
 
 		--callback
-		if self.callback and duration == 0 then --todo: should we skip callback?
-			self.callback(self, self.value)
+		if self.callbackMoved and shouldCallback then
+			self.callbackMoved(self, self.value)
 		end
 	end
 	
@@ -234,6 +240,9 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 		self.minvalue = min
 		self.maxvalue = max
 		self:setAtValue(currentValue, 0)
+		if self.callbackMovied and shouldCallback then
+			self.callbackMoved(self, currentValue)
+		end
 	end
 	
 	function slider:stop()
