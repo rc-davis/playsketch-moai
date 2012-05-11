@@ -92,6 +92,7 @@ function UserTransform:addTranslateFrame(time, dx, dy)
 		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.span.start = math.min(self.span.start, time)
 	self.isIdentity = false
 	self.keyframeTimes[time] = time
 end
@@ -104,6 +105,7 @@ function UserTransform:addRotateFrame(time, dRot)
 		dt:refresh(nil, new_rot, nil, nil)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.span.start = math.min(self.span.start, time)
 	self.isIdentity = false
 	self.keyframeTimes[time] = time
 end
@@ -116,6 +118,7 @@ function UserTransform:addScaleFrame(time, dScale)
 		dt:refresh(new_scl, nil, nil, nil)
 	end
 	self.span.stop = math.max(self.span.stop, time)
+	self.span.start = math.min(self.span.start, time)
 	self.isIdentity = false
 	self.keyframeTimes[time] = time
 end
