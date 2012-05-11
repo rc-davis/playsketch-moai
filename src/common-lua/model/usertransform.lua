@@ -25,6 +25,7 @@
 
 model.usertransform = {}
 
+local MIN_ANIMATION_LENGTH = 0.25 --todo: what is the right value for this?
 local UserTransform = {}
 
 function model.usertransform.new(drawables, startTime)
@@ -84,10 +85,10 @@ function UserTransform:getCorrectedLocAtCurrentTime()
 	end
 end
 
-function UserTransform:addTranslateFrame(time, dx, dy, animateToFrame)
+function UserTransform:addTranslateFrame(time, dx, dy)
 	local old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
-	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y}, animateToFrame)
+	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y})
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
@@ -97,10 +98,10 @@ function UserTransform:addTranslateFrame(time, dx, dy, animateToFrame)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addRotateFrame(time, dRot, animateToFrame)
+function UserTransform:addRotateFrame(time, dRot)
 	local old_rot = self.timelists['rotate']:getInterpolatedValueForTime(time)
 	local new_rot = old_rot + dRot
-	self.timelists['rotate']:setValueForTime(time, new_rot, animateToFrame)
+	self.timelists['rotate']:setValueForTime(time, new_rot)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, new_rot, nil, nil)
 	end
@@ -110,10 +111,10 @@ function UserTransform:addRotateFrame(time, dRot, animateToFrame)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addScaleFrame(time, dScale, animateToFrame)
+function UserTransform:addScaleFrame(time, dScale)
 	local old_scl = self.timelists['scale']:getInterpolatedValueForTime(time)
 	local new_scl = old_scl + dScale
-	self.timelists['scale']:setValueForTime(time, new_scl, animateToFrame)
+	self.timelists['scale']:setValueForTime(time, new_scl)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(new_scl, nil, nil, nil)
 	end
@@ -172,13 +173,11 @@ function UserTransform:playThread(start_time, key)
 			assert(frame.time <= current_time and frame.nextFrame.time > current_time,
 					"we should have one frame on either side of the current time")
 				
-			if frame.nextFrame.value and frame.nextFrame.animateToFrame then
-				-- if our transition to the next frame is animated, animate it now			
+			local timeDelta = frame.nextFrame.time - current_time
+			if frame.nextFrame.value and timeDelta >= MIN_ANIMATION_LENGTH then
 
-				local timeDelta = frame.nextFrame.time - current_time
+				--animate our dependent transforms to the next frame
 				local newValue = frame.nextFrame.value
-		
-				--Tell all dependent transforms to seek their next state
 				local nextAnimation = nil
 				for _,dt in pairs(self.dependentTransforms) do
 					if key == 'scale' then
@@ -194,7 +193,8 @@ function UserTransform:playThread(start_time, key)
 				end
 		
 			elseif frame.value then
-				--otherwise just jump to our current frame
+
+				--otherwise just jump to the current frame
 				for _,dt in pairs(self.dependentTransforms) do
 					if key == 'scale' then
 						dt.prop:setScl(frame.value, frame.value)

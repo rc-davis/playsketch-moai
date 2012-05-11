@@ -46,8 +46,7 @@ end
 
 function TimeList:init()
 	self.class = "TimeList"
-	self.firstFrame = { time=-1e100, value=nil, animateToFrame=false, 
-						nextFrame={ time = 1e100, value=nil }}
+	self.firstFrame = { time=-1e100, value=nil, nextFrame={ time = 1e100, value=nil }}
 end
 
 
@@ -85,11 +84,10 @@ end
 
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
-function TimeList:setValueForTime(time, value, animateToFrame)	
+function TimeList:setValueForTime(time, value)
 	local frame = self:makeFrameForTime(time)
 	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")		
 	frame.value = value
-	frame.animateToFrame = animateToFrame
 end
 
 
