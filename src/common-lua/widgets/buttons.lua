@@ -22,7 +22,7 @@
 -- 						flips through the images in imgUpPathList and passes the index of 
 --						the current image to the callbacks
 local function newButtonInternal( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, 
+					imgUpPathList, imgDownPath, imgDisabled,
 					callbackDown, callbackUp, callbackMoved)
 
 	assert(widgets.layer, "must call widgets.init() before creating new buttons")
@@ -44,8 +44,16 @@ local function newButtonInternal( centerX, centerY, width, height,
 		graphics[i]:setRect ( -width/2, -height/2, width/2, height/2 )
 	end
 
+	--load up disabled image
+	if imgDisabled then
+		graphics['disabled'] = MOAIGfxQuad2D.new ()
+		graphics['disabled']:setTexture (imgDisabled)
+		graphics['disabled']:setRect ( -width/2, -height/2, width/2, height/2 )
+	end
+
 	b.touchID = nil
 	b.index = 1
+	b.isEnabled = true
 	b:setDeck(graphics[1])
 	b.callbackDown = callbackDown
 	b.callbackUp = callbackUp
@@ -60,11 +68,20 @@ local function newButtonInternal( centerX, centerY, width, height,
 	function b:getIndex()
 		return self.index
 	end
+	
+	function b:setEnabled(enabled)
+		b.isEnabled = enabled
+		if not enabled then
+			self:setDeck(graphics['disabled'])
+		else
+			self:setDeck(graphics[self.index])
+		end
+	end
 
 	--Set up callback for down events
 	input.manager.addDownCallback(input.manager.UILAYER, 
 		function (id,px,py)
-			if b.touchID == nil and b:inside(px,py) then
+			if b.touchID == nil and b:inside(px,py) and b.isEnabled then
 				b.touchID = id
 				b.touchX,b.touchY = px,py				
 				b:setDeck(graphicsDown)
@@ -113,10 +130,10 @@ end
 -- newSimpleButton(): 	A plain pushbutton, which calls the callback after being pushed
 -- 						the callback has the form: callback(button)
 function widgets.newSimpleButton( centerX, centerY, width, height, 
-					imgUpPath, imgDownPath, callbackUp)
+					imgUpPath, imgDownPath, imgDisabled, callbackUp)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
-					{imgUpPath}, imgDownPath,
+					{imgUpPath}, imgDownPath, imgDisabled,
 					nil, nil, nil)
 	b.callbackUp =	function(_, _, _) 
 						if b.callbackUp_Simple then b.callbackUp_Simple(b) end
@@ -129,10 +146,10 @@ end
 -- newToggleButton(): 	Flips through the images in imgUpPathList
 -- 						the callback has the form: callback(button)
 function widgets.newToggleButton( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, callbackUp )
+					imgUpPathList, imgDownPath, imgDisabled, callbackUp )
 					
 	local b = newButtonInternal( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, 
+					imgUpPathList, imgDownPath, imgDisabled,
 					nil, nil, nil)
 
 	b.state = 1	
@@ -146,10 +163,10 @@ end
 -- newSimpleDragableButton(): 	a sprite that can be dragged around the screen
 --		 						the callback has the form: callback(button,dx,dy)
 function widgets.newSimpleDragableButton( centerX, centerY, width, height, 
-					imgUpPath, imgDownPath, callbackDrag)
+					imgUpPath, imgDownPath, imgDisabled, callbackDrag)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
-					{imgUpPath}, imgDownPath, nil, nil, nil)
+					{imgUpPath}, imgDownPath, imgDisabled, nil, nil, nil)
 	b.callbackMoved = function (_,dx,dy,px,py) 
 						b:moveLoc(dx,dy,0)
 						if b.callbackDrag then b.callbackDrag(b,dx,dy) end
@@ -176,10 +193,10 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 	slider.currentAnimation = nil
 
 	slider.background = newButtonInternal( centerX, centerY, width, height, 
-								{imgBackground}, imgBackground, nil, nil, nil)
+								{imgBackground}, imgBackground, nil, nil, nil, nil)
 
 	slider.scrubber = widgets.newSimpleDragableButton( centerX, centerY, height, height, 
-						imgSlider, imgSliderDown, nil)
+						imgSlider, imgSliderDown, nil, nil)
 	
 	--jump to a time when 
 	slider.background.callbackUp = 
