@@ -27,18 +27,18 @@ model.usertransform = {}
 
 local UserTransform = {}
 
-function model.usertransform.new(drawables, startTime, interpolated)
+function model.usertransform.new(drawables, startTime)
 	print("init: usertransform")
 	local l = {}
 	for i,v in pairs(UserTransform) do
 		l[i] = v
 	end
-	l:init(drawables, startTime, interpolated)
+	l:init(drawables, startTime)
 	return l
 end
 
 ----- UserTransform methods -----
-function UserTransform:init(drawables, startTime, interpolated)
+function UserTransform:init(drawables, startTime)
 
 	self.class = "UserTransform"
 	self.span = {start=startTime,stop=startTime}
@@ -52,7 +52,7 @@ function UserTransform:init(drawables, startTime, interpolated)
 	self.keyframeTimes = {} -- cached important times for displaying or snapping to
 	self.pivot = {x=0,y=0}
 	self.isIdentity = true
-	self.useInterpolation = interpolated
+	self.useInterpolation = true
 
 	--create a transform for each object
 	self.dependentTransforms = {}
@@ -76,6 +76,11 @@ function UserTransform:setPivot(pivX, pivY)
 		dt.prop:setPiv(pivX, pivY)
 		dt.prop:setLoc(pivX, pivY)
 	end
+end
+
+function UserTransform:setUseInterpolation(useInterpolation)
+	assert(self.isIdentity, "Shouldn't change the interpolation flag on a transform with data")
+	self.useInterpolation = useInterpolation
 end
 
 function UserTransform:getCorrectedLocAtCurrentTime()
