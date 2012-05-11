@@ -142,7 +142,7 @@ function model.newInterpolatedUserTransform(drawablesSet, baseTime)
 	end
 
 	--Create a new transform
-	local ut = model.usertransform.new(drawablesSet, startTime)
+	local ut = model.usertransform.new(drawablesSet, startTime, true)
 	all_user_transforms[ut] = ut
 
 	return ut

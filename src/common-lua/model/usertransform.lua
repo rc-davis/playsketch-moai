@@ -27,18 +27,18 @@ model.usertransform = {}
 
 local UserTransform = {}
 
-function model.usertransform.new(drawables, startTime)
+function model.usertransform.new(drawables, startTime, interpolated)
 	print("init: usertransform")
 	local l = {}
 	for i,v in pairs(UserTransform) do
 		l[i] = v
 	end
-	l:init(drawables, startTime)
+	l:init(drawables, startTime, interpolated)
 	return l
 end
 
 ----- UserTransform methods -----
-function UserTransform:init(drawables, startTime)
+function UserTransform:init(drawables, startTime, interpolated)
 
 	self.class = "UserTransform"
 	self.span = {start=startTime,stop=startTime}
@@ -52,6 +52,7 @@ function UserTransform:init(drawables, startTime)
 	self.keyframeTimes = {} -- cached important times for displaying or snapping to
 	self.pivot = {x=0,y=0}
 	self.isIdentity = true
+	self.useInterpolation = interpolated
 
 	--create a transform for each object
 	self.dependentTransforms = {}
@@ -136,18 +137,25 @@ function UserTransform:playBack(start_time)
 
 	self:displayAtFixedTime(start_time)
 
+	local threadfunc
+	if self.useInterpolation then
+		threadfunc = self.playThreadInterpolated
+	else 
+		threadfunc = self.playThreadUninterpolated
+	end
+
 	-- start our animation threads for each kind of transition (SRT)
 	for _,k in pairs({'scale', 'rotate', 'translate'}) do	
 		self.activeThreads[k] = MOAIThread.new ()
-		self.activeThreads[k]:run (self.playThread, self, start_time, k)
+		self.activeThreads[k]:run (threadfunc, self, start_time, k)
 	end
 end
 
 
--- playThread():start a coroutine that moves through the events in timelists[key] and
+-- playThreadInterpolated():start a coroutine that moves through the events in timelists[key] and
 --				tells all the dependent transforms to animate toward that state
 --				animations are all stored in activeAnimations so they can be cancelled
-function UserTransform:playThread(start_time, key)
+function UserTransform:playThreadInterpolated(start_time, key)
 	local current_time = start_time
 	local frame = self.timelists[key]:getFrameForTime(start_time)
 
@@ -177,6 +185,40 @@ function UserTransform:playThread(start_time, key)
 
 end
 	
+	
+-- playThreadUninterpolated():start a coroutine that moves through the events in timelists[key] and
+--				tells all the dependent transforms to jump directly to that state
+function UserTransform:playThreadUninterpolated(start_time, key)
+	local frame = self.timelists[key]:getFrameForTime(start_time)
+	local changed = true
+	while frame ~= nil do
+
+		-- catch up to the present
+		local current_time = controllers.timeline.currentTime()
+		while frame.nextFrame ~= nil and frame.nextFrame.time <= current_time do
+			frame = frame.nextFrame
+			changed = true
+		end
+		
+		-- then display the present
+		if changed then
+			for _,dt in pairs(self.dependentTransforms) do
+				if key == 'scale' then
+					dt.prop:setScl(frame.value, frame.value)
+				elseif key == 'rotate' then
+					dt.prop:setRot(frame.value)
+				elseif key == 'translate' then
+					dt.prop:setLoc( frame.value.x + self.pivot.x,
+									frame.value.y + self.pivot.y)
+				end
+			end
+		end
+		
+		changed = false
+		coroutine.yield()
+	end
+end
+
 
 -- stopPlayback():	if the object is being animated, it will stop immediately
 function UserTransform:stopPlayback()
