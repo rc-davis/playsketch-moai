@@ -47,6 +47,7 @@ drawingLayer:setViewport ( viewport )
 MOAISim.pushRenderPass ( drawingLayer )
 
 widgets.init(viewport) -- this needs to go after our drawing layer is made
+controllers.recording.initManipulator()
 
 --TEMP: test function for adding an image
 local function addImage(path)
