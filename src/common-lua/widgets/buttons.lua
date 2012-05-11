@@ -130,7 +130,7 @@ end
 -- newSimpleButton(): 	A plain pushbutton, which calls the callback after being pushed
 -- 						the callback has the form: callback(button)
 function widgets.newSimpleButton( centerX, centerY, width, height, 
-					imgUpPath, imgDownPath, imgDisabled, callbackUp)
+					imgUpPath, imgDownPath, imgDisabled, callbackUp, callbackDown)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
 					{imgUpPath}, imgDownPath, imgDisabled,
@@ -138,7 +138,12 @@ function widgets.newSimpleButton( centerX, centerY, width, height,
 	b.callbackUp =	function(_, _, _) 
 						if b.callbackUp_Simple then b.callbackUp_Simple(b) end
 					end
+	b.callbackDown =function(_, _, _) 
+						if b.callbackDown_Simple then b.callbackDown_Simple(b) end
+					end
+
 	b.callbackUp_Simple = callbackUp
+	b.callbackDown_Simple = callbackDown	
 	return b
 end									
 

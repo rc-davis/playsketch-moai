@@ -71,7 +71,7 @@ end
 --Button for generating random lines
 widgets.newSimpleButton(-SCALED_WIDTH/2+125,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_generate_lines.png", "resources/button_down.png", nil, 
-						function(_) test.helpers.generateLines(50,50) end )
+						function(_) test.helpers.generateLines(50,50) end, nil )
 
 --Timeline buttons
 local slider = widgets.newSlider(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
@@ -81,12 +81,14 @@ local slider = widgets.newSlider(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
 							 controllers.timeline.sliderMoved,
 							 controllers.timeline.sliderMoveFinished)
 
+
 local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+25, 50, 50, 
 							{"resources/button_play.png", "resources/button_pause.png"},
 							"resources/button_down.png", 
 							nil,
 							controllers.timeline.playPause)
 controllers.timeline.setButtons(slider, playButton)
+
 
 
 g_keyframeWidget= widgets.keyframes.new(25, -SCALED_HEIGHT/2+75, SCALED_WIDTH-50-50, 50)
@@ -100,17 +102,17 @@ widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+125, 50, 50,
 
 widgets.newSimpleButton(-SCALED_WIDTH/2+225,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_save.png", "resources/button_down.png", nil, 
-						controllers.disk.saveToDisk)
+						controllers.disk.saveToDisk, nil)
 
 widgets.newSimpleButton(-SCALED_WIDTH/2+275,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_load.png", "resources/button_down.png", nil, 
-						controllers.disk.loadFromDisk)
+						controllers.disk.loadFromDisk, nil)
 
 
 
 widgets.newSimpleButton(-SCALED_WIDTH/2+325,-SCALED_HEIGHT/2+125,50,50, 
 						"resources/button_clear.png", "resources/button_down.png", nil, 
-						model.deleteAll)
+						model.deleteAll, nil)
 
 --Photo library buttons
 if MOAIPhotoPickerIOS then
@@ -121,14 +123,15 @@ if MOAIPhotoPickerIOS then
 							function(_) 
 								local wx,wy=drawingLayer:worldToWnd(b1x,b1y) 
 								MOAIPhotoPickerIOS:showPhotoPicker(MOAIPhotoPickerIOS.PhotoPicker_LIBRARY, wx,wy, addImage)
-							end)
+							end,
+							nil)
 	
 	widgets.newSimpleButton(b2x,b2y,50,50, 
 							"resources/button_photocamera.png", "resources/button_down.png", nil, 
 							function(_) 
 								local wx,wy=drawingLayer:worldToWnd(b2x,b2y) 
 								MOAIPhotoPickerIOS:showPhotoPicker(MOAIPhotoPickerIOS.PhotoPicker_CAMERA, wx,wy, addImage)
-							end)
+							end, nil)
 end
 
 
