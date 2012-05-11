@@ -128,18 +128,15 @@ end
 ---------- responding to manipulator actions:
 
 manipulatorTranslated = function(dx,dy) 
-	currentTransform:updateSelectionTranslate(
-								controllers.timeline.currentTime(), dx,dy)
+	currentTransform:addTranslateFrame(controllers.timeline.currentTime(), dx,dy)
 end
 
 manipulatorRotated = function(dRot) 
-	currentTransform:updateSelectionRotate(
-								controllers.timeline.currentTime(), dRot)
+	currentTransform:addRotateFrame(controllers.timeline.currentTime(), dRot)
 end
 
 manipulatorScaled = function(dScale) 
-	currentTransform:updateSelectionScale(
-								controllers.timeline.currentTime(), dScale)
+	currentTransform:addScaleFrame(controllers.timeline.currentTime(), dScale)
 end
 
 manipulatorPivotChanged = function(pivot_dx, pivot_dy)

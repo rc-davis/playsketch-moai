@@ -83,7 +83,7 @@ function UserTransform:getCorrectedLocAtCurrentTime()
 	end
 end
 
-function UserTransform:updateSelectionTranslate(time, dx, dy)
+function UserTransform:addTranslateFrame(time, dx, dy)
 	local old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
 	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y})
@@ -95,7 +95,7 @@ function UserTransform:updateSelectionTranslate(time, dx, dy)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:updateSelectionRotate(time, dRot)
+function UserTransform:addRotateFrame(time, dRot)
 	local old_rot = self.timelists['rotate']:getInterpolatedValueForTime(time)
 	local new_rot = old_rot + dRot
 	self.timelists['rotate']:setValueForTime(time, new_rot)
@@ -107,7 +107,7 @@ function UserTransform:updateSelectionRotate(time, dRot)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:updateSelectionScale(time, dScale)
+function UserTransform:addScaleFrame(time, dScale)
 	local old_scl = self.timelists['scale']:getInterpolatedValueForTime(time)
 	local new_scl = old_scl + dScale
 	self.timelists['scale']:setValueForTime(time, new_scl)
