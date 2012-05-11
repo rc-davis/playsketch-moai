@@ -85,7 +85,7 @@ local slider = widgets.newSlider(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
 local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+25, 50, 50, 
 							{"resources/button_play.png", "resources/button_pause.png"},
 							"resources/button_down.png", 
-							nil,
+							"resources/button_play_disabled.png",
 							controllers.timeline.playPause)
 controllers.timeline.setButtons(slider, playButton)
 

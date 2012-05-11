@@ -98,6 +98,7 @@ function controllers.recording.startRecording()
 	assert(currentTransform, "need a transform to manipulate for recording")	
 	currentlyRecording = true
 	controllers.timeline.play()
+	controllers.timeline.playButton:setEnabled(false)
 	
 end
 
@@ -105,6 +106,7 @@ function controllers.recording.stopRecording()
 	print("Stop Recording")
 	controllers.timeline.pause()
 	currentlyRecording = false
+	controllers.timeline.playButton:setEnabled(true)
 end
 
 
