@@ -24,6 +24,7 @@
 	allUserTransforms()
 	tableToSave()
 	getTransform(time, drawablesSet)
+	newTransform(time, drawablesSet)
 
 --]]
 
@@ -125,10 +126,13 @@ function model.getTransform(time, drawablesSet)
 	end
 
 	-- no pre-existing matches, so let's make a new one
+	return model.newTransform(time, drawablesSet)
+end
+
+function model.newTransform(time, drawablesSet)
 	local ut = model.usertransform.new(drawablesSet, time)
 	all_user_transforms[ut] = ut
 	return ut
 end
-
 
 return model

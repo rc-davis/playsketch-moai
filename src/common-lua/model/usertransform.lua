@@ -52,7 +52,6 @@ function UserTransform:init(drawables, startTime)
 	self.keyframeTimes = {} -- cached important times for displaying or snapping to
 	self.pivot = {x=0,y=0}
 	self.isIdentity = true
-	self.useInterpolation = true
 
 	--create a transform for each object
 	self.dependentTransforms = {}
@@ -61,9 +60,9 @@ function UserTransform:init(drawables, startTime)
 	end
 
 	--insert an identity frame at the start to limit the scope of other transforms
-	self.timelists['scale']:setValueForTime(startTime, 1)
-	self.timelists['rotate']:setValueForTime(startTime, 0)
-	self.timelists['translate']:setValueForTime(startTime, {x=0,y=0})
+	self.timelists['scale']:setValueForTime(startTime, 1, true)
+	self.timelists['rotate']:setValueForTime(startTime, 0, true)
+	self.timelists['translate']:setValueForTime(startTime, {x=0,y=0}, true)
 	self.keyframeTimes[startTime] = startTime
 end
 
@@ -78,10 +77,6 @@ function UserTransform:setPivot(pivX, pivY)
 	end
 end
 
-function UserTransform:setUseInterpolation(useInterpolation)
-	assert(self.isIdentity, "Shouldn't change the interpolation flag on a transform with data")
-	self.useInterpolation = useInterpolation
-end
 
 function UserTransform:getCorrectedLocAtCurrentTime()
 	for _,dt in pairs(self.dependentTransforms) do
@@ -89,10 +84,10 @@ function UserTransform:getCorrectedLocAtCurrentTime()
 	end
 end
 
-function UserTransform:addTranslateFrame(time, dx, dy)
+function UserTransform:addTranslateFrame(time, dx, dy, animateToFrame)
 	local old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
-	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y})
+	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y}, animateToFrame)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, nil, new_x + self.pivot.x, new_y + self.pivot.y)
 	end
@@ -102,10 +97,10 @@ function UserTransform:addTranslateFrame(time, dx, dy)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addRotateFrame(time, dRot)
+function UserTransform:addRotateFrame(time, dRot, animateToFrame)
 	local old_rot = self.timelists['rotate']:getInterpolatedValueForTime(time)
 	local new_rot = old_rot + dRot
-	self.timelists['rotate']:setValueForTime(time, new_rot)
+	self.timelists['rotate']:setValueForTime(time, new_rot, animateToFrame)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(nil, new_rot, nil, nil)
 	end
@@ -115,10 +110,10 @@ function UserTransform:addRotateFrame(time, dRot)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addScaleFrame(time, dScale)
+function UserTransform:addScaleFrame(time, dScale, animateToFrame)
 	local old_scl = self.timelists['scale']:getInterpolatedValueForTime(time)
 	local new_scl = old_scl + dScale
-	self.timelists['scale']:setValueForTime(time, new_scl)
+	self.timelists['scale']:setValueForTime(time, new_scl, animateToFrame)
 	for _,dt in pairs(self.dependentTransforms) do
 		dt:refresh(new_scl, nil, nil, nil)
 	end
@@ -145,17 +140,10 @@ function UserTransform:playBack(start_time)
 
 	self:displayAtFixedTime(start_time)
 
-	local threadfunc
-	if self.useInterpolation then
-		threadfunc = self.playThreadInterpolated
-	else 
-		threadfunc = self.playThreadUninterpolated
-	end
-
 	-- start our animation threads for each kind of transition (SRT)
 	for _,k in pairs({'scale', 'rotate', 'translate'}) do	
 		self.activeThreads[k] = MOAIThread.new ()
-		self.activeThreads[k]:run (threadfunc, self, start_time, k)
+		self.activeThreads[k]:run (self.playThread, self, start_time, k)
 	end
 end
 
@@ -163,70 +151,67 @@ end
 -- playThreadInterpolated():start a coroutine that moves through the events in timelists[key] and
 --				tells all the dependent transforms to animate toward that state
 --				animations are all stored in activeAnimations so they can be cancelled
-function UserTransform:playThreadInterpolated(start_time, key)
-	local current_time = start_time
+function UserTransform:playThread(start_time, key)
+
 	local frame = self.timelists[key]:getFrameForTime(start_time)
 
-	while frame ~= nil and frame.nextFrame ~= nil and frame.nextFrame.value ~= nil do
-		local timeDelta = frame.nextFrame.time - current_time
-		local newValue = frame.nextFrame.value
+	while frame ~= nil and frame.nextFrame ~= nil do
 
-		--Tell all dependent transforms to seek their next state
-		local nextAnimation = nil
-		for _,dt in pairs(self.dependentTransforms) do
-			if key == 'scale' then
-				nextAnimation = dt.prop:seekScl(newValue, newValue, timeDelta, MOAIEaseType.LINEAR)
-			elseif key == 'rotate' then
-				nextAnimation = dt.prop:seekRot(newValue, timeDelta, MOAIEaseType.LINEAR)
-			elseif key == 'translate' then
-				nextAnimation = dt.prop:seekLoc(newValue.x + self.pivot.x,
-												newValue.y + self.pivot.y,
-												timeDelta, MOAIEaseType.LINEAR)
-			end
-			table.insert(self.activeAnimations, nextAnimation)
-		end
-
-		MOAIThread.blockOnAction(nextAnimation)
-		current_time = frame.nextFrame.time
-		frame = frame.nextFrame
-	end
-
-end
-	
-	
--- playThreadUninterpolated():start a coroutine that moves through the events in timelists[key] and
---				tells all the dependent transforms to jump directly to that state
-function UserTransform:playThreadUninterpolated(start_time, key)
-	local frame = self.timelists[key]:getFrameForTime(start_time)
-	local changed = true
-	while frame ~= nil do
-
-		-- catch up to the present
 		local current_time = controllers.timeline.currentTime()
-		while frame.nextFrame ~= nil and frame.nextFrame.time <= current_time do
-			frame = frame.nextFrame
-			changed = true
-		end
+
+		-- ignore this loop if we haven't caught up with the frame yet
+		if frame.time > current_time then
+			coroutine.yield()
 		
-		-- then display the present
-		if changed then
-			for _,dt in pairs(self.dependentTransforms) do
-				if key == 'scale' then
-					dt.prop:setScl(frame.value, frame.value)
-				elseif key == 'rotate' then
-					dt.prop:setRot(frame.value)
-				elseif key == 'translate' then
-					dt.prop:setLoc( frame.value.x + self.pivot.x,
-									frame.value.y + self.pivot.y)
+		else
+			--advance until frame is the last frame before current_time
+			while frame.nextFrame ~= nil and frame.nextFrame.time <= current_time do
+				frame = frame.nextFrame
+			end
+		
+			assert(frame.time <= current_time and frame.nextFrame.time > current_time,
+					"we should have one frame on either side of the current time")
+				
+			if frame.nextFrame.value and frame.nextFrame.animateToFrame then
+				-- if our transition to the next frame is animated, animate it now			
+
+				local timeDelta = frame.nextFrame.time - current_time
+				local newValue = frame.nextFrame.value
+		
+				--Tell all dependent transforms to seek their next state
+				local nextAnimation = nil
+				for _,dt in pairs(self.dependentTransforms) do
+					if key == 'scale' then
+						nextAnimation = dt.prop:seekScl(newValue, newValue, timeDelta, MOAIEaseType.LINEAR)
+					elseif key == 'rotate' then
+						nextAnimation = dt.prop:seekRot(newValue, timeDelta, MOAIEaseType.LINEAR)
+					elseif key == 'translate' then
+						nextAnimation = dt.prop:seekLoc(newValue.x + self.pivot.x,
+														newValue.y + self.pivot.y,
+														timeDelta, MOAIEaseType.LINEAR)
+					end
+					table.insert(self.activeAnimations, nextAnimation)
+				end
+		
+			elseif frame.value then
+				--otherwise just jump to our current frame
+				for _,dt in pairs(self.dependentTransforms) do
+					if key == 'scale' then
+						dt.prop:setScl(frame.value, frame.value)
+					elseif key == 'rotate' then
+						dt.prop:setRot(frame.value)
+					elseif key == 'translate' then
+						dt.prop:setLoc( frame.value.x + self.pivot.x,
+										frame.value.y + self.pivot.y)
+					end
 				end
 			end
+			
+			frame = frame.nextFrame
+			coroutine.yield()
 		end
-		
-		changed = false
-		coroutine.yield()
 	end
 end
-
 
 -- stopPlayback():	if the object is being animated, it will stop immediately
 function UserTransform:stopPlayback()
