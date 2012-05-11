@@ -24,7 +24,6 @@
 	allUserTransforms()
 	tableToSave()
 	getTransform(time, drawablesSet)
-	newInterpolatedUserTransform(drawablesSet)
 
 --]]
 
@@ -126,26 +125,10 @@ function model.getTransform(time, drawablesSet)
 	end
 
 	-- no pre-existing matches, so let's make a new one
-	return model.newInterpolatedUserTransform(drawablesSet, time)
-
-end
-
-
-function model.newInterpolatedUserTransform(drawablesSet, baseTime)
-
-	-- Figure out the extents this transform should assume
-	-- Since this is an interpolated transform (rather than recorded), we need to guess
-	-- at when it should start and end
-	local startTime = 0
-	for _,drawable in pairs(drawablesSet) do
-		startTime = math.max(startTime, drawable:lastActionTimeBefore(baseTime))
-	end
-
-	--Create a new transform
-	local ut = model.usertransform.new(drawablesSet, startTime, true)
+	local ut = model.usertransform.new(drawablesSet, time)
 	all_user_transforms[ut] = ut
-
 	return ut
 end
+
 
 return model
