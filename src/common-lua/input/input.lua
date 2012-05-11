@@ -25,4 +25,6 @@ input = {}
 require "input/manager"
 require "input/strokecapture"
 
+input.hasTouch = MOAIInputMgr.device.touch
+
 return input
