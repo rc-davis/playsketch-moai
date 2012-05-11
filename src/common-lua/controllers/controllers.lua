@@ -31,5 +31,6 @@ require "controllers/timeline"
 require "controllers/selection"
 require "controllers/drawing"
 require "controllers/disk"
+require "controllers/recording"
 
 return controllers

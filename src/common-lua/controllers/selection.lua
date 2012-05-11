@@ -18,7 +18,8 @@
 	crosses the lasso's lines.
 	For efficiency, the points are tested only incrementally against each new segment of 
 	the lasso.
-	After a selection is made, the manipulator widget is displayed.
+
+	When the selection changes, the recording controller is notified
 	
 --]]
 
@@ -26,16 +27,13 @@ require "model/model"
 require "widgets/widgets"
 
 controllers.selection = {}
-controllers.selection.selectedSet = {}
-controllers.selection.currentTransform = nil
-
--- create a single manipulator widget for controlling the selection
-local manipulatorWidget = nil
-local manipulatorWidgetThread = nil
+local selectedSet = {}
 
 
 -- startStroke(): begin a new selection lasso stroke
 function controllers.selection.startStroke()
+
+	controllers.selection.clearSelection()
 
 	local selection_stroke = controllers.drawing.startStroke()
 	selection_stroke.color = {1, 1, 0}
@@ -51,9 +49,6 @@ function controllers.selection.startStroke()
 		cached_points[o] = o:getCorrectedPointsAtCurrentTime()
 		o:setSelected(false)
 	end
-
-	controllers.selection.clearSelection()
-
 
 	--addPoint(x,y):	Add a point to the selection lasso.
 	--					The line between the new point and the last point is tested for
@@ -138,16 +133,13 @@ function controllers.selection.startStroke()
 	--					If the selected set contains objects, show the manipulator
 	function selection_stroke:doneStroke()
 
-		controllers.selection.selectedSet = {}
+		selectedSet = {}
 		for _,o in pairs(model.allDrawables()) do
 			if o:selected() then 
-				table.insert(controllers.selection.selectedSet, o)
+				table.insert(selectedSet, o)
 			end
 		end
-		
-		if #controllers.selection.selectedSet > 0 then 
-			controllers.selection.showManipulator()
-		end
+		controllers.recording:selectedSetChanged(selectedSet)
 	end
 
 	--cancel():	Cancel the drawing of the selection stroke	
@@ -156,117 +148,16 @@ function controllers.selection.startStroke()
 		controllers.selection.clearSelection()
 	end
 
-
 	return selection_stroke
 end
 
 
--- showManipulator(): Start a coroutine to keep the manipulator centered on the selected objects
-function controllers.selection.showManipulator()
-	
-	assert(manipulatorWidgetThread == nil, "Don't call showManipulator() while it is already running")
-	assert(controllers.selection.currentTransform == nil, "Shouldn't have a current transform still active")
-	
-	--create the manipulator widget if it doesn't exist
-	if not manipulatorWidget then
-		manipulatorWidget = widgets.newManipulator(
-
-			function(dx,dy) 
-				controllers.selection.currentTransform:updateSelectionTranslate(
-											controllers.timeline.currentTime(), dx,dy)
-			end,
-
-			function(dRot) 
-				controllers.selection.currentTransform:updateSelectionRotate(
-											controllers.timeline.currentTime(), dRot)
-			end,
-
-			function(dScale) 
-				controllers.selection.currentTransform:updateSelectionScale(
-											controllers.timeline.currentTime(), dScale)
-			end,
-			
-			function(pivot_dx, pivot_dy)
-
-				-- We need to start a new transform if the pivot has moved
-				local old_pivot = controllers.selection.currentTransform.pivot
-				local old_loc = controllers.selection.currentTransform.timelists['translate']:
-							getInterpolatedValueForTime(controllers.timeline.currentTime())
-
-				--unless the current transform doesn't contain any rotation or scaling information
-				if not controllers.selection.currentTransform.isIdentity then
-					--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
-					controllers.selection.currentTransform = 
-							model.newInterpolatedUserTransform(controllers.selection.selectedSet,
-														controllers.timeline.currentTime())
-					g_keyframeWidget:setUserTransform(controllers.selection.currentTransform)
-				end				
-				controllers.selection.currentTransform:setPivot(
-											old_loc.x + old_pivot.x + pivot_dx, 
-											old_loc.y + old_pivot.y + pivot_dy)
-			end)
-	end
-
-	-- selectionMain(): Loops as long as there are items in the selected set
-	-- 					On each step, we center the manipulatorWidget	
-	local function selectionMain()
-
-		-- First! Pick a default center point for the manipulator widgets
-		-- (averaging the centres of all the objects)
-		local avgX,avgY = 0,0
-		for i,o in ipairs(controllers.selection.selectedSet) do
-			local x,y = o:getCorrectedLocAtCurrentTime()
-			avgX = avgX + x
-			avgY = avgY + y
-		end
-		avgX = avgX/#controllers.selection.selectedSet
-		avgY = avgY/#controllers.selection.selectedSet			
-		--ensure we are still on the screen
-		avgX = math.min(SCALED_WIDTH/2, math.max(-SCALED_WIDTH/2, avgX))
-		avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
-
-		--Create a new user transform at this location
-		controllers.selection.currentTransform = model.getTransform(controllers.timeline.currentTime(),
-												controllers.selection.selectedSet) 
-		g_keyframeWidget:setUserTransform(controllers.selection.currentTransform)
-
-		if controllers.selection.currentTransform.isIdentity then 
-			controllers.selection.currentTransform:setPivot(avgX,avgY) 
-		end
-		manipulatorWidget:show()
-
-		while #controllers.selection.selectedSet > 0 do
-			manipulatorWidget:moveTo(controllers.selection.currentTransform:getCorrectedLocAtCurrentTime())
-			coroutine.yield ()
-		end
-		controllers.selection.clearSelection()
-	end
-	
-	manipulatorWidgetThread = MOAIThread.new ()
-	manipulatorWidgetThread:run ( selectionMain, nil )
-
-end
-
 function controllers.selection.clearSelection()
-	if manipulatorWidgetThread then
-		manipulatorWidgetThread:stop()
-		manipulatorWidgetThread = nil
-	end
-	
 	for _,o in pairs(model.allDrawables()) do
 		o:setSelected(false)
-	end
-	
-	if manipulatorWidget then manipulatorWidget:hide() end
-	controllers.selection.selectedSet = {}
-
-	if controllers.selection.currentTransform and 
-		controllers.selection.currentTransform.isIdentity then
-		controllers.selection.currentTransform:delete()
-	end
-	controllers.selection.currentTransform = nil
-	g_keyframeWidget:setUserTransform(nil)
-
+	end	
+	selectedSet = {}
+	controllers.recording:selectedSetChanged(selectedSet)
 end
 
 return controllers.selection

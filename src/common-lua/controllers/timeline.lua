@@ -60,7 +60,7 @@ end
 function controllers.timeline.sliderMoveFinished(slider, new_time)
 
 	-- Fix up the time to 'snap' to a keyframe in the selected transform
-	local transform = controllers.selection.currentTransform
+	local transform = controllers.recording.getCurrentTransform()
 	if transform then
 		local snappedTime = transform:getSnappedTime(new_time)
 		if snappedTime then
