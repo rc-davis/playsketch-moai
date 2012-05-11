@@ -85,8 +85,13 @@ function UserTransform:getCorrectedLocAtCurrentTime()
 	end
 end
 
-function UserTransform:addTranslateFrame(time, dx, dy)
-	local old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
+function UserTransform:addTranslateFrame(time, dx, dy, overwriting)
+	local old_loc
+	if overwriting then
+		old_loc = self.timelists['translate']:getValueForTime(time)
+	else
+		old_loc = self.timelists['translate']:getInterpolatedValueForTime(time)
+	end
 	local new_x, new_y = old_loc.x+dx, old_loc.y+dy
 	self.timelists['translate']:setValueForTime(time, {x=new_x, y=new_y})
 	for _,dt in pairs(self.dependentTransforms) do
@@ -98,8 +103,13 @@ function UserTransform:addTranslateFrame(time, dx, dy)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addRotateFrame(time, dRot)
-	local old_rot = self.timelists['rotate']:getInterpolatedValueForTime(time)
+function UserTransform:addRotateFrame(time, dRot, overwriting)
+	local old_rot
+	if overwriting then
+		old_rot = self.timelists['rotate']:getValueForTime(time)
+	else
+		old_rot = self.timelists['rotate']:getInterpolatedValueForTime(time)
+	end
 	local new_rot = old_rot + dRot
 	self.timelists['rotate']:setValueForTime(time, new_rot)
 	for _,dt in pairs(self.dependentTransforms) do
@@ -111,8 +121,13 @@ function UserTransform:addRotateFrame(time, dRot)
 	self.keyframeTimes[time] = time
 end
 
-function UserTransform:addScaleFrame(time, dScale)
-	local old_scl = self.timelists['scale']:getInterpolatedValueForTime(time)
+function UserTransform:addScaleFrame(time, dScale, overwriting)
+	local old_scl
+	if overwriting then
+		old_scl = self.timelists['scale']:getValueForTime(time)
+	else
+		old_scl = self.timelists['scale']:getInterpolatedValueForTime(time)
+	end
 	local new_scl = old_scl + dScale
 	self.timelists['scale']:setValueForTime(time, new_scl)
 	for _,dt in pairs(self.dependentTransforms) do
@@ -124,6 +139,13 @@ function UserTransform:addScaleFrame(time, dScale)
 	self.keyframeTimes[time] = time
 end
 
+
+-- erase a block sized 'duration' starting at time
+function UserTransform:erase(time, duration)
+	self.timelists['scale']:erase(time, duration)
+	self.timelists['rotate']:erase(time, duration)
+	self.timelists['translate']:erase(time, duration)
+end
 
 ---- Functions for animating and playing back!
 
@@ -141,11 +163,19 @@ function UserTransform:playBack(start_time)
 
 	self:displayAtFixedTime(start_time)
 
+	-- don't animate if we are recording a manipulator for this transform!
+	--todo: should we only stop one of SRT instead of all three?
+	if self == controllers.recording.getCurrentTransform() and
+	controllers.recording.getCurrentlyRecording() then
+		return
+	end
+
 	-- start our animation threads for each kind of transition (SRT)
 	for _,k in pairs({'scale', 'rotate', 'translate'}) do	
 		self.activeThreads[k] = MOAIThread.new ()
 		self.activeThreads[k]:run (self.playThread, self, start_time, k)
 	end
+
 end
 
 

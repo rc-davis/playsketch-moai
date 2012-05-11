@@ -95,7 +95,8 @@ end
 function TimeList:getValueForTime(time)
 	local frame = self:getFrameForTime(time)
 	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")
-	return frame.value
+	if not frame.value then return frame.nextFrame.value
+	else return frame.value end
 end
 
 
@@ -128,6 +129,14 @@ function TimeList:getInterpolatedValueForTime(time)
 	end
 end
 
+function TimeList:erase(time, duration)
+	local first = self:getFrameForTime(time)
+	local count = 0
+	while first.nextFrame and first.nextFrame.time < time + duration do
+		first.nextFrame = first.nextFrame.nextFrame
+		count = count + 1
+	end
+end
 
 -- dump(): For debugging, dump the lists for o.
 function TimeList:dump()

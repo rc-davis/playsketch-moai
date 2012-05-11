@@ -33,6 +33,7 @@ local currentTransform = nil
 local currentObjectSet = nil
 local manipulator = nil
 local currentlyRecording = false
+local erasingThread = nil
 
 --forward declarations for local functions:
 local	manipulatorTranslated, 
@@ -74,6 +75,11 @@ function controllers.recording.getCurrentTransform()
 	return currentTransform
 end
 
+function controllers.recording.getCurrentlyRecording()
+	return currentlyRecording
+end
+
+
 -- we have to hold it down if we are using a touch screen, click if we are using a mouse
 function controllers.recording.recordingButtonDown()
 	if input.hasTouch then
@@ -97,9 +103,23 @@ function controllers.recording.startRecording()
 	assert(currentObjectSet and #currentObjectSet > 0, "need objects to record with")
 	assert(currentTransform, "need a transform to manipulate for recording")	
 	currentlyRecording = true
-	controllers.timeline.play()
 	controllers.timeline.playButton:setEnabled(false)
-	
+		
+	--start a new thread to keep erasing the space in front of us while we record
+	erasingThread = MOAIThread.new():run (
+		function ()
+			local last_erase = -1e100
+			while currentlyRecording do
+				local now = controllers.timeline.currentTime()
+				if now - last_erase > 0.25 then
+					currentTransform:erase(now, 0.5)
+					last_erase = now
+				end
+				coroutine.yield()
+			end
+		end, nil)
+
+	controllers.timeline.play()	
 end
 
 function controllers.recording.stopRecording()
@@ -171,15 +191,15 @@ end
 ---------- responding to manipulator actions:
 
 manipulatorTranslated = function(dx,dy) 
-	currentTransform:addTranslateFrame(controllers.timeline.currentTime(), dx,dy)
+	currentTransform:addTranslateFrame(controllers.timeline.currentTime(), dx,dy, currentlyRecording)
 end
 
 manipulatorRotated = function(dRot) 
-	currentTransform:addRotateFrame(controllers.timeline.currentTime(), dRot)
+	currentTransform:addRotateFrame(controllers.timeline.currentTime(), dRot, currentlyRecording)
 end
 
 manipulatorScaled = function(dScale) 
-	currentTransform:addScaleFrame(controllers.timeline.currentTime(), dScale)
+	currentTransform:addScaleFrame(controllers.timeline.currentTime(), dScale, currentlyRecording)
 end
 
 manipulatorPivotChanged = function(pivot_dx, pivot_dy)
