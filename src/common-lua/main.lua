@@ -92,6 +92,13 @@ controllers.timeline.setButtons(slider, playButton)
 
 
 g_keyframeWidget= widgets.keyframes.new(25, -SCALED_HEIGHT/2+75, SCALED_WIDTH-50-50, 50)
+g_recButton = widgets.newSimpleButton(-SCALED_WIDTH/2+25, -SCALED_HEIGHT/2+75, 50, 50,
+					 "resources/button_record.png",
+					"resources/button_stop.png",
+					"resources/button_record_disabled.png", 
+					controllers.recording.recordingButtonDown, 
+					controllers.recording.recordingButtonUp)
+g_recButton:setEnabled(false)
 
 --picking draw mode vs selection mode
 widgets.newToggleButton(-SCALED_WIDTH/2+175,-SCALED_HEIGHT/2+125, 50, 50, 
