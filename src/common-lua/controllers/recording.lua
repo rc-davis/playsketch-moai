@@ -19,6 +19,10 @@
 	initManipulator()
 	selectedSetChanged()
 	getCurrentTransform()
+	recordingButtonDown()
+	recordingButtonUp()
+	startRecording()
+	stopRecording()
 	
 --]]
 
@@ -28,6 +32,7 @@ controllers.recording = {}
 local currentTransform = nil
 local currentObjectSet = nil
 local manipulator = nil
+local currentlyRecording = false
 
 --forward declarations for local functions:
 local	manipulatorTranslated, 
@@ -56,9 +61,11 @@ function controllers.recording:selectedSetChanged(selectedSet)
 
 	if #selectedSet == 0 then
 		hideManipulator()
+		g_recButton:setEnabled(false)
 	else
 		currentObjectSet = selectedSet
 		showManipulator()
+		g_recButton:setEnabled(true)
 	end
 end
 
@@ -66,6 +73,40 @@ end
 function controllers.recording.getCurrentTransform()
 	return currentTransform
 end
+
+-- we have to hold it down if we are using a touch screen, click if we are using a mouse
+function controllers.recording.recordingButtonDown()
+	if input.hasTouch then
+		controllers.recording.startRecording()
+	end
+end
+
+-- we have to hold it down if we are using a touch screen, click if we are using a mouse
+function controllers.recording.recordingButtonUp()
+	if input.hasTouch or currentlyRecording then
+		controllers.recording.stopRecording()
+	else
+		controllers.recording.startRecording()
+	end
+end
+
+
+
+function controllers.recording.startRecording()
+	print("Start Recording")
+	assert(currentObjectSet and #currentObjectSet > 0, "need objects to record with")
+	assert(currentTransform, "need a transform to manipulate for recording")	
+	currentlyRecording = true
+	controllers.timeline.play()
+	
+end
+
+function controllers.recording.stopRecording()
+	print("Stop Recording")
+	controllers.timeline.pause()
+	currentlyRecording = false
+end
+
 
 
 --------------
@@ -117,7 +158,7 @@ end
 -- keep the manipulator in sync with the current transform
 manipulatorUpdateLoop = function()
 	while true do
-		if manipulator and currentTransform then
+		if not currentlyRecording and manipulator and currentTransform then
 			manipulator:moveTo(currentTransform:getCorrectedLocAtCurrentTime())
 		end
 		coroutine.yield ()
@@ -149,12 +190,11 @@ manipulatorPivotChanged = function(pivot_dx, pivot_dy)
 	if not currentTransform.isIdentity then
 		--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
 		currentTransform = 
-				model.newInterpolatedUserTransform(currentObjectSet,
-											controllers.timeline.currentTime())
+				model.newTransform(controllers.timeline.currentTime(), currentObjectSet)
+		
 		g_keyframeWidget:setUserTransform(currentTransform)
 	end				
-	currentTransform:setPivot(
-								old_loc.x + old_pivot.x + pivot_dx, 
+	currentTransform:setPivot(	old_loc.x + old_pivot.x + pivot_dx, 
 								old_loc.y + old_pivot.y + pivot_dy)
 end
 
