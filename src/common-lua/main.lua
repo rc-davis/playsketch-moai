@@ -96,8 +96,8 @@ g_recButton = widgets.newSimpleButton(-SCALED_WIDTH/2+25, -SCALED_HEIGHT/2+75, 5
 					 "resources/button_record.png",
 					"resources/button_stop.png",
 					"resources/button_record_disabled.png", 
-					controllers.recording.recordingButtonDown, 
-					controllers.recording.recordingButtonUp)
+					controllers.recording.recordingButtonUp, 
+					controllers.recording.recordingButtonDown)
 g_recButton:setEnabled(false)
 
 --picking draw mode vs selection mode
