@@ -35,7 +35,8 @@ local highlightColor = {7.0, 0, 0, 0.7}
 
 local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
 
-function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback)
+function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback,
+								startManipulatingCallback, doneManipulatingCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -55,6 +56,8 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 	prop.rotateCallback = rotateCallback
 	prop.scaleCallback = scaleCallback
 	prop.pivotAdjustCallback = pivotAdjustCallback
+	prop.startManipulatingCallback = startManipulatingCallback
+	prop.doneManipulatingCallback = doneManipulatingCallback
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -143,15 +146,19 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 				if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.PIVOTADJUST
+					if prop.startManipulatingCallback then prop.startManipulatingCallback("pivot") end
 				elseif distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
+					if prop.startManipulatingCallback then prop.startManipulatingCallback("translate") end					
 				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the rotate manipulator
 					prop.currentAction = actions.ROTATE
+					if prop.startManipulatingCallback then prop.startManipulatingCallback("rotate") end										
 				else
 					--touching the scale rectangle
 					prop.currentAction = actions.SCALE
+					if prop.startManipulatingCallback then prop.startManipulatingCallback("scale") end					
 				end
 			end
 			return true
@@ -219,6 +226,7 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 				prop.touchID = nil
 				prop.currentAction = nil
 				prop.touchLoc = nil
+				if prop.doneManipulatingCallback then prop.doneManipulatingCallback() end
 				return true
 			end
 
