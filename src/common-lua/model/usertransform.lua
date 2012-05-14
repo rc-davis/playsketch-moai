@@ -141,10 +141,10 @@ end
 
 
 -- erase a block sized 'duration' starting at time
-function UserTransform:erase(time, duration)
-	self.timelists['scale']:erase(time, duration)
-	self.timelists['rotate']:erase(time, duration)
-	self.timelists['translate']:erase(time, duration)
+function UserTransform:erase(time, duration, erasetype)
+	if erasetype == 'scale' then self.timelists['scale']:erase(time, duration) end
+	if erasetype == 'rotate' then self.timelists['rotate']:erase(time, duration) end
+	if erasetype == 'translate' then self.timelists['translate']:erase(time, duration) end
 end
 
 ---- Functions for animating and playing back!

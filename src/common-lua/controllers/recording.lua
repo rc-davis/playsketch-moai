@@ -34,12 +34,15 @@ local currentObjectSet = nil
 local manipulator = nil
 local currentlyRecording = false
 local erasingThread = nil
+local erasingType = nil
 
 --forward declarations for local functions:
 local	manipulatorTranslated, 
 		manipulatorRotated,
 		manipulatorScaled,
 		manipulatorPivotChanged,
+		manipulatorStartedChanging,
+		manipulatorDoneChanging,		
 		manipulatorUpdateLoop,
 		hideManipulator,
 		showManipulator
@@ -50,7 +53,9 @@ function controllers.recording.initManipulator()
 		manipulatorTranslated,
 		manipulatorRotated,
 		manipulatorScaled,
-		manipulatorPivotChanged)
+		manipulatorPivotChanged,
+		manipulatorStartedChanging,
+		manipulatorDoneChanging)
 		
 	-- start a thread to keep the manipulator in sync with the transforms it manipulates
 	MOAIThread.new ():run ( manipulatorUpdateLoop, nil )
@@ -112,7 +117,7 @@ function controllers.recording.startRecording()
 			while currentlyRecording do
 				local now = controllers.timeline.currentTime()
 				if now - last_erase > 0.25 then
-					currentTransform:erase(now, 0.5)
+					currentTransform:erase(now, 0.5, erasingType)
 					last_erase = now
 				end
 				coroutine.yield()
@@ -218,6 +223,14 @@ manipulatorPivotChanged = function(pivot_dx, pivot_dy)
 	end				
 	currentTransform:setPivot(	old_loc.x + old_pivot.x + pivot_dx, 
 								old_loc.y + old_pivot.y + pivot_dy)
+end
+
+manipulatorStartedChanging = function(name)
+	erasingType = name
+end
+
+manipulatorDoneChanging = function()
+	erasingType = nil
 end
 
 
