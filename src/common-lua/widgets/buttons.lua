@@ -62,7 +62,11 @@ local function newButtonInternal( centerX, centerY, width, height,
 	function b:setIndex(i)
 		assert(i <= #graphics, "must be a valid index to the list of button images")
 		self.index = i
-		self:setDeck(graphics[i])
+		if self.isEnabled then
+			self:setDeck(graphics[i])
+		else
+			self:setDeck(graphics['disabled'])
+		end
 	end
 	
 	function b:getIndex()
@@ -81,7 +85,8 @@ local function newButtonInternal( centerX, centerY, width, height,
 	--Set up callback for down events
 	input.manager.addDownCallback(input.manager.UILAYER, 
 		function (id,px,py)
-			if b.touchID == nil and b:inside(px,py) and b.isEnabled then
+			if b.touchID == nil and b:inside(px,py) then
+				if not b.isEnabled then return true end
 				b.touchID = id
 				b.touchX,b.touchY = px,py				
 				b:setDeck(graphicsDown)
