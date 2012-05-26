@@ -62,7 +62,7 @@ end
 function Drawable:getPaths()
 	--TODO: if this gets called often, we'll want to store this instead of constructing it
 	local _paths = {}
-	for path,_ in pairs(self.paths)
+	for path,_ in pairs(self.paths) do
 		table.add(_paths, path)
 	end
 	return _paths
