@@ -75,4 +75,39 @@ function Drawable:addPath(path)
 end
 
 
+------------ TEST HELPERS ---------------
+--  return success,message
+
+function Drawable:verifyPathHierarchyConsistency()
+
+	-- we want to make sure that the order of indexes of the paths corresponds to 
+	-- the order of our MOAI hierarchy by checking the attrLinks manually
+	-- This is to make sure that basemodel's path reordering operations are correct
+	-- If this *ever* returns false, it is the result of a bug 
+	
+	-- make an ordered list of paths by sorting
+	local sortedPaths = {}
+	for path,prop in pairs(self.paths) do
+		table.insert(sortedPaths, {path, prop})
+	end
+	table.sort(sortedPaths, function (a,b) return a[1].index < b[1].index end )
+	
+	-- verify the hierarchy
+	for i=1,#sortedPaths do
+		local parent = sortedPaths[i][2]:getAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		if i < #sortedPaths then
+
+			if parent ~= sortedPaths[i+1][2] then
+				return false, "Hierarchy is inconsistent! Path with index "..sortedPaths[i][1].index.." should have parent: "..sortedPaths[i+1][1].index
+			end
+		else
+			if parent ~= nil then
+				return false, "Hierarchy management is inconsistent! Top-level parent should be nil"
+			end
+		end
+	end
+
+	return true, "Drawable Path Hierarchy appears to be consistent"
+end
+
 return basemodel.drawable

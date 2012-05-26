@@ -113,3 +113,26 @@ startSection("Testing basemodel")
 		verify(v == false, "we should remember that we are invisible after the recording is complete")
 	
 	endSection()
+
+
+	startSection("Creating more Paths")
+
+		local path2 = basemodel.createNewPath({drawable1})	-- path1, path2
+		local path3 = basemodel.createNewPath({drawable1}, 1) -- path3, path1, path2
+		local path4 = basemodel.createNewPath({drawable1}, 4) -- path3, path1, path2, path4
+		local path5 = basemodel.createNewPath({drawable1}, 3) -- path3, path1, path5, path2, path4
+				
+		verify(drawable1:verifyPathHierarchyConsistency())
+		verify(path3.index == 1, "Path 3 should have index 1")
+		verify(path1.index == 2, "Path 1 should have index 2")
+		verify(path5.index == 3, "Path 5 should have index 3")
+		verify(path2.index == 4, "Path 2 should have index 4")
+		verify(path4.index == 5, "Path 4 should have index 5")
+
+	
+	endSection()
+
+
+endSection()
+
+
