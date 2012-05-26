@@ -37,7 +37,7 @@ print("Starting unit tests...")
 
 -------------- Individual unit test files get imported here:
 
-
+require "test/unittest/run_basemodel"
 
 --------------- Print results
 print("\n\nCompleted unit tests:")
