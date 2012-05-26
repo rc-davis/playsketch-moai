@@ -24,19 +24,19 @@ basemodel.path = {}
 local Path = {}
 
 -- Clone the Path prototype
-function basemodel.path.newPath()
+function basemodel.path.newPath(index)
 	p = {}
 	for i, v in pairs(Path) do
 		p[i]=v
 	end
-	p:init()
+	p:init(index)
 	return p
 end
 
 
 --Path methods
 
-function Path:init(prop)
+function Path:init(index)
 	self.class = "Path"
 
 	self.timelists = {	scale=basemodel.timelist.new(1),
@@ -45,6 +45,8 @@ function Path:init(prop)
 						visibility=basemodel.timelist.new(false) }
 						
 	self.keyframes = basemodel.timelist.new(nil)
+
+	self.index = index
 
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	

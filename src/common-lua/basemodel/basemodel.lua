@@ -73,11 +73,21 @@ end
 
 function basemodel.createNewPath(drawablesSet, index)
 
-	local path = basemodel.path.newPath()
-	
 	if not index then index = #allPaths + 1 end
 	assert(index <= #allPaths + 1, "path index must fall within the paths list")
+
+	local path = basemodel.path.newPath(index)
 	table.insert(allPaths, index, path)
+
+	--update the cached indices
+	for i,p in ipairs(allPaths) do
+		p.index = i
+	end
+
+	--inform the drawables
+	for _,d in ipairs(drawablesSet) do
+		d:addPath(path)
+	end
 
 	return path
 end
@@ -86,11 +96,14 @@ end
 --[[
 
 
+- basemodel.swapPathOrder(index1, index2) -> success
+
 
 - basemodel.removeDrawable(drawable) -> success
 - basemodel.removeDrawables(drawableList) -> success
-- basemodel.swapPathOrder(index1, index2) -> success
+
 - basemodel.drawablesVisibleAtTime(time) -> drawableList
+
 - basemodel.drawablesForPath(path) -> drawableList
 - basemodel.pathsForDrawable(drawable) -> pathList
 --]]
