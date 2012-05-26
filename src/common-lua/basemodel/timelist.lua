@@ -95,7 +95,7 @@ end
 function TimeList:getValueForTime(time)
 	local frame = self:getFrameForTime(time)
 	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")
-	if not frame.value then return frame.nextFrame.value
+	if frame.value == nil then return frame.nextFrame.value
 	else return frame.value end
 end
 
