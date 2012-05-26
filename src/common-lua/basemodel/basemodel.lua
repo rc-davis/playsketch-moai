@@ -24,7 +24,7 @@ basemodel.motionTypes = {SCALE=1, ROTATE=2, TRANSLATE=3, VISIBILITY=4}
 
 require "basemodel/drawable"
 require "basemodel/path"
---require "basemodel/timelist"
+require "basemodel/timelist"
 --require "basemodel/keyframe"
 
 
@@ -39,31 +39,49 @@ function basemodel.allDrawables()
 	return allDrawables
 end
 
-function basemodel.addNewDrawable(drawable, time, location)
+function basemodel.addNewDrawable(prop, time, location)
 
-	-- add to the scene
+	-- create the drawable (& add it to the scene graph)
+	local drawable = basemodel.drawable.newFromProp(prop)
+	table.insert(allDrawables, drawable)
 	
-	-- create new path
+	-- create a new path to contain its location
+	local path = basemodel.createNewPath({drawable})
 	
 	-- set path to location
+	path:addKeyframedMotion(time, nil, nil, location, nil, nil)
 	
-	-- set visibility
+	-- set visibility to come on only at current time
+	path:setVisibility(0, false)
+	path:setVisibility(time, true)
 
-
+	return drawable
 end
 
 
-function basemodel.addNewDrawables(drawableList, timeList, locationList)
+function basemodel.addNewDrawables(propList, timeList, locationList)
 
-	assert(#drawableList == #timeList and #drawableList == #locationList, 
+	assert(#propList == #timeList and #propList == #locationList, 
 		"addNewDrawables() requires three lists of the same length")
 
 	local addedDrawables = {}
-	for i=1,#drawableList do
-		local newDrawable = basemodel.addNewDrawable(drawablesList[i], timeList[i], locationList[i])
+	for i=1,#propList do
+		local newDrawable = basemodel.addNewDrawable(propList[i], timeList[i], locationList[i])
 		table.insert(addedDrawables, newDrawable)
 	end
 	return addedDrawables
+end
+
+
+function basemodel.createNewPath(drawablesSet, index)
+
+	local path = basemodel.path.newPath()
+	
+	if not index then index = #allPaths + 1 end
+	assert(index <= #allPaths + 1, "path index must fall within the paths list")
+	table.insert(allPaths, index, path)
+
+	return path
 end
 
 
@@ -73,9 +91,7 @@ end
 
 - basemodel.removeDrawable(drawable) -> success
 - basemodel.removeDrawables(drawableList) -> success
-- basemodel.movePathBeforePathAtIndex(path, index) -> new index
-- basemodel.movePathToTop(path) -> new index
-- basemodel.createNewPath(index, drawablesSet) -> path
+- basemodel.swapPathOrder(index1, index2) -> success
 - basemodel.drawablesVisibleAtTime(time) -> drawableList
 - basemodel.drawablesForPath(path) -> drawableList
 - basemodel.pathsForDrawable(drawable) -> pathList

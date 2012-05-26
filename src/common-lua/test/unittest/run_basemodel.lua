@@ -20,7 +20,19 @@
 
 require "basemodel/basemodel"
 
-print("Begin testing base model")
+startSection("Testing basemodel")
 
-verify(#basemodel.allPaths() == 0, "Start with empty path set")
-verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+	verify(#basemodel.allPaths() == 0, "Start with empty path set")
+	verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+	
+	startSection("Add first drawable")
+		local prop1 = MOAIProp2D.new ()
+		local time1 = 10
+		local location1 = {x=100, y=-23}
+		local drawable1 = basemodel.addNewDrawable(prop1, time1, location1)
+		verify(drawable1, "Drawable1 successfully created")
+		verify(#basemodel.allPaths() == 1, "Path for drawable1 added to set")
+		verify(#basemodel.allDrawables() == 1, "Drawable1 added to set")
+	endSection()
+
+endSection()
