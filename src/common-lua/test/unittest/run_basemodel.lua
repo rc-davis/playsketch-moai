@@ -44,6 +44,15 @@ startSection("Testing basemodel")
 		verify(t.x == 100 and t.y == -23, "default should be in default position, to the end of time")
 		verify(path1:keyframeTimelist():size() == 1, "Should only be one keyframe at this point")
 		
+		startSection("Test Keyframe operations")
+			local k1 = path1:keyframeBeforeTime(-100)
+			local k2 = path1:keyframeBeforeTime(9)
+			local k3 = path1:keyframeBeforeTime(10)
+			local k4 = path1:keyframeBeforeTime(99)
+			verify(k1 == nil and k2 == nil, "keyframeBeforeTime(): no keyframes before the new one")
+			verify(k3 ~= nil and k3 == k4, "keyframeBeforeTime(): future returns the new keyframe")
+		endSection()
+		
 	endSection()
 
 endSection()
