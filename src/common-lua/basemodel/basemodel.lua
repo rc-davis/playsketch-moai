@@ -22,11 +22,9 @@ basemodel = {}
 
 basemodel.motionTypes = {SCALE=1, ROTATE=2, TRANSLATE=3, VISIBILITY=4}
 
-require "basemodel/keyframe"
 require "basemodel/drawable"
 require "basemodel/path"
 require "basemodel/timelist"
---require "basemodel/keyframe"
 
 
 local allDrawables = {}
@@ -50,7 +48,7 @@ function basemodel.addNewDrawable(prop, time, location)
 	local path = basemodel.createNewPath({drawable})
 	
 	-- set path to location
-	path:addKeyframedMotion(time, nil, nil, location, nil, nil)
+	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
 	
 	-- set visibility to come on only at current time
 	path:setVisibility(time, true)
