@@ -47,6 +47,7 @@ function Path:init(index)
 	self.keyframes = basemodel.timelist.new(nil)
 
 	self.index = index
+	self.drawablecount = 0 -- To track how many drawables are using this
 	
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	
@@ -196,11 +197,27 @@ function Path:setVisibility(time, visible)
 	return keyframe
 end
 
+function Path:drawableCount()
+	return self.drawablecount
+end
+
+function Path:incrementDrawableCount()
+	self.drawablecount = self.drawablecount + 1
+end
+
+function Path:decrementDrawableCount()
+	self.drawablecount = self.drawablecount - 1
+	assert(self.drawablecount >= 0, "over-decrementing our drawables count!")
+end
+
+
 function Path:delete()
 
 	self.timelists = nil
 	self.keyframes = nil
 	self.index = nil
+	
+	assert(self.drawablecount == 0, "Shouldn't be deleting a path that drawables are still using!")
 
 end
 
