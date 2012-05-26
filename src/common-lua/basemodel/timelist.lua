@@ -150,13 +150,21 @@ function TimeList:getInterpolatedValueForTime(time)
 	end
 end
 
-function TimeList:erase(startTime, endTime)
+--conditional: is a function that takes a value and returns if it should be deleted
+function TimeList:erase(startTime, endTime, conditional)
+	if conditional == nil then
+		conditional = function (val) return true end
+	end
+
 	local first = self:getFrameForTime(startTime)
-	local count = 0
 	while first.nextFrame and first.nextFrame.time < endTime do
-		first.nextFrame = first.nextFrame.nextFrame
-		if first.nextFrame then first.nextFrame.previousFrame = first end
-		count = count + 1
+		if conditional(first.nextFrame.value) then
+			first.nextFrame = first.nextFrame.nextFrame
+			if first.nextFrame then first.nextFrame.previousFrame = first end
+			self.listSize = self.listSize - 1
+		else
+			first = first.nextFrame
+		end
 	end
 end
 
