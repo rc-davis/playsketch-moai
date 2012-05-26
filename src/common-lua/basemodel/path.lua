@@ -14,6 +14,7 @@
 	basemodel/path.lua
 	
 	Encapsulates a path for transforming Drawables
+	TODO: document 2-d linked list for keyframe-to-data-frame lookup
 
 --]]
 
@@ -42,12 +43,13 @@ function Path:init(prop)
 						rotate=basemodel.timelist.new(0),
 						translate=basemodel.timelist.new({x=0,y=0}),
 						visibility=basemodel.timelist.new(false) }
+						
+	self.keyframes = basemodel.timelist.new(nil)
 
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	
 	--self.activeThreads = {}
 	--self.activeAnimations = {}
-	--self.keyframes = {}
 
 end
 
@@ -56,39 +58,54 @@ function Path:stateAtTime(time)
 	local rotate = self.timelists.rotate:getInterpolatedValueForTime(time)
 	local translate = self.timelists.translate:getInterpolatedValueForTime(time)	
 	local visibility = self.timelists.visibility:getValueForTime(time)	
-	print(time, visibility)
 	return scale, rotate, translate, visibility
+end
+
+function Path:keyframeTimelist()
+	return self.keyframes
 end
 
 
 function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, keyframeBlendFrom, keyframeBlendTo)
 
-	-- add data to stream
+	assert(scaleValue or rotateValue or translateValue, "a keyframe needs at least one value")
+
+	--create/retrieve keyframe
+	local keyframe = self.keyframes:makeFrameForTime(time)
+	if keyframe.value == nil then keyframe.value = {} end
 	
+
+	-- add data to stream
 	if scaleValue then
-		self.timelists.scale:setValueForTime(time, scaleValue)
+		local frame = self.timelists.scale:setValueForTime(time, scaleValue)
+		keyframe.value.scale = frame
 	end
 
 	if rotateValue then
-		self.timelists.rotate:setValueForTime(time, rotateValue)
+		local frame = self.timelists.rotate:setValueForTime(time, rotateValue)
+		keyframe.value.rotate = frame
 	end
 
 	if translateValue then
 		self.timelists.translate:setValueForTime(time, translateValue)
+		keyframe.value.translate = frame
 	end
 	
-	-- add new keyframe
-	--TODO
 	
 	--TODO: BLENDING
-	
+
+
 end
 
 function Path:setVisibility(time, visible)
 
+	--create/retrieve keyframe
+	local keyframe = self.keyframes:makeFrameForTime(time)
+	if keyframe.value == nil then keyframe.value = {} end
+
 	--TODO: implement smarter logic & keyframes
-	self.timelists.visibility:setValueForTime(time, visible)
-	self.timelists.visibility:dump()
+	local frame = self.timelists.visibility:setValueForTime(time, visible)
+	keyframe.value.visibility = frame
 
 
 	--get current visibility at time
@@ -106,17 +123,15 @@ function Path:setVisibility(time, visible)
 		--and clean up next entry in stream
 		--including its keyframe
 		
-	--todo: return keyframe
+	return keyframe
 end
 
 --[[
 - path:addRecordedMotion(path, [scaleStream], [translateStream], [rotateStream]) -> keyframe (start)
-
-
-- path:shiftKeyframe(keyframe, timeDelta) -> success
-- path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
 - path:keyframeBeforeTime(time) -> keyframe
 - path:positionAtTime(time) -> position
+- path:shiftKeyframe(keyframe, timeDelta) -> success
+- path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
 --]]
 
 return basemodel.path
