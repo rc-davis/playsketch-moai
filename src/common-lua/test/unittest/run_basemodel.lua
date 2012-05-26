@@ -75,11 +75,41 @@ startSection("Testing basemodel")
 	endSection()
 		
 	startSection("Test Setting Visibility")
-		path1:setVisibility(19, false)
-		path1:setVisibility(21, true)
-		local _,_,_,v  = path1:stateAtTime(20)
-		verify(v == false, "Should be invisible at 20 now")
-		local _,_,_,v  = path1:stateAtTime(21)
-		verify(v == true, "Should be visible at 21 still")
-		verify(path1:keyframeTimelist():size() == 4, "Should be four keyframes now")
+		path1:setVisibility(15, false)
+		path1:setVisibility(19, true)
+		path1:setVisibility(20, false)		
+		local _,_,_,v  = path1:stateAtTime(15)
+		verify(v == false, "Should be invisible at 15 now")
+		local _,_,_,v  = path1:stateAtTime(19)
+		verify(v == true, "Should be visible at 19 still")
+		verify(path1:keyframeTimelist():size() == 4, "Should be four keyframes now (one re-used)")
+	endSection()
+	
+	startSection("Test Recording a Path")	
+	
+		--insert a keyframe that should be deleted
+		path1:addKeyframedMotion(19, nil, nil, {x=-300,y=-300}, nil, nil)
+
+		local fakeRecordingDataT = {	{time=18, value={x=100, y = -100}},
+										{time=19, value={x=100, y = 100}},
+										{time=20, value={x=-100, y = 100}},
+										{time=21, value={x=-100, y = -100}},
+										{time=22, value={x=0, y = 0}}}
+		path1:addRecordedMotion(nil, nil, fakeRecordingDataT)
+
+		local s,r,t,v  = path1:stateAtTime(19)
+		verify(t.x == 100 and t.y == 100, "19:take the recorded translation")
+		verify(s == 1.9 and r == 81, "19:preserve the existing scale and rotation")
+		verify(v == true, "19:recording should wipe out the invisible markers")
+
+		local s,r,t,v  = path1:stateAtTime(20)
+		verify(t.x == -100 and t.y == 100, "20:take the recorded translation")
+		verify(s == 2.0 and r == 90, "20:preserve the existing scale and rotation")
+		verify(v == true, "20:recording should wipe out the invisible markers")
+		verify(path1:keyframeTimelist():size() == 5, "Should be five keyframes now (10, 15, 18, 20, 22)")
+
+
+		local _,_,_,v  = path1:stateAtTime(23)
+		verify(v == false, "we should remember that we are invisible after the recording is complete")
+	
 	endSection()

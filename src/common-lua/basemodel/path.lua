@@ -100,8 +100,71 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	
 	--TODO: BLENDING
 
-
 end
+
+--scaleStream[1] = {time=??, scale=??}
+function Path:addRecordedMotion(scaleStream, rotateStream, translateStream)
+
+	assert(scaleStream or translateStream or rotateStream,
+		"need at least one stream of data to be setting")
+
+	local startTime = 1e99
+	local endTime = -1e99
+
+	--calculate startTime and end Time
+	for _,stream in pairs{scaleStream, translateStream, rotateStream} do
+		startTime = math.min(startTime, stream[1].time)
+		endTime = math.max(endTime, stream[#stream].time)		
+	end
+
+	-- write the data into the streams, erasing what was there before
+	if scaleStream then
+		self.timelists.scale:erase(startTime, endTime)
+		self.timelists.scale:setFromList(scaleStream)		
+	end
+	if rotateStream then
+		self.timelists.rotate:erase(startTime, endTime)
+		self.timelists.rotate:setFromList(rotateStream)		
+	end
+	if translateStream then
+		self.timelists.translate:erase(startTime, endTime)
+		self.timelists.translate:setFromList(translateStream)		
+	end
+
+	--eliminate keyframes that are only used for the properties we are overwriting
+	self.keyframes:erase(startTime, endTime,
+		function (v) 
+			return	(v.scale == nil or scaleStream ~= nil) and
+					(v.rotate == nil or rotateStream ~= nil) and
+					(v.translate == nil and translateStream ~= nil) 
+		end)
+
+	--add new keyframes at startTime and endTime, pointing to the streams
+	local keyframeStart = self.keyframes:makeFrameForTime(startTime, {})
+	local keyframeEnd = self.keyframes:makeFrameForTime(endTime, {})
+	if scaleStream then 
+		keyframeStart.scale = self.timelists.scale:getFrameForTime(startTime)
+		keyframeEnd.scale = self.timelists.scale:getFrameForTime(endTime)
+	end
+	if rotateStream then 
+		keyframeStart.rotate = self.timelists.rotate:getFrameForTime(startTime)
+		keyframeEnd.rotate = self.timelists.rotate:getFrameForTime(endTime)
+	end
+	if translateStream then 
+		keyframeStart.translate = self.timelists.translate:getFrameForTime(startTime)
+		keyframeEnd.translate = self.timelists.translate:getFrameForTime(endTime)
+	end
+
+	-- set the region as visible, and restore visibility at the end of the region
+	local visibleBefore = self.timelists.visibility:getValueForTime(startTime)
+	local visibleAfter = self.timelists.visibility:getValueForTime(endTime)	
+	self.timelists.visibility:erase(startTime, endTime)
+	if not visibleBefore then self.timelists.visibility:setValueForTime(startTime, true) end
+	if not visibleAfter then self.timelists.visibility:setValueForTime(endTime, false) end
+
+	return keyframeStart
+end
+
 
 function Path:setVisibility(time, visible)
 
@@ -134,9 +197,7 @@ end
 
 
 --[[
-- path:addRecordedMotion(path, [scaleStream], [translateStream], [rotateStream]) -> keyframe (start)
-
-- path:positionAtTime(time) -> position
+LEAVE FOR LAST:
 - path:shiftKeyframe(keyframe, timeDelta) -> success
 - path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
 --]]
