@@ -48,7 +48,7 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil }
+	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil, previousFrame=nil }
 	self.listSize = 0
 end
 
@@ -72,17 +72,18 @@ end
 -- makeFrameForTime(time):	Creates and returns a new frame at the right place in the linked list
 function TimeList:makeFrameForTime(time)
 
-	local previousFrame = self:getFrameForTime(time)
-	assert(previousFrame ~= nil, "shouldn't be making a frame without a previous frame")
+	local precedingFrame = self:getFrameForTime(time)
+	assert(precedingFrame ~= nil, "shouldn't be making a frame without a preceding frame")
 
-	if previousFrame.time == time then
-		return previousFrame
+	if precedingFrame.time == time then
+		return precedingFrame
 	else
-		assert(previousFrame.time < time and 
-				(not previousFrame.nextFrame or previousFrame.nextFrame.time > time), 
+		assert(precedingFrame.time < time and 
+				(not precedingFrame.nextFrame or precedingFrame.nextFrame.time > time), 
 				"inserted frames must maintain a strict ordering!")
-		local newFrame = {	time=time, nextFrame = previousFrame.nextFrame }
-		previousFrame.nextFrame = newFrame
+		local newFrame = {	time=time, nextFrame = precedingFrame.nextFrame, previousFrame=precedingFrame }
+		if precedingFrame.nextFrame then precedingFrame.nextFrame.previousFrame = newFrame end
+		precedingFrame.nextFrame = newFrame
 		self.listSize = self.listSize + 1
 		return newFrame
 	end
@@ -136,11 +137,12 @@ function TimeList:getInterpolatedValueForTime(time)
 	end
 end
 
-function TimeList:erase(time, duration)
-	local first = self:getFrameForTime(time)
+function TimeList:erase(startTime, endTime)
+	local first = self:getFrameForTime(startTime)
 	local count = 0
-	while first.nextFrame and first.nextFrame.time < time + duration do
+	while first.nextFrame and first.nextFrame.time < endTime do
 		first.nextFrame = first.nextFrame.nextFrame
+		if first.nextFrame then first.nextFrame.previousFrame = first end
 		count = count + 1
 	end
 end
