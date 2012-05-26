@@ -24,6 +24,8 @@
 
 basemodel.timelist = {}
 
+basemodel.timelist.NEGINFINITY = -1e99
+
 local TimeList = {}
 
 function basemodel.timelist.new(defaultValue)
@@ -46,7 +48,7 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=-1e100, value=defaultValue, nextFrame=nil }
+	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil }
 	self.listSize = 0
 end
 

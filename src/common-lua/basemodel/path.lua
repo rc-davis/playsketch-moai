@@ -65,6 +65,14 @@ function Path:keyframeTimelist()
 	return self.keyframes
 end
 
+function Path:keyframeBeforeTime(time)
+	local keyframe = self.keyframes:getFrameForTime(time)
+	if not keyframe or keyframe.time == basemodel.timelist.NEGINFINITY then
+		return nil
+	else
+		return keyframe
+	end
+end
 
 function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, keyframeBlendFrom, keyframeBlendTo)
 
@@ -126,9 +134,11 @@ function Path:setVisibility(time, visible)
 	return keyframe
 end
 
+
+
 --[[
 - path:addRecordedMotion(path, [scaleStream], [translateStream], [rotateStream]) -> keyframe (start)
-- path:keyframeBeforeTime(time) -> keyframe
+
 - path:positionAtTime(time) -> position
 - path:shiftKeyframe(keyframe, timeDelta) -> success
 - path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
