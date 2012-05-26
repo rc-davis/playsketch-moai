@@ -40,7 +40,8 @@ function Path:init(prop)
 
 	self.timelists = {	scale=basemodel.timelist.new(),
 						rotate=basemodel.timelist.new(),
-						translate=basemodel.timelist.new()	}
+						translate=basemodel.timelist.new(),
+						visibility=basemodel.timelist.new() }
 
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	
@@ -55,15 +56,15 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	-- add data to stream
 	
 	if scaleValue then
-		self.timelists['scale']:setValueForTime(time, scaleValue)
+		self.timelists.scale:setValueForTime(time, scaleValue)
 	end
 
 	if rotateValue then
-		self.timelists['rotate']:setValueForTime(time, rotateValue)
+		self.timelists.rotate:setValueForTime(time, rotateValue)
 	end
 
 	if translateValue then
-		self.timelists['translate']:setValueForTime(time, translateValue)
+		self.timelists.translate:setValueForTime(time, translateValue)
 	end
 	
 	-- add new keyframe
@@ -72,6 +73,32 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	--TODO: BLENDING
 	
 end
+
+function Path:setVisibility(time, visible)
+
+	--TODO: implement smarter logic & keyframes
+	self.timelists.visibility:setValueForTime(time, visible)
+
+	--get current visibility at time
+	
+	--bail if it is already right
+
+	--figure out if we are right on keyframe
+	
+		--and remove it
+	
+	--otherwise set it
+	
+		--and add a keyframe
+	
+		--and clean up next entry in stream
+		--including its keyframe
+		
+	--todo: return keyframe
+end
+
+--[[
+- path:addRecordedMotion(path, [scaleStream], [translateStream], [rotateStream]) -> keyframe (start)
 
 
 - path:shiftKeyframe(keyframe, timeDelta) -> success
