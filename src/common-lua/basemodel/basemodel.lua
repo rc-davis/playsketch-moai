@@ -140,13 +140,19 @@ function basemodel.deleteDrawable(drawable)
 	--look for empty paths to delete
 	local i=1
 	while i <= #allPaths do
-		if drawable:affectedByPath(allPaths[i]) ~= nil then
+		if allPaths[i]:drawableCount() == 0 then
 			allPaths[i]:delete()
 			table.remove(allPaths, i)
 		else
 			i = i + 1
 		end
 	end
+	
+	--update the cached indices
+	for i,p in ipairs(allPaths) do
+		p.index = i
+	end
+	
 end
 
 --[[

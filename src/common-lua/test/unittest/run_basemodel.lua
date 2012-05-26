@@ -138,10 +138,32 @@ startSection("Testing basemodel")
 
 
 	startSection("Delete Drawables")
-	
+
 		basemodel.deleteDrawable(drawable1)
 		verify(#basemodel.allPaths() == 0, "All paths should have been deleted")
 		verify(#basemodel.allDrawables() == 0, "All Drawables should be gone")
+
+		local drawable2 = basemodel.addNewDrawable(MOAIProp2D.new (), 10, {x=0,y=0})
+		local drawable3 = basemodel.addNewDrawable(MOAIProp2D.new (), 11, {x=0,y=0})
+		local drawable4 = basemodel.addNewDrawable(MOAIProp2D.new (), 12, {x=0,y=0})
+		local path2 = basemodel.createNewPath({drawable2})
+		local path3 = basemodel.createNewPath({drawable3})
+		local path4 = basemodel.createNewPath({drawable4})
+
+		verify(#basemodel.allDrawables() == 3, "Should have added 3 new drawables")
+		verify(#basemodel.allPaths() == 6, "Should have six new paths")
+
+		basemodel.deleteDrawable(drawable2)
+		verify(#basemodel.allDrawables() == 2, "One drawable should go away")
+		verify(#basemodel.allPaths() == 4, "Two paths should go away with it")
+
+		basemodel.deleteDrawable(drawable3)
+		verify(#basemodel.allDrawables() == 1, "One drawable should go away")
+		verify(#basemodel.allPaths() == 2, "Two paths should go away with it")
+		
+		basemodel.deleteDrawable(drawable4)
+		verify(#basemodel.allDrawables() == 0, "All drawables should be gone")
+		verify(#basemodel.allPaths() == 0, "All Paths should be gone")		
 		
 		
 	endSection()
