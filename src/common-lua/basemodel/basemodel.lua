@@ -52,7 +52,6 @@ function basemodel.addNewDrawable(prop, time, location)
 	path:addKeyframedMotion(time, nil, nil, location, nil, nil)
 	
 	-- set visibility to come on only at current time
-	path:setVisibility(0, false)
 	path:setVisibility(time, true)
 
 	return drawable

@@ -51,6 +51,16 @@ function Path:init(prop)
 
 end
 
+function Path:stateAtTime(time)
+	local scale = self.timelists.scale:getInterpolatedValueForTime(time)
+	local rotate = self.timelists.rotate:getInterpolatedValueForTime(time)
+	local translate = self.timelists.translate:getInterpolatedValueForTime(time)	
+	local visibility = self.timelists.visibility:getValueForTime(time)	
+	print(time, visibility)
+	return scale, rotate, translate, visibility
+end
+
+
 function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, keyframeBlendFrom, keyframeBlendTo)
 
 	-- add data to stream
@@ -78,6 +88,8 @@ function Path:setVisibility(time, visible)
 
 	--TODO: implement smarter logic & keyframes
 	self.timelists.visibility:setValueForTime(time, visible)
+	self.timelists.visibility:dump()
+
 
 	--get current visibility at time
 	
