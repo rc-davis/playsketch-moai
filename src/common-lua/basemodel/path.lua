@@ -38,10 +38,10 @@ end
 function Path:init(prop)
 	self.class = "Path"
 
-	self.timelists = {	scale=basemodel.timelist.new(),
-						rotate=basemodel.timelist.new(),
-						translate=basemodel.timelist.new(),
-						visibility=basemodel.timelist.new() }
+	self.timelists = {	scale=basemodel.timelist.new(1),
+						rotate=basemodel.timelist.new(0),
+						translate=basemodel.timelist.new({x=0,y=0}),
+						visibility=basemodel.timelist.new(false) }
 
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	

@@ -26,12 +26,12 @@ basemodel.timelist = {}
 
 local TimeList = {}
 
-function basemodel.timelist.new()
+function basemodel.timelist.new(defaultValue)
 	local l = {}
 	for i,v in pairs(TimeList) do
 		l[i] = v
 	end
-	l:init()
+	l:init(defaultValue)
 	return l
 end
 
@@ -44,9 +44,9 @@ end
 
 ----- TimeList methods -----
 
-function TimeList:init()
+function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=-1e100, value=nil, nextFrame={ time = 1e100, value=nil }}
+	self.firstFrame = { time=-1e100, value=defaultValue, nextFrame={ time = 1e100, value=nil }}
 end
 
 
