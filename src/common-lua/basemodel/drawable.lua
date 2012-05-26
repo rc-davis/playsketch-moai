@@ -61,6 +61,16 @@ function Drawable:affectedByPath(path)
 	return self.paths[path] ~= nil
 end
 
+function Drawable:delete()
+
+	drawingLayer:removeProp(self.prop)
+	
+	--remove paths
+	for path,pathprop in pairs(self.paths) do
+		drawingLayer:removeProp(pathprop)
+	end
+end
+
 ----------------- PRIVATE
 
 function Drawable:swapPathOrders(path1, path2)

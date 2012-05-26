@@ -25,6 +25,7 @@ basemodel.motionTypes = {SCALE=1, ROTATE=2, TRANSLATE=3, VISIBILITY=4}
 require "basemodel/drawable"
 require "basemodel/path"
 require "basemodel/timelist"
+require "util/util"
 
 
 local allDrawables = {}
@@ -127,12 +128,33 @@ function basemodel.swapPathOrder(index1, index2)
 end
 
 
+
+function basemodel.deleteDrawable(drawable)
+
+	--tell it to remove itself
+	drawable:delete()
+
+	--remove it from our set
+	util.tableDelete(allDrawables, drawable)
+	
+	--look for empty paths to delete
+	local i=1
+	while i <= #allPaths do
+		if drawable:affectedByPath(allPaths[i]) ~= nil then
+			allPaths[i]:delete()
+			table.remove(allPaths, i)
+		else
+			i = i + 1
+		end
+	end
+end
+
 --[[
 
 
 
 
-- basemodel.removeDrawable(drawable) -> success
+
 - basemodel.removeDrawables(drawableList) -> success
 
 - basemodel.drawablesVisibleAtTime(time) -> drawableList

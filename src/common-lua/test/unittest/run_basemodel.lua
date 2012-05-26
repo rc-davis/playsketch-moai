@@ -137,6 +137,15 @@ startSection("Testing basemodel")
 	endSection()
 
 
+	startSection("Delete Drawables")
+	
+		basemodel.deleteDrawable(drawable1)
+		verify(#basemodel.allPaths() == 0, "All paths should have been deleted")
+		verify(#basemodel.allDrawables() == 0, "All Drawables should be gone")
+		
+		
+	endSection()
+
 endSection()
 
 

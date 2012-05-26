@@ -196,6 +196,14 @@ function Path:setVisibility(time, visible)
 	return keyframe
 end
 
+function Path:delete()
+
+	self.timelists = nil
+	self.keyframes = nil
+	self.index = nil
+
+end
+
 --[[
 LEAVE FOR LAST:
 - path:shiftKeyframe(keyframe, timeDelta) -> success
