@@ -75,6 +75,7 @@ function basemodel.createNewPath(drawablesSet, index)
 
 	if not index then index = #allPaths + 1 end
 	assert(index <= #allPaths + 1, "path index must fall within the paths list")
+	assert(#drawablesSet > 0, "createNewPath needs some drawables to apply to")
 
 	local path = basemodel.path.newPath(index)
 	table.insert(allPaths, index, path)
