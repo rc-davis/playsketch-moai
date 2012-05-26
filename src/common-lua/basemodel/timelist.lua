@@ -47,6 +47,8 @@ end
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
 	self.firstFrame = { time=-1e100, value=defaultValue, nextFrame={ time = 1e100, value=nil }}
+function TimeList:size()
+	return self.listSize
 end
 
 
@@ -78,6 +80,7 @@ function TimeList:makeFrameForTime(time)
 		local newFrame = {	time=time,
 							nextFrame = previousFrame.nextFrame }
 		previousFrame.nextFrame = newFrame
+		self.listSize = self.listSize + 1
 		return newFrame
 	end
 end
