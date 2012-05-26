@@ -20,10 +20,11 @@
 
 local failureCount = 0
 local successCount = 0
-local indent = 1
+local indent = 0
 local sections = {}
 
 function startSection(msg)
+	io.write("----------")			
 	for i=1,indent do io.write("\t") end
 	print("START: " .. msg)
 	indent = indent + 1
@@ -31,6 +32,7 @@ function startSection(msg)
 end
 
 function endSection()
+	io.write("----------")			
 	for i=1,indent-1 do io.write("\t") end
 	print("DONE: " .. sections[#sections])
 	indent = indent - 1
@@ -39,15 +41,14 @@ end
 
 
 function verify(stmt, msg)
-	local indentCount = indent
 	if not stmt then
 		failureCount = failureCount + 1
-		io.write("!! FAIL !!")
-		indentCount = indentCount - 1
+		io.write("!!!FAIL!!!")			
 	else
 		successCount = successCount + 1
+		io.write("   pass   ")
 	end
-	for i=1,indentCount do io.write("\t") end
+	for i=1,indent do io.write("\t") end
 	print(msg)	
 end
 
