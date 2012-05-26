@@ -38,16 +38,46 @@ end
 function Path:init(prop)
 	self.class = "Path"
 
-	self.timelists = {	scale=model.timelist.new(),
-						rotate=model.timelist.new(),
-						translate=model.timelist.new()	}
+	self.timelists = {	scale=basemodel.timelist.new(),
+						rotate=basemodel.timelist.new(),
+						translate=basemodel.timelist.new()	}
 
-	self.span = {start=1e99,stop=-1e99}
-	self.dependentTransforms = {}	
-	self.activeThreads = {}
-	self.activeAnimations = {}
-	self.keyframes = {}
+	--self.span = {start=1e99,stop=-1e99}
+	--self.dependentTransforms = {}	
+	--self.activeThreads = {}
+	--self.activeAnimations = {}
+	--self.keyframes = {}
 
 end
+
+function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, keyframeBlendFrom, keyframeBlendTo)
+
+	-- add data to stream
+	
+	if scaleValue then
+		self.timelists['scale']:setValueForTime(time, scaleValue)
+	end
+
+	if rotateValue then
+		self.timelists['rotate']:setValueForTime(time, rotateValue)
+	end
+
+	if translateValue then
+		self.timelists['translate']:setValueForTime(time, translateValue)
+	end
+	
+	-- add new keyframe
+	--TODO
+	
+	--TODO: BLENDING
+	
+end
+
+
+- path:shiftKeyframe(keyframe, timeDelta) -> success
+- path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
+- path:keyframeBeforeTime(time) -> keyframe
+- path:positionAtTime(time) -> position
+--]]
 
 return basemodel.path
