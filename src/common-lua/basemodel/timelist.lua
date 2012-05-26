@@ -46,7 +46,10 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=-1e100, value=defaultValue, nextFrame={ time = 1e100, value=nil }}
+	self.firstFrame = { time=-1e100, value=defaultValue, nextFrame=nil }
+	self.listSize = 0
+end
+
 function TimeList:size()
 	return self.listSize
 end
@@ -73,12 +76,10 @@ function TimeList:makeFrameForTime(time)
 	if previousFrame.time == time then
 		return previousFrame
 	else
-		assert(previousFrame.time < time and previousFrame.nextFrame.time > time, 
-			"we should be inserting a frame to maintain a strict ordering!")
-
-		--make a new frame
-		local newFrame = {	time=time,
-							nextFrame = previousFrame.nextFrame }
+		assert(previousFrame.time < time and 
+				(not previousFrame.nextFrame or previousFrame.nextFrame.time > time), 
+				"inserted frames must maintain a strict ordering!")
+		local newFrame = {	time=time, nextFrame = previousFrame.nextFrame }
 		previousFrame.nextFrame = newFrame
 		self.listSize = self.listSize + 1
 		return newFrame
@@ -89,8 +90,9 @@ end
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
 function TimeList:setValueForTime(time, value)
 	local frame = self:makeFrameForTime(time)
-	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")		
+	assert(frame ~= nil, "must retrieve a non-nil frame when making a new frame")
 	frame.value = value
+	return frame
 end
 
 
