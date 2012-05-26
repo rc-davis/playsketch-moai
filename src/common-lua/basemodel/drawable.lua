@@ -57,6 +57,9 @@ function Drawable:addPath(path)
 	
 end
 
+function Drawable:affectedByPath(path)
+	return self.paths[path] ~= nil
+end
 
 ----------------- PRIVATE
 
