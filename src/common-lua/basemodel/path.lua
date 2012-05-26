@@ -79,9 +79,7 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	assert(scaleValue or rotateValue or translateValue, "a keyframe needs at least one value")
 
 	--create/retrieve keyframe
-	local keyframe = self.keyframes:makeFrameForTime(time)
-	if keyframe.value == nil then keyframe.value = {} end
-	
+	local keyframe = self.keyframes:makeFrameForTime(time, {})
 
 	-- add data to stream
 	if scaleValue then
@@ -108,8 +106,7 @@ end
 function Path:setVisibility(time, visible)
 
 	--create/retrieve keyframe
-	local keyframe = self.keyframes:makeFrameForTime(time)
-	if keyframe.value == nil then keyframe.value = {} end
+	local keyframe = self.keyframes:makeFrameForTime(time, {})
 
 	--TODO: implement smarter logic & keyframes
 	local frame = self.timelists.visibility:setValueForTime(time, visible)

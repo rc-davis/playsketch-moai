@@ -69,8 +69,9 @@ function TimeList:getFrameForTime(time)
 end
 
 
--- makeFrameForTime(time):	Creates and returns a new frame at the right place in the linked list
-function TimeList:makeFrameForTime(time)
+-- makeFrameForTime(time, defaultValue):	Creates and returns a new frame at the right place in the linked list
+--											DefaultValue is set as the value if the frame is newly created
+function TimeList:makeFrameForTime(time, defaultValue)
 
 	local precedingFrame = self:getFrameForTime(time)
 	assert(precedingFrame ~= nil, "shouldn't be making a frame without a preceding frame")
@@ -85,6 +86,7 @@ function TimeList:makeFrameForTime(time)
 		if precedingFrame.nextFrame then precedingFrame.nextFrame.previousFrame = newFrame end
 		precedingFrame.nextFrame = newFrame
 		self.listSize = self.listSize + 1
+		newFrame.value = defaultValue
 		return newFrame
 	end
 end
@@ -92,7 +94,7 @@ end
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
 function TimeList:setValueForTime(time, value)
-	local frame = self:makeFrameForTime(time)
+	local frame = self:makeFrameForTime(time, nil)
 	assert(frame ~= nil, "must retrieve a non-nil frame when making a new frame")
 	frame.value = value
 	return frame
