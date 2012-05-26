@@ -20,17 +20,41 @@
 
 local failureCount = 0
 local successCount = 0
+local indent = 1
+local sections = {}
+
+function startSection(msg)
+	for i=1,indent do io.write("\t") end
+	print("START: " .. msg)
+	indent = indent + 1
+	table.insert(sections, msg)
+end
+
+function endSection()
+	for i=1,indent-1 do io.write("\t") end
+	print("DONE: " .. sections[#sections])
+	indent = indent - 1
+	sections[#sections] = nil
+end
 
 
 function verify(stmt, msg)
+	local indentCount = indent
 	if not stmt then
 		failureCount = failureCount + 1
-		print("!! FAIL !!", msg)
+		io.write("!! FAIL !!")
+		indentCount = indentCount - 1
 	else
 		successCount = successCount + 1
-		print("\t", msg)
 	end
+	for i=1,indentCount do io.write("\t") end
+	print(msg)	
 end
+
+
+print("Setting up environment")
+drawingLayer = MOAILayer2D.new ()
+
 
 
 print("Starting unit tests...")
