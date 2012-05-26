@@ -22,4 +22,27 @@
 
 basemodel.drawable = {}
 
+local Drawable = {}
+
+-- Clone the Drawable prototype
+-- prop should be centred on 0,0
+function basemodel.drawable.newFromProp(prop)
+	d = {}
+	for i, v in pairs(Drawable) do
+		d[i]=v
+	end
+	d:init(prop)
+	return d
+end
+
+
+--Drawable methods
+function Drawable:init(prop)
+	self.class = "Drawable"
+	self.prop = prop
+	self.isSelected = false
+	self.transforms = {}
+	drawingLayer:insertProp (prop)
+end
+
 return basemodel.drawable
