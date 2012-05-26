@@ -47,33 +47,48 @@ end
 
 function Drawable:addPath(path)
 
-	-- figure out the path above and below this one
-	local beforePath = nil
-	local afterPath = nil
-	for p,_ in pairs(self.paths) do
-		assert(p.index ~= path.index, "Can't add a path that already belongs")
-		if path.index > p.index and (beforePath == nil or p.index > beforePath.index) then
-			beforePath = p
-		elseif path.index < p.index and (afterPath == nil or p.index < afterPath.index) then
-			afterPath = p
-		end
-	end
-
 	--create a new proxy Prop for it
 	self.paths[path] = MOAIProp2D.new ()
 	drawingLayer:insertProp(self.paths[path])
 
-	--set inheritance on objects
-	if beforePath then
-		self.paths[beforePath]:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
-		self.paths[beforePath]:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.paths[path], MOAIProp2D.TRANSFORM_TRAIT)
-	end
+	-- brute-force redo our inheritance
+	-- TODO: this might be a good place to optimize if adding new transforms is slow
+	self:redoPathHierarchy()
 	
-	if afterPath then
-		self.paths[path]:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.paths[afterPath], MOAIProp2D.TRANSFORM_TRAIT)
+end
+
+----------------- PRIVATE
+
+function Drawable:swapPathOrders(path1, path2)
+	
+	--TODO: this might be a good place to optimize if we end up swapping often
+
+	if self.paths[path1] or self.paths[path2] then
+		self:redoPathHierarchy()
 	end
 end
 
+
+--brute-force the props representing the paths into the correct hierarchy based on the 
+function Drawable:redoPathHierarchy()
+
+	-- build a sorted list of paths
+	local sortedPaths = {}
+	for path,prop in pairs(self.paths) do
+		table.insert(sortedPaths, {path, prop})
+	end
+	table.sort(sortedPaths, function (a,b) return a[1].index < b[1].index end )
+
+	-- go through them and fix up their props by setting them to inherit from the next one
+	for i=1,#sortedPaths do
+		local prop1 = sortedPaths[i][2]
+		prop1:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		if i < #sortedPaths then
+			local prop2 = sortedPaths[i+1][2]		
+			prop1:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop2, MOAIProp2D.TRANSFORM_TRAIT)
+		end
+	end
+end
 
 ------------ TEST HELPERS ---------------
 --  return success,message

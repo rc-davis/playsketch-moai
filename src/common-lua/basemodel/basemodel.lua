@@ -93,11 +93,43 @@ function basemodel.createNewPath(drawablesSet, index)
 	return path
 end
 
+function basemodel.swapPathOrder(index1, index2)
+
+	assert(index1 > 0 and index1 <= #allPaths and index2 > 0 and index2 <= #allPaths,
+		"swapPathOrder needs valid indices to allPaths")
+		
+	--order correctly
+	if index1 > index2 then
+		local temp = index1
+		index1 = index2
+		index2 = temp
+	end
+
+	local path1 = allPaths[index1]
+	local path2 = allPaths[index2]
+	
+	--careful to get these operations in the right order so the indices still make sense
+	table.remove(allPaths, index1)
+	table.insert(allPaths, index1, path2)
+	table.remove(allPaths, index2)
+	table.insert(allPaths, index2, path1)
+
+	--update the cached indices
+	for i,p in ipairs(allPaths) do
+		p.index = i
+	end
+
+	--inform all the paths of the change
+	for i,d in ipairs(allDrawables) do
+		d:swapPathOrders(path1, path2)
+	end
+
+end
+
 
 --[[
 
 
-- basemodel.swapPathOrder(index1, index2) -> success
 
 
 - basemodel.removeDrawable(drawable) -> success
