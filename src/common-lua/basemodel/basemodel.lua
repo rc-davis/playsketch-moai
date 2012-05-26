@@ -137,7 +137,6 @@ end
 
 - basemodel.drawablesVisibleAtTime(time) -> drawableList
 
-- basemodel.drawablesForPath(path) -> drawableList
 - basemodel.pathsForDrawable(drawable) -> pathList
 --]]
 

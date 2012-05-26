@@ -50,6 +50,8 @@ function Drawable:addPath(path)
 	--create a new proxy Prop for it
 	self.paths[path] = MOAIProp2D.new ()
 	drawingLayer:insertProp(self.paths[path])
+	
+	path:addDrawable(self)
 
 	-- brute-force redo our inheritance
 	-- TODO: this might be a good place to optimize if adding new transforms is slow

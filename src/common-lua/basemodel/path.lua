@@ -47,6 +47,8 @@ function Path:init(index)
 	self.keyframes = basemodel.timelist.new(nil)
 
 	self.index = index
+	
+	self.drawables = {}
 
 	--self.span = {start=1e99,stop=-1e99}
 	--self.dependentTransforms = {}	
@@ -197,6 +199,13 @@ function Path:setVisibility(time, visible)
 end
 
 
+function Path:addDrawable(drawable)
+	table.insert(self.drawables, drawable)
+end
+
+function Path:getDrawables()
+	return self.drawables
+end
 
 --[[
 LEAVE FOR LAST:
