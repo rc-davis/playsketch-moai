@@ -100,6 +100,17 @@ function TimeList:setValueForTime(time, value)
 	return frame
 end
 
+-- setFromList(list): 	Sets 'value' from an ORDERED list of the format: {time=t, value=v}
+--						Does not overwrite the current contents
+function TimeList:setFromList(list)
+
+	--TODO: This could definitely be optimized to make recording faster if necessary
+	
+	for i,o in ipairs(list) do
+		local frame = self:makeFrameForTime(o.time, nil)
+		frame.value = o.value
+	end
+end
 
 -- getValueForTime(time): returns the value from the frame immediately <= 'time'
 function TimeList:getValueForTime(time)
