@@ -51,22 +51,12 @@ function Drawable:addPath(path)
 	self.paths[path] = MOAIProp2D.new ()
 	drawingLayer:insertProp(self.paths[path])
 	
-	path:addDrawable(self)
-
 	-- brute-force redo our inheritance
 	-- TODO: this might be a good place to optimize if adding new transforms is slow
 	self:redoPathHierarchy()
 	
 end
 
-function Drawable:getPaths()
-	--TODO: if this gets called often, we'll want to store this instead of constructing it
-	local _paths = {}
-	for path,_ in pairs(self.paths) do
-		table.add(_paths, path)
-	end
-	return _paths
-end
 
 ----------------- PRIVATE
 
