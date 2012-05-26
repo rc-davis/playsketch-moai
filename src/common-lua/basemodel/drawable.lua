@@ -59,6 +59,15 @@ function Drawable:addPath(path)
 	
 end
 
+function Drawable:getPaths()
+	--TODO: if this gets called often, we'll want to store this instead of constructing it
+	local _paths = {}
+	for path,_ in pairs(self.paths)
+		table.add(_paths, path)
+	end
+	return _paths
+end
+
 ----------------- PRIVATE
 
 function Drawable:swapPathOrders(path1, path2)

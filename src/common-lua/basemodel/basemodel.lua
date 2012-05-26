@@ -136,8 +136,6 @@ end
 - basemodel.removeDrawables(drawableList) -> success
 
 - basemodel.drawablesVisibleAtTime(time) -> drawableList
-
-- basemodel.pathsForDrawable(drawable) -> pathList
 --]]
 
 
