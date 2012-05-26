@@ -52,9 +52,9 @@ function Drawable:addPath(path)
 	local afterPath = nil
 	for p,_ in pairs(self.paths) do
 		assert(p.index ~= path.index, "Can't add a path that already belongs")
-		if path.index > p.index and (beforePath == nil or p.index > beforePath.path) then
+		if path.index > p.index and (beforePath == nil or p.index > beforePath.index) then
 			beforePath = p
-		elseif path.index < p.index and (afterPath == nil or p.index < afterPath.path) then
+		elseif path.index < p.index and (afterPath == nil or p.index < afterPath.index) then
 			afterPath = p
 		end
 	end
