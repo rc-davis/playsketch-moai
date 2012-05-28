@@ -13,7 +13,8 @@ util.debugging = {}
 
 
 -- print_deep(): a print function that recurses into tables
-function print_deep(t, depth)
+function print_deep(t, depth, followed)
+	if followed == nil then followed = {} end
 	depth = depth or 0
 	local prefix = "" for i=1,depth,1 do prefix = prefix .. "  " end
 
@@ -21,7 +22,10 @@ function print_deep(t, depth)
 		print(prefix.."{")
 		for k,v in pairs(t) do
 			print(prefix..k.."=")
-			print_deep(v, depth+1)
+			if followed[v] == nil then
+				followed[v] = true
+				print_deep(v, depth+1, followed)
+			else print(v) end
 		end
 		print(prefix.."}")		
 	else
