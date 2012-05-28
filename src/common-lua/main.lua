@@ -24,13 +24,10 @@ require "input/input"
 require "test/test"
 
 -- set up a window
-WIDTH = MOAIEnvironment.screenWidth or 800
-HEIGHT = MOAIEnvironment.screenHeight or 650
-SCALED_WIDTH = WIDTH
-SCALED_HEIGHT = HEIGHT
-if MOAIEnvironment.iosRetinaDisplay then
-	SCALED_WIDTH,SCALED_HEIGHT  = WIDTH/2, HEIGHT/2
-end
+WIDTH = MOAIEnvironment.screenWidth or 512
+HEIGHT = MOAIEnvironment.screenHeight or 683 
+SCALED_WIDTH = 768
+SCALED_HEIGHT = 1024
 
 MOAISim.openWindow ( "playsketch2", WIDTH, HEIGHT )
 
