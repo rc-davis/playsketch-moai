@@ -13,9 +13,11 @@
 
 	basemodel/drawable.lua
 	
-	Encapsulates a drawable
-	Maintains a reference to the prop object that is part of the MOAI hierarchy
-	Tracks the path objects that apply to it
+	Represents an animation item that is drawn to the screen (ink stroke, image, etc). 
+	To support this, it creates and maintains the MOAIProp2D object that is part of the
+	MOAI scene graph.
+	Also tracks the various Path objects that apply to the drawable, and represents each
+	one with its own MOAIProp2D object.
 
 --]]
 

@@ -13,8 +13,12 @@
 
 	basemodel/path.lua
 	
-	Encapsulates a path for transforming Drawables
-	TODO: document 2-d linked list for keyframe-to-data-frame lookup
+	A path represents the changes to the Scale, Rotation, Translation, and visibility of
+	a set of drawables over time.
+
+	TODO: Using linked-list timelists for: srtv AND keyframes.
+	Keyframes should be abstracted more nicely, and we should be able to use keyframes to 
+	speed up lookup along the timelists (like a skiplist) 
 
 --]]
 
@@ -35,7 +39,6 @@ end
 
 
 --Path methods
-
 function Path:init(index)
 	self.class = "Path"
 
@@ -222,7 +225,7 @@ function Path:delete()
 end
 
 --[[
-LEAVE FOR LAST:
+TODO: 
 - path:shiftKeyframe(keyframe, timeDelta) -> success
 - path:shiftKeyframes(startKeyframe, endKeyframe timeDelta) -> success
 --]]

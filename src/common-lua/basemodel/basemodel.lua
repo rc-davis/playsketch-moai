@@ -13,7 +13,9 @@
 
 	basemodel/basemodel.lua
 	
-	TODO:describe
+	The base-model stores the animations that we create.
+	For a full description, see:
+	https://github.com/richardcd73/playsketch2/wiki/Base-Model-Spec
 
 --]]
 
@@ -163,17 +165,8 @@ function basemodel.deleteDrawables(drawablesList)
 	end
 end
 
---[[
 
-
-
-
-
-- basemodel.drawablesVisibleAtTime(time) -> drawableList
---]]
-
-
-
+--	todo: basemodel.drawablesVisibleAtTime(time) -> drawableList ??
 
 
 return basemodel
