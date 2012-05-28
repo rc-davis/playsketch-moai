@@ -20,6 +20,7 @@
 	- selection:	turning user input into a selection lasso and manipulating the result
 	- drawing: 		turning user input into an ink stroke and storing it as an object
 	- disk: 		manage saving and loading files
+	- playback:		controls the actual playing of the animation
 	
 --]]
 
@@ -27,10 +28,11 @@
 
 controllers = {}
 
-require "controllers/timeline"
-require "controllers/selection"
 require "controllers/drawing"
 require "controllers/disk"
+require "controllers/playback"
 require "controllers/recording"
+require "controllers/timeline"
+require "controllers/selection"
 
 return controllers

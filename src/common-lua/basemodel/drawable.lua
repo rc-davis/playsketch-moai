@@ -107,7 +107,30 @@ function Drawable:redoPathHierarchy()
 			prop1:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop2, MOAIProp2D.TRANSFORM_TRAIT)
 		end
 	end
+	
+	--finally, set our drawable prop to inherit from the first on the list
+	self.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+	if #sortedPaths > 0 then
+		self.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, sortedPaths[1][2], MOAIProp2D.TRANSFORM_TRAIT)
+	end
 end
+
+function Drawable:correctedPointsAtCurrentTime()
+	return self.prop:correctedPointsAtCurrentTime()
+end
+
+function Drawable:refreshPathProps()
+	local visible = true
+	for path,prop in pairs(self.paths) do
+		local s,r,t,v = path:cached()
+		visible = visible and v
+		prop:setScl(s,s)
+		prop:setRot(r)
+		prop:setLoc(t.x, t.y)
+	end
+	self.prop:setVisible(visible)
+end
+
 
 ------------ TEST HELPERS ---------------
 --  return success,message

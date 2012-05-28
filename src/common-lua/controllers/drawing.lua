@@ -21,8 +21,6 @@
 --]]
 
 
-require "model/model"
-
 controllers.drawing = {}
 
 
@@ -35,13 +33,12 @@ function controllers.drawing.newStroke()
 	strokeDeck:setRect ( -10, -10, 10, 10 ) --temporarily
 	new_stroke.points = {}
 	new_stroke.color = {1.0, 0.0, math.random()}
-	new_stroke.isSelected = false
 	new_stroke.penWidth = 4.0
 
 
 	strokeDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
-			if new_stroke.isSelected then
+			if controllers.selection.isSelected(new_stroke) then
 				MOAIGfxDevice.setPenColor (1.0, 1.00, 0)
 				MOAIGfxDevice.setPenWidth(10.0)
 				MOAIDraw.drawLine ( new_stroke.points)
@@ -84,9 +81,11 @@ function controllers.drawing.newStroke()
 			self.points[j+1] = self.points[j+1] - new_y
 		end
 		
-		new_stroke:setLoc(minx + width/2, miny + height/2)		
 		strokeDeck:setRect (-width/2, -height/2, width/2, height/2)
-		model.addProp(self)
+
+--TODO! This should call to the interactor model!!
+basemodel.addNewDrawable(self, controllers.timeline.currentTime(), {x=minx + width/2,y=miny + height/2})
+
 	end
 	
 	--cancel():	Cancel the drawing of the stroke	
@@ -112,6 +111,15 @@ function controllers.drawing.newStroke()
 		end
 		self:doneStroke()
 		self:setLoc(proptable.location.x, proptable.location.y)		
+	end
+
+	function new_stroke:correctedPointsAtCurrentTime()
+		local corrected = {}
+		for i=1,#self.points,2 do
+			corrected[i],corrected[i+1] = self:modelToWorld(self.points[i],self.points[i+1])
+			print(self.points[i], '->', corrected[i])
+		end
+		return corrected
 	end
 
 	return new_stroke

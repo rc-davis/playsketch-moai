@@ -18,8 +18,6 @@
 	
 --]]
 
-require "model/model"
-
 controllers.timeline = {}
 controllers.timeline.span = {min=0, max=15}
 controllers.timeline.slider = nil
@@ -37,14 +35,6 @@ function controllers.timeline.setButtons(slider, playButton)
 end
 
 
---LOCAL bringModelToTime(new_time):	Sets all objects to their state for a given time
-local function bringModelToTime(new_time)
-	for _, ut in pairs(model.allUserTransforms()) do	
-		ut:displayAtFixedTime(new_time)
-	end
-end
-
-
 --sliderMoved(slider, time): Respond to the slider having been moved manually
 function controllers.timeline.sliderMoved(slider, new_time)
 	assert(new_time >= controllers.timeline.span.min and
@@ -53,7 +43,7 @@ function controllers.timeline.sliderMoved(slider, new_time)
 			
 	if controllers.timeline.playing then controllers.timeline.pause() end
 
-	bringModelToTime(new_time)
+	controllers.playback.jumpToTime(new_time)
 
 end
 
@@ -65,7 +55,7 @@ function controllers.timeline.sliderMoveFinished(slider, new_time)
 		local snappedTime = transform:getSnappedTime(new_time)
 		if snappedTime then
 			controllers.timeline.slider:setAtValue(snappedTime, 0)
-			bringModelToTime(new_time)
+			controllers.playback.jumpToTime(new_time)
 		end
 	end
 end
@@ -104,9 +94,7 @@ function controllers.timeline.play()
 	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - controllers.timeline.slider:currentValue()
 	controllers.timeline.playButton:setIndex(2)
 
-	for _,o in pairs(model.allUserTransforms()) do
-		o:playBack(controllers.timeline.slider:currentValue())
-	end
+	controllers.playback.startPlaying(controllers.timeline.slider:currentValue())
 
 	controllers.timeline.slider:setAtValue(controllers.timeline.span.max,
 											controllers.timeline.span.max - 
@@ -126,13 +114,8 @@ function controllers.timeline.pause()
 	--todo: figure out current time better?
 	controllers.timeline.slider:stop()
 
-	for _,o in pairs(model.allUserTransforms()) do
-		o:stopPlayback()
-	end
-	
-	local currenttime = controllers.timeline.slider:currentValue()
-	
-	bringModelToTime(currenttime)
+	controllers.playback.stopPlaying()
+	controllers.playback.jumpToTime(controllers.timeline.slider:currentValue())
 
 end
 

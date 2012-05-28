@@ -23,11 +23,11 @@
 	
 --]]
 
-require "model/model"
 require "widgets/widgets"
+require "basemodel/basemodel"
 
 controllers.selection = {}
-local selectedSet = {}
+local selectedSet = {} -- {prop -> drawable} for easy lookups
 
 
 -- startStroke(): begin a new selection lasso stroke
@@ -45,9 +45,9 @@ function controllers.selection.startStroke()
 	--cache the current pixel points for ALL objects 
 	-- this might get expensive?
 	local cached_points = {}
-	for _,o in pairs(model.allDrawables()) do
-		cached_points[o] = o:getCorrectedPointsAtCurrentTime()
-		o:setSelected(false)
+	for _,o in pairs(basemodel.allDrawables()) do
+		cached_points[o] = o:correctedPointsAtCurrentTime()
+		selectedSet = {}
 	end
 
 	--addPoint(x,y):	Add a point to the selection lasso.
@@ -119,7 +119,7 @@ function controllers.selection.startStroke()
 					o_matches = o_matches or ( (crossing_counts[i][j] + inferred_count)%2 == 1)
 				
 				end
-				o:setSelected(o_matches)
+				if o_matches then selectedSet[o.prop] = o end
 			end
 		end
 		
@@ -132,13 +132,6 @@ function controllers.selection.startStroke()
 	-- doneStroke(): 	For when the lasso is finished. 
 	--					If the selected set contains objects, show the manipulator
 	function selection_stroke:doneStroke()
-
-		selectedSet = {}
-		for _,o in pairs(model.allDrawables()) do
-			if o:selected() then 
-				table.insert(selectedSet, o)
-			end
-		end
 		controllers.recording:selectedSetChanged(selectedSet)
 	end
 
@@ -153,11 +146,12 @@ end
 
 
 function controllers.selection.clearSelection()
-	for _,o in pairs(model.allDrawables()) do
-		o:setSelected(false)
-	end	
 	selectedSet = {}
 	controllers.recording:selectedSetChanged(selectedSet)
+end
+
+function controllers.selection.isSelected(drawable)
+	return selectedSet[drawable] ~= nil
 end
 
 return controllers.selection

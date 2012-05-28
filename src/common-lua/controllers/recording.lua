@@ -15,6 +15,8 @@
 	
 	Displays the manipulator widget and responds to its actions to create new recordings.
 	This includes the need to maintain which transform is being manipulated.
+
+	--TODO!!!! THIS WHOLE FILE NEEDS To BE RETHOUGHT WITH OUR INTERACTORS
 	
 	initManipulator()
 	selectedSetChanged()
@@ -170,13 +172,13 @@ showManipulator = function ()
 	avgY = math.min(SCALED_HEIGHT/2, math.max(-SCALED_HEIGHT/2, avgY))
 
 	--Create a new user transform at this location
-	currentTransform = model.getTransform(controllers.timeline.currentTime(),
-											currentObjectSet) 
-	g_keyframeWidget:setUserTransform(currentTransform)
+--	currentTransform = model.getTransform(controllers.timeline.currentTime(),
+--											currentObjectSet) 
+--	g_keyframeWidget:setUserTransform(currentTransform)
 
-	if currentTransform.isIdentity then 
-		currentTransform:setPivot(avgX,avgY) 
-	end
+--	if currentTransform.isIdentity then 
+--		currentTransform:setPivot(avgX,avgY) 
+--	end
 	manipulator:show()
 
 end
@@ -216,13 +218,13 @@ manipulatorPivotChanged = function(pivot_dx, pivot_dy)
 	--unless the current transform doesn't contain any rotation or scaling information
 	if not currentTransform.isIdentity then
 		--todo: this will cause problems since it violates the uniqueness of the transform for a given set at a given time!
-		currentTransform = 
-				model.newTransform(controllers.timeline.currentTime(), currentObjectSet)
+--		currentTransform = 
+--				model.newTransform(controllers.timeline.currentTime(), currentObjectSet)
 		
-		g_keyframeWidget:setUserTransform(currentTransform)
+--		g_keyframeWidget:setUserTransform(currentTransform)
 	end				
-	currentTransform:setPivot(	old_loc.x + old_pivot.x + pivot_dx, 
-								old_loc.y + old_pivot.y + pivot_dy)
+--	currentTransform:setPivot(	old_loc.x + old_pivot.x + pivot_dx, 
+--								old_loc.y + old_pivot.y + pivot_dy)
 end
 
 manipulatorStartedChanging = function(name)

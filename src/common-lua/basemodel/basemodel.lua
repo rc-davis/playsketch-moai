@@ -46,15 +46,20 @@ function basemodel.addNewDrawable(prop, time, location)
 	-- create the drawable (& add it to the scene graph)
 	local drawable = basemodel.drawable.newFromProp(prop)
 	table.insert(allDrawables, drawable)
-	
+
 	-- create a new path to contain its location
 	local path = basemodel.createNewPath({drawable})
 	
 	-- set path to location
 	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
-	
+
 	-- set visibility to come on only at current time
 	path:setVisibility(time, true)
+
+
+	--get it to display properly:
+	path:cacheAtTime(time)
+	drawable:refreshPathProps()
 
 	return drawable
 end

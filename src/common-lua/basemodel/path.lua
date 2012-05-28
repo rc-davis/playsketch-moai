@@ -51,6 +51,7 @@ function Path:init(index)
 
 	self.index = index
 	self.drawablecount = 0 -- To track how many drawables are part of this path
+	self.cache = {}
 
 end
 
@@ -61,6 +62,17 @@ function Path:stateAtTime(time)
 	local visibility = self.timelists.visibility:getValueForTime(time)	
 	return scale, rotate, translate, visibility
 end
+
+function Path:cacheAtTime(time)
+	self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility = 
+	self:stateAtTime(time)
+end	
+
+function Path:cached()
+	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
+end	
+
+
 
 function Path:keyframeTimelist()
 	return self.keyframes

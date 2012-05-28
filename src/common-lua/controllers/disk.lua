@@ -14,6 +14,7 @@
 	controllers/disk.lua
 
 	Manages saving and loading files from disk
+	--TODO: this whole file needs to be redone for the basemodel
 	
 --]]
 
