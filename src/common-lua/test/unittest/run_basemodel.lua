@@ -75,14 +75,47 @@ startSection("Testing basemodel")
 	endSection()
 		
 	startSection("Test Setting Visibility")
+		
+		-- set 10 to visible
+		local _,_,_,v = path1:stateAtTime(10)
+		verify(v == false, "Not visible at time=10")
+		path1:setVisibility(10, true)
+		local _,_,_,v = path1:stateAtTime(10)
+		verify(v == true, "Now should be visible at time=10")
+		local _,_,_,v = path1:stateAtTime(1000)
+		verify(v == true, "Should also be visible at time=1000")
+		verify(path1:keyframeTimelist():size() == 1, "1 keyframe now")
+		
+		--set 15 to invisible
 		path1:setVisibility(15, false)
-		path1:setVisibility(19, true)
-		path1:setVisibility(20, false)		
-		local _,_,_,v  = path1:stateAtTime(15)
-		verify(v == false, "Should be invisible at 15 now")
-		local _,_,_,v  = path1:stateAtTime(19)
-		verify(v == true, "Should be visible at 19 still")
-		verify(path1:keyframeTimelist():size() == 4, "Should be four keyframes now (one re-used)")
+		local _,_,_,v = path1:stateAtTime(14)
+		verify(v == true, "Should still be visible at time=14")
+		local _,_,_,v = path1:stateAtTime(15)
+		verify(v == false, "Should NOT be visible at time=15")
+		local _,_,_,v = path1:stateAtTime(1000)
+		verify(v == false, "Should NOT be visible at time=1000")
+		verify(path1:keyframeTimelist():size() == 2, "2 keyframes now")
+
+		--set 14 to invisible, removing the keyframe at 15 implicitly
+		path1:setVisibility(14, false) -- this should remove the keyframe at 15
+		local _,_,_,v = path1:stateAtTime(13)
+		verify(v == true, "Should still be visible at time=13")
+		local _,_,_,v = path1:stateAtTime(14)
+		verify(v == false, "Should NOT be visible at time=14")
+		local _,_,_,v = path1:stateAtTime(15)
+		verify(v == false, "Should NOT be visible at time=15")
+		verify(path1:keyframeTimelist():size() == 2, "Should still have 2 keyframes")
+
+		--set 10 to invisible, removing its keyframe implicitly
+		path1:setVisibility(10, false) -- this should remove the keyframe at 10 AND 14
+		local _,_,_,v = path1:stateAtTime(10)
+		verify(v == false, "Should NOT be visible at time=10")
+		local _,_,_,v = path1:stateAtTime(15)
+		verify(v == false, "Should NOT be visible at time=15")
+		local _,_,_,v = path1:stateAtTime(1000)
+		verify(v == false, "Should NOT be visible at time=1000")
+		verify(path1:keyframeTimelist():size() == 0, "Should have removed ALL keyframes")
+
 	endSection()
 	
 	startSection("Test Recording a Path")	
