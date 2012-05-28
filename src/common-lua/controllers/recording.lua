@@ -69,11 +69,11 @@ function controllers.recording:selectedSetChanged(selectedSet)
 
 	if #selectedSet == 0 then
 		hideManipulator()
-		g_recButton:setEnabled(false)
+		--g_recButton:setEnabled(false)
 	else
 		currentObjectSet = selectedSet
 		showManipulator()
-		g_recButton:setEnabled(true)
+		--g_recButton:setEnabled(true)
 	end
 end
 
@@ -149,7 +149,7 @@ hideManipulator = function ()
 		currentTransform:delete()
 	end
 	currentTransform = nil
-	g_keyframeWidget:setUserTransform(nil)
+	--g_keyframeWidget:setUserTransform(nil)
 end
 
 

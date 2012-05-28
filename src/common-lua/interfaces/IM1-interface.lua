@@ -47,7 +47,8 @@ modifier = widgets.newModifierButton(-SCALED_WIDTH/2+192/2, 400, 192, 192,
 									"resources/IM1/modifier_button_select_down.png",
 									"resources/IM1/modifier_button_record.png",
 									"resources/IM1/modifier_button_record_down.png",
-									nil,
+									input.strokecapture.setSelectingMode,
+									input.strokecapture.setDrawingMode,
 									nil,
 									nil)
 

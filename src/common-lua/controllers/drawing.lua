@@ -117,7 +117,6 @@ basemodel.addNewDrawable(self, controllers.timeline.currentTime(), {x=minx + wid
 		local corrected = {}
 		for i=1,#self.points,2 do
 			corrected[i],corrected[i+1] = self:modelToWorld(self.points[i],self.points[i+1])
-			print(self.points[i], '->', corrected[i])
 		end
 		return corrected
 	end

@@ -154,4 +154,9 @@ function controllers.selection.isSelected(drawable)
 	return selectedSet[drawable] ~= nil
 end
 
+function controllers.selection.objectsSelected()
+	for _,o in pairs(selectedSet) do return true end
+	return false
+end
+
 return controllers.selection

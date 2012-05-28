@@ -31,19 +31,13 @@ local activeStrokes = {}
 local selectionStroke = nil
 
 
---changeMode(button):	Respond to the button to specify if we are drawing or selecting
-function input.strokecapture.changeMode(button)
-
-	if button.index == 1 then 
-		input.strokecapture.mode = input.strokecapture.MODE_SELECT
-		button:setIndex(2)
-	else
-		input.strokecapture.mode = input.strokecapture.MODE_DRAW
-		controllers.selection.clearSelection()
-		button:setIndex(1)
-	end
+function input.strokecapture.setDrawingMode()
+	input.strokecapture.mode = input.strokecapture.MODE_DRAW
 end
 
+function input.strokecapture.setSelectingMode()
+	input.strokecapture.mode = input.strokecapture.MODE_SELECT
+end
 
 local function downCallback(id,x,y)
 	if activeStrokes[id] == nil then
