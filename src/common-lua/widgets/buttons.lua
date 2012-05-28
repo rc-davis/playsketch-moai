@@ -189,7 +189,7 @@ end
 -- newSlider(): 	A slider that can be used to select a value (used for timelines)
 -- 					the callback has the form: callback(button,value), when the value changes
 --					Use :setValueSpan(min,max) to set the allowable range of values
-function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSlider, imgSliderDown, callbackMoved, callbackMoveFinished)
+function widgets.newSlider(centerX, centerY, width, height, sliderWidth, imgBackground, imgSlider, imgSliderDown, callbackMoved, callbackMoveFinished)
 
 	assert(widgets.layer, "widgets.layer must be initialized before creating buttons")
 
@@ -205,7 +205,7 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 	slider.background = newButtonInternal( centerX, centerY, width, height, 
 								{imgBackground}, imgBackground, nil, nil, nil, nil)
 
-	slider.scrubber = widgets.newSimpleDragableButton( centerX, centerY, height, height, 
+	slider.scrubber = widgets.newSimpleDragableButton( centerX, centerY, sliderWidth, height, 
 						imgSlider, imgSliderDown, nil, nil)
 	
 	--jump to a time when 
@@ -226,24 +226,24 @@ function widgets.newSlider(centerX, centerY, width, height, imgBackground, imgSl
 		end
 
 	function slider:xToValue(x)
-		assert(x >= centerX - width/2 + height/2 and x <= centerX + width/2 - height/2, 
+		assert(x >= centerX - width/2 + sliderWidth/2 and x <= centerX + width/2 - sliderWidth/2, 
 			"converting x should go to a valid value")
-		local new_pcnt_value = (x + width/2 - height/2 - centerX)/(width - height)
+		local new_pcnt_value = (x + width/2 - sliderWidth/2 - centerX)/(width - sliderWidth)
 		return new_pcnt_value*(slider.maxvalue - slider.minvalue)+slider.minvalue
 	end
 
 	function slider:setAtValue(v, duration)
 		local pcnt = self.minvalue + (v - self.minvalue)/(self.maxvalue - self.minvalue)
 		pcnt = math.max(0, math.min(1, pcnt))
-		local new_x = centerX - width/2 + height/2 + pcnt*(width - height)
+		local new_x = centerX - width/2 + sliderWidth/2 + pcnt*(width - sliderWidth)
 		self:setAtX(new_x, duration, false)
 	end
 
 	function slider:setAtX(px, duration, shouldCallback)
 		
 		--scrubber location
-		px = math.min(px, centerX + width/2 - height/2)
-		px = math.max(px, centerX - width/2 + height/2)
+		px = math.min(px, centerX + width/2 - sliderWidth/2)
+		px = math.max(px, centerX - width/2 + sliderWidth/2)
 
 		if duration == 0 then
 			self.scrubber:setLoc(px, centerY)
