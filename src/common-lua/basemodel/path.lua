@@ -169,33 +169,34 @@ end
 
 
 function Path:setVisibility(time, visible)
-
 	-- Add the new value to the list
 	local frame = self.timelists.visibility:setValueForTime(time, visible)
 	local keyframe = self.keyframes:makeFrameForTime(time, {})
 	keyframe.value.visibility = frame
 	
 	-- Run through the list and remove redundancies
-	local v = self.timelists.visibility.firstFrame.value
-	local f = self.timelists.visibility.firstFrame.nextFrame
-	while f ~= nil do
-		if f.value == v then 	
-		-- remove f if it isn't necessary
-			local toRemove = f
-			f = f.nextFrame
-			self.timelists.visibility:deleteFrame(toRemove)
+	local framePrevious = self.timelists.visibility.firstFrame
+	local frameCurrent = self.timelists.visibility.firstFrame.nextFrame
+	while frameCurrent ~= nil do
+		if frameCurrent.value == framePrevious.value then 	
 
-			--also remove the corresponding keyframe
-			local oldKeyframe = self.keyframes:getFrameForTime(time)
-			assert(oldKeyframe.time == time, "Every visibility timelist frame corresponds to a keyframe")
-			assert(oldKeyframe.value.visibility == toRemove, "Should be removing the right keyframe")
+			--first remove the corresponding keyframe
+			local oldKeyframe = self.keyframes:getFrameForTime(frameCurrent.time)
+			assert(oldKeyframe.time == frameCurrent.time, "Every visibility timelist frame corresponds to a keyframe")
+			assert(oldKeyframe.value.visibility == frameCurrent, "Should be removing the right keyframe")
 			if oldKeyframe.scale == nil and oldKeyframe.rotate == nil and oldKeyframe.translate == nil then
 				self.keyframes:deleteFrame(oldKeyframe)
 			else
 				oldKeyframe.visibility = nil
 			end
+			
+			-- then remove the actual visibility list:
+			self.timelists.visibility:deleteFrame(frameCurrent)
+
+			frameCurrent = framePrevious.nextFrame
 		else
-			f = f.nextFrame
+			framePrevious = frameCurrent
+			frameCurrent = frameCurrent.nextFrame
 		end
 	end
 
