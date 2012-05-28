@@ -50,12 +50,7 @@ function Path:init(index)
 	self.keyframes = basemodel.timelist.new(nil)
 
 	self.index = index
-	self.drawablecount = 0 -- To track how many drawables are using this
-	
-	--self.span = {start=1e99,stop=-1e99}
-	--self.dependentTransforms = {}	
-	--self.activeThreads = {}
-	--self.activeAnimations = {}
+	self.drawablecount = 0 -- To track how many drawables are part of this path
 
 end
 
@@ -105,10 +100,11 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	
 	
 	--TODO: BLENDING
+	assert(keyframeBlendFrom == nil and keyframeBlendTo == nil, "keyframe blending not yet implemented")
 
 end
 
---scaleStream[1] = {time=??, scale=??}
+--scaleStream = {{time=??, scale=??}, ...}
 function Path:addRecordedMotion(scaleStream, rotateStream, translateStream)
 
 	assert(scaleStream or translateStream or rotateStream,
@@ -174,39 +170,48 @@ end
 
 function Path:setVisibility(time, visible)
 
-	--create/retrieve keyframe
-	local keyframe = self.keyframes:makeFrameForTime(time, {})
-
-	--TODO: implement smarter logic & keyframes
+	-- Add the new value to the list
 	local frame = self.timelists.visibility:setValueForTime(time, visible)
+	local keyframe = self.keyframes:makeFrameForTime(time, {})
 	keyframe.value.visibility = frame
+	
+	-- Run through the list and remove redundancies
+	local v = self.timelists.visibility.firstFrame.value
+	local f = self.timelists.visibility.firstFrame.nextFrame
+	while f ~= nil do
+		if f.value == v then 	
+		-- remove f if it isn't necessary
+			local toRemove = f
+			f = f.nextFrame
+			self.timelists.visibility:deleteFrame(toRemove)
 
+			--also remove the corresponding keyframe
+			local oldKeyframe = self.keyframes:getFrameForTime(time)
+			assert(oldKeyframe.time == time, "Every visibility timelist frame corresponds to a keyframe")
+			assert(oldKeyframe.value.visibility == toRemove, "Should be removing the right keyframe")
+			if oldKeyframe.scale == nil and oldKeyframe.rotate == nil and oldKeyframe.translate == nil then
+				self.keyframes:deleteFrame(oldKeyframe)
+			else
+				oldKeyframe.visibility = nil
+			end
+		else
+			f = f.nextFrame
+		end
+	end
 
-	--get current visibility at time
-	
-	--bail if it is already right
-
-	--figure out if we are right on keyframe
-	
-		--and remove it
-	
-	--otherwise set it
-	
-		--and add a keyframe
-	
-		--and clean up next entry in stream
-		--including its keyframe
-		
 	return keyframe
 end
+
 
 function Path:drawableCount()
 	return self.drawablecount
 end
 
+
 function Path:incrementDrawableCount()
 	self.drawablecount = self.drawablecount + 1
 end
+
 
 function Path:decrementDrawableCount()
 	self.drawablecount = self.drawablecount - 1
@@ -215,13 +220,10 @@ end
 
 
 function Path:delete()
-
 	self.timelists = nil
 	self.keyframes = nil
 	self.index = nil
-	
 	assert(self.drawablecount == 0, "Shouldn't be deleting a path that drawables are still using!")
-
 end
 
 --[[
