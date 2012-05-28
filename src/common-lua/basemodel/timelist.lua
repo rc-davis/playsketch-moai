@@ -91,6 +91,16 @@ function TimeList:makeFrameForTime(time, defaultValue)
 	end
 end
 
+function TimeList:deleteFrame(frame)
+
+	assert(frame.time ~= basemodel.timelist.NEGINFINITY, "Shouldn't delete root frame")
+	--todo: verify membership in this list?
+	frame.previousFrame.nextFrame = frame.nextFrame
+	if frame.nextFrame then 
+		frame.nextFrame.previousFrame = frame.previousFrame
+	end
+	self.listSize = self.listSize - 1
+end
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
 function TimeList:setValueForTime(time, value)
