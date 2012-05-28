@@ -22,14 +22,11 @@ require "basemodel/basemodel"
 
 startSection("Testing basemodel")
 
-	verify(#basemodel.allPaths() == 0, "Start with empty path set")
-	verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
-	
-	startSection("Add a drawable")
-		local prop1 = MOAIProp2D.new ()
-		local time1 = 10
-		local location1 = {x=100, y=-20}
-		local drawable1 = basemodel.addNewDrawable(prop1, time1, location1)
+	startSection("Adding a drawable")
+
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
 		local path1 = basemodel.allPaths()[1]
 		verify(drawable1, "Drawable1 successfully created")
 		verify(#basemodel.allPaths() == 1, "Path for drawable1 added to set")
@@ -43,26 +40,42 @@ startSection("Testing basemodel")
 		verify(r == 0, "default should have no rotation far in the future")
 		verify(t.x == 100 and t.y == -20, "default should be in default position far in the future")
 		verify(path1:keyframeTimelist():size() == 1, "Should only be one keyframe at this point")
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil
 	endSection()
 	
-	startSection("Add a keyframe")
-		path1:addKeyframedMotion(20, 2.0, 90, {x=50,y=20}, nil, nil)
-
+	startSection("Add a keyframed motion")
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel.allPaths()[1] -- manually grab the first path
+		verify(#basemodel.allPaths() == 1, "Has two paths now")
+		path1:addKeyframedMotion(20, 2.0, 90, {x=50,y=20}, nil, nil) --keyframe at 20
 		local s,r,t,v  = path1:stateAtTime(15)
 		verify(s == 1.5 and r == 45 and t.x == 75 and t.y == 0 and v == true,
 				"new values should be interpolated from 10")
-
 		local s,r,t,v  = path1:stateAtTime(20)
 		verify(s == 2.0 and r == 90 and t.x == 50 and t.y == 20 and v == true,
 				"new values apply at 20")
-
 		local s,r,t,v  = path1:stateAtTime(5000)
 		verify(s == 2.0 and r == 90 and t.x == 50 and t.y == 20 and v == true,
 			"new values apply far in the future")
 		verify(path1:keyframeTimelist():size() == 2, "Should be two keyframes now")
+		--clean up
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil
 	endSection()
 		
 	startSection("Test Keyframe operations")
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel:allPaths()[1]
+		--add a second keyframe:
+		path1:addKeyframedMotion(20, 2.0, 90, {x=50,y=20}, nil, nil)
+		 --keyframes at 10 and 20
 		local k1 = path1:keyframeBeforeTime(-100)
 		local k2 = path1:keyframeBeforeTime(9)
 		local k3 = path1:keyframeBeforeTime(10)
@@ -70,11 +83,19 @@ startSection("Testing basemodel")
 		local k5 = path1:keyframeBeforeTime(20)
 		local k6 = path1:keyframeBeforeTime(5000)
 		verify(k1 == nil and k2 == nil, "keyframeBeforeTime(): no keyframes before the new one")
-		verify(k3 ~= nil and k3 == k4, "keyframeBeforeTime(): between keyframes returns 10")
-		verify(k5 ~= k3 and k5 == k6, "keyframeBeforeTime(): future keyframes returns 20")		
+		verify(k3.time == 10 and k3 == k4, "keyframeBeforeTime(): between keyframes returns 10")
+		verify(k5.time == 20 and k5 == k6, "keyframeBeforeTime(): future keyframes returns 20")
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil
 	endSection()
 		
 	startSection("Test Setting Visibility")
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel.createNewPath({drawable1}) --create new empty path
+		verify(path1:keyframeTimelist():size() == 0, "No keyframes on empty path")
 		
 		-- set 10 to visible
 		local _,_,_,v = path1:stateAtTime(10)
@@ -116,13 +137,25 @@ startSection("Testing basemodel")
 		verify(v == false, "Should NOT be visible at time=1000")
 		verify(path1:keyframeTimelist():size() == 0, "Should have removed ALL keyframes")
 
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil
 	endSection()
 	
 	startSection("Test Recording a Path")	
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel:allPaths()[1]
 	
-		--insert a keyframe that should be deleted
-		path1:addKeyframedMotion(19, nil, nil, {x=-300,y=-300}, nil, nil)
+		--insert a keyframe that will be totally deleted (since it is only translate)
+		path1:addKeyframedMotion(19, nil, nil, {x=-300,y=-300}, nil, nil)		
+		--insert a keyframed motion that is partially overwritted (but have scale preserved)
+		path1:addKeyframedMotion(20, 2.0, 90, {x=50,y=20}, nil, nil)
+		--set the visibility to be off in the middle of the recorded path
+		path1:setVisibility(21, false)
 
+		-- add a recorded motion, overwrites 19 and 21
 		local fakeRecordingDataT = {	{time=18, value={x=100, y = -100}},
 										{time=19, value={x=100, y = 100}},
 										{time=20, value={x=-100, y = 100}},
@@ -139,17 +172,20 @@ startSection("Testing basemodel")
 		verify(t.x == -100 and t.y == 100, "20:take the recorded translation")
 		verify(s == 2.0 and r == 90, "20:preserve the existing scale and rotation")
 		verify(v == true, "20:recording should wipe out the invisible markers")
-		verify(path1:keyframeTimelist():size() == 5, "Should be five keyframes now (10, 15, 18, 20, 22)")
-
-
+		verify(path1:keyframeTimelist():size() == 4, "Should be four keyframes now (10,18,20,22)")
 		local _,_,_,v  = path1:stateAtTime(23)
 		verify(v == false, "we should remember that we are invisible after the recording is complete")
-	
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil
 	endSection()
 
 
 	startSection("Creating more Paths")
-
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel:allPaths()[1]
 		local path2 = basemodel.createNewPath({drawable1})	-- path1, path2
 		local path3 = basemodel.createNewPath({drawable1}, 1) -- path3, path1, path2
 		local path4 = basemodel.createNewPath({drawable1}, 4) -- path3, path1, path2, path4
@@ -165,12 +201,19 @@ startSection("Testing basemodel")
 		basemodel.swapPathOrder(2, 5) -- path3, path4, path5, path2, path1
 		verify(path4.index == 2, "Path 4 should have index 2")
 		verify(path1.index == 5, "Path 1 should have index 5")
-		verify(drawable1:verifyPathHierarchyConsistency())
-	
+		verify(drawable1:verifyPathHierarchyConsistency())	
+
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil	
 	endSection()
 
 
-	startSection("Delete Drawables")
+	startSection("Deleting Drawables")
+		verify(#basemodel.allPaths() == 0, "Start with empty path set")
+		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
+		local drawable1 = basemodel.addNewDrawable(MOAIProp2D.new(), 10, {x=100, y=-20})
+		local path1 = basemodel:allPaths()[1]
 
 		basemodel.deleteDrawable(drawable1)
 		verify(#basemodel.allPaths() == 0, "All paths should have been deleted")
@@ -197,8 +240,10 @@ startSection("Testing basemodel")
 		basemodel.deleteDrawable(drawable4)
 		verify(#basemodel.allDrawables() == 0, "All drawables should be gone")
 		verify(#basemodel.allPaths() == 0, "All Paths should be gone")		
-		
-		
+
+		basemodel.deleteDrawable(drawable1)
+		drawable1 = nil
+		path1 = nil	
 	endSection()
 
 endSection()
