@@ -36,5 +36,6 @@ end
 require "widgets/buttons"
 require "widgets/manipulator"
 require "widgets/keyframes"
+require "widgets/modifierButton"
 
 return widgets
