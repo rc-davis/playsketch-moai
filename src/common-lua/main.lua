@@ -46,7 +46,7 @@ controllers.recording.initManipulator()
 
 
 --LOAD AN INTERFACE HERE!
-require "interfaces/old-test-interface" 
+require "interfaces/IM1-interface" 
 
 
 -------- MAIN LOOP

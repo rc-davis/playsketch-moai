@@ -32,7 +32,7 @@ function controllers.drawing.newStroke()
 	
 	strokeDeck:setRect ( -10, -10, 10, 10 ) --temporarily
 	new_stroke.points = {}
-	new_stroke.color = {1.0, 0.0, math.random()}
+	new_stroke.color = {0.0, 0.0, 0.0}
 	new_stroke.penWidth = 4.0
 
 
