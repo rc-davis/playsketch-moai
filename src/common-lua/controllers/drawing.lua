@@ -83,9 +83,9 @@ function controllers.drawing.newStroke()
 		
 		strokeDeck:setRect (-width/2, -height/2, width/2, height/2)
 
---TODO! This should call to the interactor model!!
-basemodel.addNewDrawable(self, controllers.timeline.currentTime(), {x=minx + width/2,y=miny + height/2})
-
+		interactormodel.newDrawableCreated(	self, 
+											controllers.timeline.currentTime(),
+											{x=minx + width/2,y=miny + height/2})
 	end
 	
 	--cancel():	Cancel the drawing of the stroke	

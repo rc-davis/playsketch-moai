@@ -20,10 +20,12 @@
 	
 --]]
 
+require "basemodel/basemodel"
 
 interactormodel = {}
 
-function interactormodel.newDrawableCreated(drawable, location, time)
+function interactormodel.newDrawableCreated(prop, time, location)
+	basemodel.addNewDrawable(prop, time, location)
 end
 
 function interactormodel.newSelection(drawableSet, time)
