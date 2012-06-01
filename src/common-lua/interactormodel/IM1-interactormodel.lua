@@ -11,9 +11,13 @@
 
 --[[
 
-	interactormodel/IM1-interactor.lua
+	interactormodel/IM1-interactormodel.lua
 	
-	todo:description
+	IM1 is for testing/experimenting purposes and evaluating the interface with the base model.
+	This should perform ALL of the interactions with the base model.
+	See: https://github.com/richardcd73/playsketch2/wiki/Interactor-Model-1-Spec
+	
+	
 --]]
 
 
