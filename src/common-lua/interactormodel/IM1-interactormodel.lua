@@ -28,9 +28,6 @@ function interactormodel.newDrawableCreated(prop, time, location)
 	basemodel.addNewDrawable(prop, time, location)
 end
 
-function interactormodel.newSelection(drawableSet, time)
-end
-
 function interactormodel.recordingStarts(time)
 end
 

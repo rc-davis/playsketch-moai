@@ -24,7 +24,6 @@
 --]]
 
 require "widgets/widgets"
-require "basemodel/basemodel"
 
 controllers.selection = {}
 local selectedSet = {} -- {prop -> drawable} for easy lookups
@@ -45,7 +44,7 @@ function controllers.selection.startStroke()
 	--cache the current pixel points for ALL objects 
 	-- this might get expensive?
 	local cached_points = {}
-	for _,o in pairs(basemodel.allDrawables()) do
+	for _,o in pairs(interactormodel.selectableDrawables(controllers.timeline.currentTime())) do
 		cached_points[o] = o:correctedPointsAtCurrentTime()
 		selectedSet = {}
 	end
@@ -152,11 +151,6 @@ end
 
 function controllers.selection.isSelected(drawable)
 	return selectedSet[drawable] ~= nil
-end
-
-function controllers.selection.objectsSelected()
-	for _,o in pairs(selectedSet) do return true end
-	return false
 end
 
 return controllers.selection
