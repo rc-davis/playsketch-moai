@@ -46,6 +46,7 @@ controllers.recording.initManipulator()
 
 
 --LOAD AN INTERFACE HERE!
+require "interactormodel/IM1-interactormodel" 
 require "interfaces/IM1-interface" 
 
 
