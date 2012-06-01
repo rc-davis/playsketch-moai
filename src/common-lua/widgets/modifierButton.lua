@@ -70,6 +70,12 @@ function widgets.newModifierButton(centerX, centerY, width, height,
 				elseif modifier.state == states.RECORD_UP then
 					modifier:setState(states.RECORD_DOWN)
 					return true
+				elseif modifier.state == states.SELECT_DOWN then
+					modifier:setState(states.SELECT_UP)
+					return true
+				elseif modifier.state == states.RECORD_DOWN then
+					modifier:setState(states.RECORD_UP)
+					return true
 				end
 			end
 			return false
@@ -80,13 +86,17 @@ function widgets.newModifierButton(centerX, centerY, width, height,
 			if modifier.touchID ~= nil and id == modifier.touchID then
 				modifier.touchID = nil
 				
-				if modifier.state == states.SELECT_DOWN then
-					modifier:setState(states.SELECT_UP)
-					return true
-				elseif modifier.state == states.RECORD_DOWN then
-					modifier:setState(states.RECORD_UP)
-					return true
+				-- On a touchscreen, you have to hold the button
+				if MOAIInputMgr.device.touch then
+					if modifier.state == states.SELECT_DOWN then
+						modifier:setState(states.SELECT_UP)
+						return true
+					elseif modifier.state == states.RECORD_DOWN then
+						modifier:setState(states.RECORD_UP)
+						return true
+					end
 				end
+				
 			end
 			return false			
 		end)
