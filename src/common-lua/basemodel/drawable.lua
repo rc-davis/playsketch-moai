@@ -42,7 +42,7 @@ end
 function Drawable:init(prop)
 	self.class = "Drawable"
 	self.prop = prop
-	--self.isSelected = false
+	self.prop.visible = true
 	self.paths = {}
 	drawingLayer:insertProp (prop)
 end
@@ -119,6 +119,11 @@ function Drawable:correctedPointsAtCurrentTime()
 	return self.prop:correctedPointsAtCurrentTime()
 end
 
+function Drawable:visibleAtCurrentTime()
+	return self.prop.visible
+end
+
+
 function Drawable:refreshPathProps()
 	local visible = true
 	for path,prop in pairs(self.paths) do
@@ -128,6 +133,7 @@ function Drawable:refreshPathProps()
 		prop:setRot(r)
 		prop:setLoc(t.x, t.y)
 	end
+	self.prop.visible = visible
 	self.prop:setVisible(visible)
 end
 
