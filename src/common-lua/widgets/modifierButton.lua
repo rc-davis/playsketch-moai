@@ -22,7 +22,7 @@
 
 
 widgets.modifierButton = {}
-
+widgets.modifierButton.states = {SELECT_UP=1, SELECT_DOWN=2, RECORD_UP=3, RECORD_DOWN=4}
 
 
 function widgets.modifierButton.init(centerX, centerY, width, height, 
@@ -31,7 +31,7 @@ function widgets.modifierButton.init(centerX, centerY, width, height,
 									callbackStartSelect, callbackStopSelect,
 									callbackStartRecord, callbackStopRecord)
 
-	local states = {SELECT_UP=1, SELECT_DOWN=2, RECORD_UP=3, RECORD_DOWN=4}
+	local states = widgets.modifierButton.states
 
 	--load graphics
 	widgets.modifierButton.graphics = {}

@@ -24,30 +24,29 @@
 --]]
 
 input.strokecapture = {}
-input.strokecapture.MODE_DRAW = 1
-input.strokecapture.MODE_SELECT = 2
-input.strokecapture.mode = input.strokecapture.MODE_DRAW
+input.strokecapture.modes = {MODE_DRAW=1, MODE_SELECT=2, MODE_RECORD=3}
+input.strokecapture.mode = input.strokecapture.modes.MODE_DRAW
 local activeStrokes = {}
 local selectionStroke = nil
 
 
-function input.strokecapture.setDrawingMode()
-	input.strokecapture.mode = input.strokecapture.MODE_DRAW
-end
-
-function input.strokecapture.setSelectingMode()
-	input.strokecapture.mode = input.strokecapture.MODE_SELECT
+function input.strokecapture.setMode(mode)
+	input.strokecapture.mode = mode
 end
 
 local function downCallback(id,x,y)
 	if activeStrokes[id] == nil then
 	
-		if input.strokecapture.mode == input.strokecapture.MODE_DRAW then
+		if input.strokecapture.mode == input.strokecapture.modes.MODE_DRAW then
 			activeStrokes[id] = controllers.drawing.startStroke()
-		elseif input.strokecapture.mode == input.strokecapture.MODE_SELECT 
+		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_SELECT 
 			and selectionStroke == nil then
 			activeStrokes[id] = controllers.selection.startStroke()	
 			selectionStroke = id
+		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_RECORD then
+			-- change modes
+			widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)
+			controllers.selection.clearSelection()
 		end
 
 		return true
