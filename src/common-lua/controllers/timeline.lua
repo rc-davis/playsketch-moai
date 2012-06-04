@@ -49,15 +49,8 @@ end
 
 function controllers.timeline.sliderMoveFinished(slider, new_time)
 
-	-- Fix up the time to 'snap' to a keyframe in the selected transform
-	local transform = controllers.recording.getCurrentTransform()
-	if transform then
-		local snappedTime = transform:getSnappedTime(new_time)
-		if snappedTime then
-			controllers.timeline.slider:setAtValue(snappedTime, 0)
-			controllers.playback.jumpToTime(new_time)
-		end
-	end
+	--TODO: SNAP TIME?
+
 end
 
 -- currentTime():	Global way of exposing the current timeline time! Use this!
