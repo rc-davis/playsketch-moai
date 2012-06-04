@@ -42,15 +42,15 @@ controllers.timeline.setButtons(slider, playButton)
 
 
 
-modifier = widgets.newModifierButton(-SCALED_WIDTH/2+192/2, 400, 192, 192,
-									"resources/IM1/modifier_button_select.png",
-									"resources/IM1/modifier_button_select_down.png",
-									"resources/IM1/modifier_button_record.png",
-									"resources/IM1/modifier_button_record_down.png",
-									input.strokecapture.setSelectingMode,
-									input.strokecapture.setDrawingMode,
-									nil,
-									nil)
+widgets.modifierButton.init(-SCALED_WIDTH/2+192/2, 400, 192, 192,
+								"resources/IM1/modifier_button_select.png",
+								"resources/IM1/modifier_button_select_down.png",
+								"resources/IM1/modifier_button_record.png",
+								"resources/IM1/modifier_button_record_down.png",
+								input.strokecapture.setSelectingMode,
+								input.strokecapture.setDrawingMode,
+								nil,
+								nil)
 
 
 
