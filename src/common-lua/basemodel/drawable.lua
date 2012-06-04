@@ -52,7 +52,7 @@ function Drawable:addPath(path)
 	--create a new proxy Prop for it
 	self.paths[path] = MOAIProp2D.new ()
 	drawingLayer:insertProp(self.paths[path])
-	path:incrementDrawableCount()
+	path.drawables[self] = self
 	
 	-- brute-force redo our inheritance
 	-- TODO: this might be a good place to optimize if adding new transforms is slow
@@ -71,7 +71,7 @@ function Drawable:delete()
 	--remove paths
 	for path,pathprop in pairs(self.paths) do
 		drawingLayer:removeProp(pathprop)
-		path:decrementDrawableCount()
+		path.drawables[self] = nil
 		self.paths[path] = nil
 	end
 end

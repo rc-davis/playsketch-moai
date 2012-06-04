@@ -147,7 +147,7 @@ function basemodel.deleteDrawable(drawable)
 	--look for empty paths to delete
 	local i=1
 	while i <= #allPaths do
-		if allPaths[i]:drawableCount() == 0 then
+		if util.tableIsEmpty(allPaths[i]:allDrawables()) then
 			allPaths[i]:delete()
 			table.remove(allPaths, i)
 		else
