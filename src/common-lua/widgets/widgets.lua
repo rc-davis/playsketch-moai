@@ -29,13 +29,11 @@ function widgets.init(viewport)
 	widgets.layer:setViewport ( viewport )
 	MOAISim.pushRenderPass ( widgets.layer )
 
+	--Import all of the parts of this package once the layer has been created
+	require "widgets/buttons"
+	require "widgets/manipulator"
+	require "widgets/keyframes"
+	require "widgets/modifierButton"
 end
-
-
---Import all of the parts of this package:
-require "widgets/buttons"
-require "widgets/manipulator"
-require "widgets/keyframes"
-require "widgets/modifierButton"
 
 return widgets

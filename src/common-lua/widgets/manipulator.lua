@@ -17,8 +17,8 @@
 	
 --]]
 
-
 --constants
+local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
 local pivotAdjustDiameterPcnt = 0.2 --as percentage of the width of the box
 local translateDiameterPcnt = 0.5
 local rotationDiameterPcnt = 0.9
@@ -33,9 +33,7 @@ local translateHandleColor = {0.5, 0.5, 0.5, 0.5}
 local pivotAdjustHandleColor = {0.1, 0.5, 0.1, 0.5}
 local highlightColor = {7.0, 0, 0, 0.7}
 
-local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
-
-function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback,
+local function newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback,
 								startManipulatingCallback, doneManipulatingCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
@@ -252,3 +250,8 @@ function widgets.newManipulator(translateCallback, rotateCallback, scaleCallback
 	prop:hide()
 	return prop
 end
+
+
+widgets.manipulator = newManipulator(nil,nil,nil,nil,nil,nil)
+
+return widgets.manipulator
