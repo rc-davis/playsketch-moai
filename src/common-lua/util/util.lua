@@ -44,4 +44,22 @@ function util.tableIsEmpty(tab)
 	return true
 end
 
+-- for getting the length of associative tables (urgh)
+function util.tableCount(tab)
+	local count = 0
+	for _,_ in pairs(tab) do
+		count = count + 1
+	end
+	return count
+end
+
+function util.dictionaryValuesToArray(dict)
+	local newarray = {}
+	for _,o in pairs(dict) do
+		table.insert(newarray, o)
+	end
+	print("BEFORE:", util.tableCount(dict), "AFTER", util.tableCount(newarray))
+	return newarray
+end
+
 return util
