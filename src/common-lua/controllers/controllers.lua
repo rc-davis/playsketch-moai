@@ -31,7 +31,6 @@ controllers = {}
 require "controllers/drawing"
 require "controllers/disk"
 require "controllers/playback"
-require "controllers/recording"
 require "controllers/timeline"
 require "controllers/selection"
 

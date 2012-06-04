@@ -33,8 +33,8 @@ local translateHandleColor = {0.5, 0.5, 0.5, 0.5}
 local pivotAdjustHandleColor = {0.1, 0.5, 0.1, 0.5}
 local highlightColor = {7.0, 0, 0, 0.7}
 
-local function newManipulator(translateCallback, rotateCallback, scaleCallback, pivotAdjustCallback,
-								startManipulatingCallback, doneManipulatingCallback)
+local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback, 
+								startRecordingCallback, doneRecordingCallback)
 
 	assert(widgets.layer, "must call widgets.init() before creating widgets")
 
@@ -50,12 +50,10 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 	prop.touchID = nil
 	prop.touchLoc = nil
 	prop.currentAction = nil
-	prop.translateCallback = translateCallback
-	prop.rotateCallback = rotateCallback
-	prop.scaleCallback = scaleCallback
-	prop.pivotAdjustCallback = pivotAdjustCallback
-	prop.startManipulatingCallback = startManipulatingCallback
-	prop.doneManipulatingCallback = doneManipulatingCallback
+	prop.keyframeUpdateCallback = keyframeUpdateCallback
+	prop.recordingUpdateCallback = recordingUpdateCallback
+	prop.startRecordingCallback = startRecordingCallback
+	prop.doneRecordingCallback = doneRecordingCallback
 
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
@@ -144,19 +142,20 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 				if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.PIVOTADJUST
-					if prop.startManipulatingCallback then prop.startManipulatingCallback("pivot") end
 				elseif distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
-					if prop.startManipulatingCallback then prop.startManipulatingCallback("translate") end					
 				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the rotate manipulator
 					prop.currentAction = actions.ROTATE
-					if prop.startManipulatingCallback then prop.startManipulatingCallback("rotate") end										
 				else
 					--touching the scale rectangle
 					prop.currentAction = actions.SCALE
-					if prop.startManipulatingCallback then prop.startManipulatingCallback("scale") end					
+				end
+				
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN
+				and prop.startRecordingCallback then
+					prop.startRecordingCallback(controllers.timeline.currentTime())
 				end
 			end
 			return true
@@ -168,15 +167,17 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 		function (id,px,py)
 			if prop.touchID == id then
 			
+				local data = {time = controllers.timeline.currentTime()}
+			
 				if prop.currentAction == actions.TRANSLATE then
-					--update the translation deltas and inform the callback
+					--update the translation deltas
 					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
 					prop.touchLoc = {x=px, y=py}
 					prop:addLoc(dx,dy)				
-					if prop.translateCallback then prop.translateCallback(dx,dy) end
+					data.dx,data.dy = dx,dy
 
 				elseif prop.currentAction == actions.ROTATE then				
-					--update the rotation deltas and inform the callback
+					--update the rotation deltas
 					local xCenter,yCenter = prop:getLoc()
 					local angleLast = math.atan2(prop.touchLoc.y - yCenter, 
 												prop.touchLoc.x - xCenter)
@@ -189,7 +190,7 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 					local dAngle = math.deg(dAngleRad)
 					prop.touchLoc = {x=px, y=py}
 					prop:addRot(dAngle, dAngle)
-					if prop.rotateCallback then prop.rotateCallback(dAngle) end
+					data.dAngle = dAngle
 
 				elseif prop.currentAction == actions.SCALE then
 
@@ -204,14 +205,22 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 					local dScale = (distNew/distLast - 1)*prop:getScl()
 					prop:addScl(dScale)
 					prop.touchLoc = {x=px, y=py}
-					if prop.scaleCallback then prop.scaleCallback(dScale) end
+					data.dScale = dScale
+					
 				elseif prop.currentAction == actions.PIVOTADJUST then
-					--calculate the deltas travelled and inform the callback
+					--calculate the deltas travelled
 					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
 					prop.touchLoc = {x=px, y=py}
 					prop:addLoc(dx,dy)
-					if prop.pivotAdjustCallback then prop.pivotAdjustCallback(dx,dy) end
+					data.pivotDx,data.pivotDy = dx,dy
 				end
+				
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+					prop.recordingUpdateCallback(data)
+				else
+					prop.keyframeUpdateCallback(data)
+				end
+				
 				return true
 			end
 
@@ -224,7 +233,10 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 				prop.touchID = nil
 				prop.currentAction = nil
 				prop.touchLoc = nil
-				if prop.doneManipulatingCallback then prop.doneManipulatingCallback() end
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN
+				and prop.doneRecordingCallback then
+					prop.doneRecordingCallback(controllers.timeline.currentTime())
+				end
 				return true
 			end
 
@@ -252,6 +264,9 @@ local function newManipulator(translateCallback, rotateCallback, scaleCallback, 
 end
 
 
-widgets.manipulator = newManipulator(nil,nil,nil,nil,nil,nil)
+widgets.manipulator = newManipulator(	function(d) interactormodel.updateKeyframe(d) end,
+										function(d) interactormodel.recordingUpdate(d) end,
+										function(t) interactormodel.recordingStarts(t) end,
+										function(t) interactormodel.recordingFinished(t) end)
 
 return widgets.manipulator

@@ -19,7 +19,7 @@
 	For efficiency, the points are tested only incrementally against each new segment of 
 	the lasso.
 
-	When the selection changes, the recording controller is notified
+	When the selection changes, the interaction model is notified
 	
 --]]
 
@@ -130,8 +130,18 @@ function controllers.selection.startStroke()
 
 	-- doneStroke(): 	For when the lasso is finished. 
 	--					If the selected set contains objects, show the manipulator
-	function selection_stroke:doneStroke()
-		controllers.recording:selectedSetChanged(selectedSet)
+	function selection_stroke:doneStroke()		
+		if util.tableIsEmpty(selectedSet) then
+			interactormodel.selectionCleared()
+			widgets.manipulator:hide()
+			widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
+		else
+			local fixedSet = util.dictionaryValuesToArray(selectedSet)
+			interactormodel.selectionMade(fixedSet)
+			widgets.manipulator:show()
+			widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
+			input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
+		end
 	end
 
 	--cancel():	Cancel the drawing of the selection stroke	
@@ -146,7 +156,10 @@ end
 
 function controllers.selection.clearSelection()
 	selectedSet = {}
-	controllers.recording:selectedSetChanged(selectedSet)
+	interactormodel.selectionCleared()
+	widgets.manipulator:hide()
+	widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)
+	input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
 end
 
 function controllers.selection.isSelected(drawable)
