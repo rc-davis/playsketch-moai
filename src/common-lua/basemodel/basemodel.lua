@@ -48,7 +48,7 @@ function basemodel.addNewDrawable(prop, time, location)
 	table.insert(allDrawables, drawable)
 
 	-- create a new path to contain its location
-	local path = basemodel.createNewPath({drawable})
+	local path = basemodel.createNewPath({drawable}, false)
 	
 	-- set path to location
 	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
@@ -79,13 +79,15 @@ function basemodel.addNewDrawables(propList, timeList, locationList)
 end
 
 
-function basemodel.createNewPath(drawablesSet, index)
+function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
+
+	if not defaultVisibility then defaultVisibility = false end
 
 	if not index then index = #allPaths + 1 end
 	assert(index <= #allPaths + 1, "path index must fall within the paths list")
 	assert(#drawablesSet > 0, "createNewPath needs some drawables to apply to")
 
-	local path = basemodel.path.newPath(index)
+	local path = basemodel.path.newPath(index, defaultVisibility)
 	table.insert(allPaths, index, path)
 
 	--update the cached indices
