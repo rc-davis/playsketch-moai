@@ -36,4 +36,12 @@ function util.tableDelete(tab, valref)
 	end
 end
 
+-- this is necessary because #table doesn't work for associative tables
+function util.tableIsEmpty(tab)
+	for _,_ in pairs(tab) do
+		return false
+	end
+	return true
+end
+
 return util
