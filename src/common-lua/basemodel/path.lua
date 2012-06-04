@@ -113,6 +113,12 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	
 	--TODO: BLENDING
 	assert(keyframeBlendFrom == nil and keyframeBlendTo == nil, "keyframe blending not yet implemented")
+	
+	--Kick our related Drawables to update their position to reflect this
+	self:cacheAtTime(time)
+	for _,d in pairs(self.drawables) do
+		d:refreshPathProps() --todo: could get more efficient here if needed
+	end
 
 end
 
