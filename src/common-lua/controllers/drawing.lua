@@ -121,6 +121,12 @@ function controllers.drawing.newStroke()
 		return corrected
 	end
 
+	function new_stroke:correctedLocAtCurrentTime()
+		return self:modelToWorld(0,0)
+	end
+
+
+
 	return new_stroke
 
 end

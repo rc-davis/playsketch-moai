@@ -119,6 +119,12 @@ function Drawable:correctedPointsAtCurrentTime()
 	return self.prop:correctedPointsAtCurrentTime()
 end
 
+function Drawable:correctedLocAtCurrentTime()
+	return self.prop:correctedLocAtCurrentTime()
+end
+
+
+
 function Drawable:visibleAtCurrentTime()
 	return self.prop.visible
 end
