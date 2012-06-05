@@ -28,12 +28,12 @@ widgets.newSimpleButton(-SCALED_WIDTH/2+125,-SCALED_HEIGHT/2+125,50,50,
 						function(_) test.helpers.generateLines(50,50) end, nil )
 
 --Timeline buttons
-local slider = widgets.slider.newSlider(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
-							"resources/slider_background.png",
-							"resources/slider_button.png", 
-							"resources/slider_button_down.png", 
-							 controllers.timeline.sliderMoved,
-							 controllers.timeline.sliderMoveFinished)
+widgets.slider:init(25, -SCALED_HEIGHT/2+25, SCALED_WIDTH-50, 50,
+						"resources/slider_background.png",
+						"resources/slider_button.png", 
+						"resources/slider_button_down.png", 
+						 controllers.timeline.sliderMoved,
+						 controllers.timeline.sliderMoveFinished)
 
 
 local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+25, 50, 50, 
@@ -41,7 +41,7 @@ local playButton = widgets.newToggleButton(-SCALED_WIDTH/2+25,-SCALED_HEIGHT/2+2
 							"resources/button_down.png", 
 							"resources/button_play_disabled.png",
 							controllers.timeline.playPause)
-controllers.timeline.setButtons(slider, playButton)
+controllers.timeline.setButtons(playButton)
 
 
 

@@ -54,6 +54,7 @@ local function newButtonInternal( centerX, centerY, width, height,
 	b.touchID = nil
 	b.index = 1
 	b.isEnabled = true
+	b.size = {width=width, height=height}
 	b:setDeck(graphics[1])
 	b.callbackDown = callbackDown
 	b.callbackUp = callbackUp

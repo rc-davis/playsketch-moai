@@ -19,102 +19,101 @@
 
 widgets.slider = {}
 
-
--- newSlider(): 	A slider that can be used to select a value (used for timelines)
--- 					the callback has the form: callback(button,value), when the value changes
---					Use :setValueSpan(min,max) to set the allowable range of values
-function widgets.slider.newSlider(centerX, centerY, width, height, sliderWidth, imgBackground, imgSlider, imgSliderDown, callbackMoved, callbackMoveFinished)
+function widgets.slider:init(centerX, centerY, width, height, scrubberWidth, 
+			imgBackground, imgSlider, imgSliderDown, callbackMoved, callbackMoveFinished)
 
 	assert(widgets.layer, "widgets.layer must be initialized before creating buttons")
 
-	local slider = {}
+	self.minvalue = 0
+	self.maxvalue = 1
+	self.value = 0
+	self.callbackMoved = callbackMoved
+	self.callbackMoveFinished = callbackMoveFinished
+	self.center = {x=centerX, y=centerY}
+	self.size = {width=width, height=height}
+	self.currentAnimation = nil
 
-	slider.minvalue = 0
-	slider.maxvalue = 1
-	slider.value = 0
-	slider.callbackMoved = callbackMoved
-	slider.callbackMoveFinished = callbackMoveFinished
-	slider.currentAnimation = nil
-
-	slider.background = widgets.newSimpleButton( centerX, centerY, width, height, 
+	self.background = widgets.newSimpleButton( centerX, centerY, width, height, 
 					imgBackground, imgBackground, nil, nil, nil)
 	
-	slider.scrubber = widgets.newSimpleDragableButton( centerX, centerY, sliderWidth, height, 
+	self.scrubber = widgets.newSimpleDragableButton( centerX, centerY, scrubberWidth, height, 
 						imgSlider, imgSliderDown, nil, nil)
 	
 	--jump to a time when 
-	slider.background.callbackUp = 
+	self.background.callbackUp = 
 		function (button, px, py)
-			slider:setAtX(x, 0, true)
-			if slider.callbackMoveFinished then slider.callbackMoveFinished(slider, slider.value) end
+			self:setAtX(x, 0, true)
+			if self.callbackMoveFinished then self.callbackMoveFinished(self, self.value) end
 		end
 
-	slider.scrubber.callbackDrag = 
+	self.scrubber.callbackDrag = 
 		function (button, dx, dy)
-			local px,_ = slider.scrubber:getLoc()
-			slider:setAtX(px, 0, true)
+			local px,_ = self.scrubber:getLoc()
+			self:setAtX(px, 0, true)
 		end
-	slider.scrubber.callbackUp = 
+	self.scrubber.callbackUp = 
 		function (_,_,_)
-			if slider.callbackMoveFinished then slider.callbackMoveFinished(slider, slider.value) end
+			if self.callbackMoveFinished then self.callbackMoveFinished(self, self.value) end
 		end
 
-	function slider:xToValue(x)
-		assert(x >= centerX - width/2 + sliderWidth/2 and x <= centerX + width/2 - sliderWidth/2, 
-			"converting x should go to a valid value")
-		local new_pcnt_value = (x + width/2 - sliderWidth/2 - centerX)/(width - sliderWidth)
-		return new_pcnt_value*(slider.maxvalue - slider.minvalue)+slider.minvalue
-	end
+			
+			
+end
 
-	function slider:setAtValue(v, duration)
-		local pcnt = self.minvalue + (v - self.minvalue)/(self.maxvalue - self.minvalue)
-		pcnt = math.max(0, math.min(1, pcnt))
-		local new_x = centerX - width/2 + sliderWidth/2 + pcnt*(width - sliderWidth)
-		self:setAtX(new_x, duration, false)
-	end
 
-	function slider:setAtX(px, duration, shouldCallback)
-		
-		--scrubber location
-		px = math.min(px, centerX + width/2 - sliderWidth/2)
-		px = math.max(px, centerX - width/2 + sliderWidth/2)
+function widgets.slider:xToValue(x)
+	assert(x >= self.center.x - self.size.width/2 + self.scrubber.size.width/2 and x <= self.center.x + self.size.width/2 - self.scrubber.size.width/2, 
+		"converting x should go to a valid value")
+	local new_pcnt_value = (x + self.size.width/2 - self.scrubber.size.width/2 - self.center.x)/(self.size.width - self.scrubber.size.width)
+	return new_pcnt_value*(self.maxvalue - self.minvalue)+self.minvalue
+end
 
-		if duration == 0 then
-			self.scrubber:setLoc(px, centerY)
-			self.value = self:xToValue(px)
-		else
-			self.currentAnimation = self.scrubber:seekLoc(px, centerY, duration, MOAIEaseType.LINEAR)
-		end
+function widgets.slider:setAtValue(v, duration)
+	local pcnt = self.minvalue + (v - self.minvalue)/(self.maxvalue - self.minvalue)
+	pcnt = math.max(0, math.min(1, pcnt))
+	local new_x = self.center.x - self.size.width/2 + self.scrubber.size.width/2 + pcnt*(self.size.width - self.scrubber.size.width)
+	self:setAtX(new_x, duration, false)
+end
 
-		--callback
-		if self.callbackMoved and shouldCallback then
-			self.callbackMoved(self, self.value)
-		end
-	end
+function widgets.slider:setAtX(px, duration, shouldCallback)
 	
-	function slider:currentValue()
-		return self.value
+	--scrubber location
+	px = math.min(px, self.center.x + self.size.width/2 - self.scrubber.size.width/2)
+	px = math.max(px, self.center.x - self.size.width/2 + self.scrubber.size.width/2)
+
+	if duration == 0 then
+		self.scrubber:setLoc(px, self.center.y)
+		self.value = self:xToValue(px)
+	else
+		self.currentAnimation = self.scrubber:seekLoc(px, self.center.y, duration, MOAIEaseType.LINEAR)
 	end
 
-	function slider:setValueSpan(min,max)
-		local currentValue = self:currentValue()	
-		self.minvalue = min
-		self.maxvalue = max
-		self:setAtValue(currentValue, 0)
-		if self.callbackMovied and shouldCallback then
-			self.callbackMoved(self, currentValue)
-		end
+	--callback
+	if self.callbackMoved and shouldCallback then
+		self.callbackMoved(self, self.value)
 	end
-	
-	function slider:stop()
-		if self.currentAnimation ~= nil then
-			self.currentAnimation:stop()
-			local x,_ = self.scrubber:getLoc()
-			self.value = self:xToValue(x)
-		end
-	end
+end
 
-	return slider
+function widgets.slider:currentValue()
+	return self.value
+end
+
+function widgets.slider:setValueSpan(min,max)
+	local currentValue = self:currentValue()	
+	self.minvalue = min
+	self.maxvalue = max
+	self:setAtValue(currentValue, 0)
+	if self.callbackMovied and shouldCallback then
+		self.callbackMoved(self, currentValue)
+	end
+end
+
+function widgets.slider:stop()
+	if self.currentAnimation ~= nil then
+		self.currentAnimation:stop()
+		local x,_ = self.scrubber:getLoc()
+		self.value = self:xToValue(x)
+	end
 end
 
 

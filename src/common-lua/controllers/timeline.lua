@@ -20,17 +20,15 @@
 
 controllers.timeline = {}
 controllers.timeline.span = {min=0, max=15}
-controllers.timeline.slider = nil
 controllers.timeline.playing = false
 controllers.timeline.playingStartTime = nil
 
 
 
 -- setSlider(slider): Associates the timeline controller with the specified slider widget
-function controllers.timeline.setButtons(slider, playButton)
-	controllers.timeline.slider = slider
+function controllers.timeline.setButtons(playButton)
 	controllers.timeline.playButton = playButton
-	controllers.timeline.slider:setValueSpan(controllers.timeline.span.min, 
+	widgets.slider:setValueSpan(controllers.timeline.span.min, 
 											controllers.timeline.span.max)
 end
 
@@ -58,7 +56,7 @@ function controllers.timeline.currentTime()
 	if controllers.timeline.playing then
 		return MOAISim.getDeviceTime() - controllers.timeline.playingStartTime
 	else
-		return controllers.timeline.slider:currentValue()
+		return widgets.slider:currentValue()
 	end
 end
 
@@ -84,14 +82,14 @@ function controllers.timeline.play()
 	assert(not controllers.timeline.playing, 
 			"Timeline should be paused before calling controllers.timeline.play()")
 	controllers.timeline.playing = true
-	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - controllers.timeline.slider:currentValue()
+	controllers.timeline.playingStartTime = MOAISim.getDeviceTime() - widgets.slider:currentValue()
 	controllers.timeline.playButton:setIndex(2)
 
-	controllers.playback.startPlaying(controllers.timeline.slider:currentValue())
+	controllers.playback.startPlaying(widgets.slider:currentValue())
 
-	controllers.timeline.slider:setAtValue(controllers.timeline.span.max,
+	widgets.slider:setAtValue(controllers.timeline.span.max,
 											controllers.timeline.span.max - 
-											controllers.timeline.slider:currentValue())
+											widgets.slider:currentValue())
 end
 
 
@@ -105,10 +103,10 @@ function controllers.timeline.pause()
 	controllers.timeline.playButton:setIndex(1)	
 	
 	--todo: figure out current time better?
-	controllers.timeline.slider:stop()
+	widgets.slider:stop()
 
 	controllers.playback.stopPlaying()
-	controllers.playback.jumpToTime(controllers.timeline.slider:currentValue())
+	controllers.playback.jumpToTime(widgets.slider:currentValue())
 
 end
 
