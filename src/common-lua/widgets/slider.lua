@@ -13,7 +13,9 @@
 
 	widgets/slider.lua
 
-	The timeline slider
+	The timeline slider.
+	Counts time in discrete frames!
+	
 	
 --]]
 
@@ -24,13 +26,19 @@ function widgets.slider:init(centerX, centerY, width, height, scrubberWidth,
 
 	assert(widgets.layer, "widgets.layer must be initialized before creating buttons")
 
+	self.center = {x=centerX, y=centerY}
+	self.size = {width=width, height=height}
+	self.pixelSpan = { start=(self.center.x - self.size.width/2 + scrubberWidth/2),
+						stop=(self.center.x + self.size.width/2 - scrubberWidth/2)}
+
+
 	self.minvalue = 0
 	self.maxvalue = 1
 	self.value = 0
+
 	self.callbackMoved = callbackMoved
 	self.callbackMoveFinished = callbackMoveFinished
-	self.center = {x=centerX, y=centerY}
-	self.size = {width=width, height=height}
+
 	self.currentAnimation = nil
 
 	self.background = widgets.newSimpleButton( centerX, centerY, width, height, 
@@ -39,82 +47,103 @@ function widgets.slider:init(centerX, centerY, width, height, scrubberWidth,
 	self.scrubber = widgets.newSimpleDragableButton( centerX, centerY, scrubberWidth, height, 
 						imgSlider, imgSliderDown, nil, nil)
 	
-	--jump to a time when 
-	self.background.callbackUp = 
-		function (button, px, py)
-			self:setAtX(x, 0, true)
-			if self.callbackMoveFinished then self.callbackMoveFinished(self, self.value) end
-		end
+	--Hook up our button's callbacks
+	self.background.callbackUp = self.backgroundCallbackUp
+	self.scrubber.callbackDrag = self.scrubberCallbackDrag
+	self.scrubber.callbackUp = self.scrubberCallbackUp
 
-	self.scrubber.callbackDrag = 
-		function (button, dx, dy)
-			local px,_ = self.scrubber:getLoc()
-			self:setAtX(px, 0, true)
-		end
-	self.scrubber.callbackUp = 
-		function (_,_,_)
-			if self.callbackMoveFinished then self.callbackMoveFinished(self, self.value) end
-		end
-
-			
-			
-end
-
-
-function widgets.slider:xToValue(x)
-	assert(x >= self.center.x - self.size.width/2 + self.scrubber.size.width/2 and x <= self.center.x + self.size.width/2 - self.scrubber.size.width/2, 
-		"converting x should go to a valid value")
-	local new_pcnt_value = (x + self.size.width/2 - self.scrubber.size.width/2 - self.center.x)/(self.size.width - self.scrubber.size.width)
-	return new_pcnt_value*(self.maxvalue - self.minvalue)+self.minvalue
-end
-
-function widgets.slider:setAtValue(v, duration)
-	local pcnt = self.minvalue + (v - self.minvalue)/(self.maxvalue - self.minvalue)
-	pcnt = math.max(0, math.min(1, pcnt))
-	local new_x = self.center.x - self.size.width/2 + self.scrubber.size.width/2 + pcnt*(self.size.width - self.scrubber.size.width)
-	self:setAtX(new_x, duration, false)
-end
-
-function widgets.slider:setAtX(px, duration, shouldCallback)
-	
-	--scrubber location
-	px = math.min(px, self.center.x + self.size.width/2 - self.scrubber.size.width/2)
-	px = math.max(px, self.center.x - self.size.width/2 + self.scrubber.size.width/2)
-
-	if duration == 0 then
-		self.scrubber:setLoc(px, self.center.y)
-		self.value = self:xToValue(px)
-	else
-		self.currentAnimation = self.scrubber:seekLoc(px, self.center.y, duration, MOAIEaseType.LINEAR)
-	end
-
-	--callback
-	if self.callbackMoved and shouldCallback then
-		self.callbackMoved(self, self.value)
-	end
 end
 
 function widgets.slider:currentValue()
-	return self.value
+
+	if self.currentAnimation then
+		local x,_ = self.scrubber:getLoc()
+		return self:valueForScrubberX(x)
+	else
+		return self.value
+	end
 end
 
 function widgets.slider:setValueSpan(min,max)
-	local currentValue = self:currentValue()	
+	local currentValue = math.max(min, math.min(self:currentValue(), max))
 	self.minvalue = min
 	self.maxvalue = max
-	self:setAtValue(currentValue, 0)
-	if self.callbackMovied and shouldCallback then
-		self.callbackMoved(self, currentValue)
+	self:setValue(currentValue, 0)
+end
+
+function widgets.slider:setValue(value, duration, skipScrubberUpdate)
+	assert(value >= self.minvalue and value <= self.maxvalue, "slider:setValue() should be within the slider's bounds")
+	assert(value == math.floor(value), "Slider should only be set to integer values")
+
+	self.value = value	
+	local scrubberX = self:scrubberXForValue(value)
+	
+	-- Fix up the scrubber's location
+	if duration == 0 then
+
+
+
+		if skipScrubberUpdate == nil or skipScrubberUpdate == false then
+			-- snap the scrubber's location
+			self.scrubber:setLoc(scrubberX, self.center.y)	
+		else
+			-- just constrain it along the scrubber line
+			local px,_ = self.scrubber:getLoc()
+			px = math.max(self.pixelSpan.start, math.min(self.pixelSpan.stop, px))
+			self.scrubber:setLoc(px, self.center.y)			
+		end
+	else
+		assert(self.currentAnimation == nil, "should have no existing play animation")
+		self.currentAnimation = self.scrubber:seekLoc(scrubberX, self.center.y, duration, MOAIEaseType.LINEAR)
 	end
 end
 
 function widgets.slider:stop()
 	if self.currentAnimation ~= nil then
+		local val = self:currentValue()
 		self.currentAnimation:stop()
-		local x,_ = self.scrubber:getLoc()
-		self.value = self:xToValue(x)
+		self.currentAnimation = nil
+		self:setValue(val, 0)
 	end
 end
 
+-- Button movement callbacks 
+
+function widgets.slider.backgroundCallbackUp(button, px, py)
+	widgets.slider:setValue(widgets.slider:valueForScrubberX(px), 0)
+	if widgets.slider.callbackMoveFinished then
+		widgets.slider.callbackMoveFinished(widgets.slider, widgets.slider.value)
+	end
+end
+
+function widgets.slider.scrubberCallbackDrag(button, dx, dy)
+	local px,_ = widgets.slider.scrubber:getLoc()
+	widgets.slider:setValue(widgets.slider:valueForScrubberX(px), 0, true)	
+	if widgets.slider.callbackMoved then 
+		widgets.slider.callbackMoved(widgets.slider, widgets.slider.value)
+	end
+end
+
+function widgets.slider.scrubberCallbackUp(_,_,_)
+	widgets.slider:setValue(widgets.slider:currentValue(), 0)
+	if widgets.slider.callbackMoveFinished then
+		widgets.slider.callbackMoveFinished(widgets.slider, widgets.slider.value)
+	end
+end
+
+
+-- Math helpers
+
+function widgets.slider:scrubberXForValue(value)
+	local valPcnt = (value - self.minvalue) / (self.maxvalue - self.minvalue)
+	valPcnt = math.max(0, math.min(1, valPcnt)) -- round up/down to truncate
+	return self.pixelSpan.start + valPcnt * (self.pixelSpan.stop - self.pixelSpan.start)
+end
+
+function widgets.slider:valueForScrubberX(x)
+	local xPcnt = (x - self.pixelSpan.start) / (self.pixelSpan.stop - self.pixelSpan.start)
+	xPcnt = math.max(0, math.min(1, xPcnt)) -- round up/down to truncate
+	return math.floor(0.5 + self.minvalue + xPcnt * ( self.maxvalue - self.minvalue))
+end
 
 return widgets.slider

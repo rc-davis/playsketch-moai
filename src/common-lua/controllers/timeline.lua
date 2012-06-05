@@ -87,7 +87,7 @@ function controllers.timeline.play()
 
 	controllers.playback.startPlaying(widgets.slider:currentValue())
 
-	widgets.slider:setAtValue(controllers.timeline.span.max,
+	widgets.slider:setValue(controllers.timeline.span.max,
 											controllers.timeline.span.max - 
 											widgets.slider:currentValue())
 end
