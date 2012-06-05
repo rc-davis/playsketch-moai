@@ -34,6 +34,7 @@ function widgets.init(viewport)
 	require "widgets/manipulator"
 	require "widgets/keyframes"
 	require "widgets/modifierButton"
+	require "widgets/slider"
 end
 
 return widgets

@@ -31,7 +31,7 @@ playButton = widgets.newToggleButton(-SCALED_WIDTH/2+64,-SCALED_HEIGHT/2+64, 128
 							"resources/button_play_disabled.png",
 							controllers.timeline.playPause)
 
-slider = widgets.newSlider(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128, 128, 64,
+slider = widgets.slider.newSlider(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128, 128, 64,
 							"resources/IM1/slider.png",
 							"resources/IM1/slider_button.png", 
 							"resources/IM1/slider_button_down.png", 
