@@ -14,28 +14,17 @@
 	widgets/keyframes.lua
 
 	- A (crude for now) display of the keyframes associated with a selection.
-	- On each draw loop, it reads from self.usertransform and displays its span, as well
+	- On each draw loop, it reads from self.currentPath and displays its span, as well
 	  as every "keyframe time".
 --]]
 
 
 widgets.keyframes = {}
 
-local KeyFrameWidget = {}
 
-function widgets.keyframes.new(centerX,centerY,width,height)
-	local l = {}
-	for i,v in pairs(KeyFrameWidget) do
-		l[i] = v
-	end
-	l:init(centerX,centerY,width,height)
-	return l
-end
+function widgets.keyframes:init(centerX,centerY,width,height)
 
-
-function KeyFrameWidget:init(centerX,centerY,width,height)
-
-	self.usertransform = nil
+	self.currentPath = nil
 
 	local scriptDeck = MOAIScriptDeck.new ()
 	scriptDeck:setRect(centerX - width/2, centerY - height/2, width, height)
@@ -51,40 +40,38 @@ function KeyFrameWidget:init(centerX,centerY,width,height)
 end
 
 
-function KeyFrameWidget:onDraw( index, xOff, yOff, xFlip, yFlip )
+function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 
 	MOAIGfxDevice.setPenColor (0.3, 0.3, 0.3, 1.0)
-	MOAIDraw.fillRect(	self.frame.origin.x, self.frame.origin.y, 
-						self.frame.origin.x + self.frame.size.width,
-						self.frame.origin.y + self.frame.size.height)
 
-	if self.usertransform then						
+	if self.currentPath then						
 
 		--draw span
-		local spanStartPx = (self.usertransform.span.start - controllers.timeline.span.min)/
-							(controllers.timeline.span.max - controllers.timeline.span.min) *
-							self.frame.size.width + self.frame.origin.x
-		local spanEndPx = 	(self.usertransform.span.stop - controllers.timeline.span.min)/
-							(controllers.timeline.span.max - controllers.timeline.span.min) *
-							self.frame.size.width + self.frame.origin.x
+		--local spanStartPx = (self.currentPath.span.start - controllers.timeline.span.min)/
+		--					(controllers.timeline.span.max - controllers.timeline.span.min) *
+		--					self.frame.size.width + self.frame.origin.x
+		--local spanEndPx = 	(self.currentPath.span.stop - controllers.timeline.span.min)/
+		--					(controllers.timeline.span.max - controllers.timeline.span.min) *
+		--					self.frame.size.width + self.frame.origin.x
 
 		MOAIGfxDevice.setPenColor (0, 1.0, 0.0, 1.0)
 		MOAIGfxDevice.setPenWidth(self.frame.size.height/2)
-		MOAIDraw.drawLine( spanStartPx, self.frame.origin.y + self.frame.size.height/2,
-							spanEndPx, self.frame.origin.y + self.frame.size.height/2)
+		--MOAIDraw.drawLine( spanStartPx, self.frame.origin.y + self.frame.size.height/2,
+		--					spanEndPx, self.frame.origin.y + self.frame.size.height/2)
 		
-		for _,t in pairs(self.usertransform.keyframeTimes) do
-			local timePx =	(t - controllers.timeline.span.min)/
+		local it = self.currentPath:keyframeTimelist():begin()
+		while not it:done() do
+			local timePx =	(it:time() - controllers.timeline.span.min)/
 							(controllers.timeline.span.max - controllers.timeline.span.min) *
 							self.frame.size.width + self.frame.origin.x
 			MOAIDraw.drawLine(timePx, self.frame.origin.y, timePx, self.frame.origin.y+self.frame.size.height)		
+			it:next()
 		end
 	end
 end
 
-function KeyFrameWidget:setUserTransform(usertransform)
-	self.usertransform = usertransform
+function widgets.keyframes:setCurrentPath(p)
+	self.currentPath = p
 end
-
 
 return widgets.keyframes

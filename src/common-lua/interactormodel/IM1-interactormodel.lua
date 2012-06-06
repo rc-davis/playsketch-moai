@@ -53,11 +53,15 @@ function interactormodel.selectionMade(set)
 
 	--! Because this interactor model is for debugging, we create a NEW path on any selection
 	currentPath = basemodel.createNewPath(selectedDrawables, nil, true)
+	
+	return currentPath
 end
 
 function interactormodel.selectionCleared()
 	selectedDrawables = nil
 	currentPath = nil
+	
+	return nil
 end
 
 function interactormodel.recordingStarts(time)
