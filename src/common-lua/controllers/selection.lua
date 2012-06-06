@@ -158,7 +158,6 @@ function controllers.selection.clearSelection()
 	selectedSet = {}
 	interactormodel.selectionCleared()
 	widgets.manipulator:hide()
-	widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)
 	input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
 end
 
