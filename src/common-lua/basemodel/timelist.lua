@@ -178,6 +178,38 @@ function TimeList:erase(startTime, endTime, conditional)
 	end
 end
 
+-- Get an iterator for the TimeList
+-- use:	local it = list:begin()
+--		while not it:done() do
+--			print(it:time(), it:value())
+--			it:next()
+--		end
+function TimeList:begin()
+	
+	local it = {}
+	it.current = self.firstFrame.nextFrame
+	
+	function it:time()
+		return it.current.time
+	end
+
+	function it:value()
+		return it.current.value
+	end
+
+	function it:next()
+		if it.current ~= nil then
+			it.current = it.current.nextFrame
+		end
+	end
+	
+	function it:done()
+		return it.current == nil
+	end
+
+	return it
+end		
+
 -- dump(): For debugging, dump the lists for o.
 function TimeList:dump()
 	print("====DUMP: ", o)
