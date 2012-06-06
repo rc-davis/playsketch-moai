@@ -58,7 +58,6 @@ function util.dictionaryValuesToArray(dict)
 	for _,o in pairs(dict) do
 		table.insert(newarray, o)
 	end
-	print("BEFORE:", util.tableCount(dict), "AFTER", util.tableCount(newarray))
 	return newarray
 end
 
