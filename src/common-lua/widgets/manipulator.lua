@@ -19,7 +19,7 @@
 
 --constants
 local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
---local pivotAdjustDiameterPcnt = 0.2 --as percentage of the width of the box
+local pivotAdjustDiameterPcnt = 0.2 --as percentage of the width of the box
 local translateDiameterPcnt = 0.5
 local rotationDiameterPcnt = 0.9
 local defaultWidth = 250
@@ -109,7 +109,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			MOAIDraw.drawCircle(0, 0, translateDiameterPcnt*defaultWidth/2, 50)
 
 			-- draw the pivot adjustment handle
-			--[[
 			if prop.currentAction == actions.PIVOTADJUST then
 				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
 			else
@@ -118,7 +117,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			MOAIDraw.fillCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
 			MOAIDraw.drawCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
-			--]]
 
 		end)
 
@@ -141,10 +139,10 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				-- figure out which widget we are interacting with
 				local distanceFromCenterSq = math.sqrt((px-x)*(px-x)+(py-y)*(py-y))
 
-				--[[if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
+				if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.PIVOTADJUST
-				else--]]if distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
+				elseif distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
 				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2*prop:getScl() then

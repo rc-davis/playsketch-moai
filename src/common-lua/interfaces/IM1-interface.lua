@@ -39,10 +39,6 @@ widgets.slider:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128, 128, 64,
 							 controllers.timeline.sliderMoveFinished)
 
 controllers.timeline.setButtons(playButton)
---TODO:remove this
-
-
-widgets.keyframes:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128-64, 64)
 
 
 

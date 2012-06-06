@@ -132,15 +132,12 @@ function controllers.selection.startStroke()
 	--					If the selected set contains objects, show the manipulator
 	function selection_stroke:doneStroke()		
 		if util.tableIsEmpty(selectedSet) then
-			local path = interactormodel.selectionCleared()
-			widgets.keyframes:setCurrentPath(path)
+			interactormodel.selectionCleared()
 			widgets.manipulator:hide()
 			widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
-			
 		else
 			local fixedSet = util.dictionaryValuesToArray(selectedSet)
-			local path = interactormodel.selectionMade(fixedSet)
-			widgets.keyframes:setCurrentPath(path)
+			interactormodel.selectionMade(fixedSet)
 			widgets.manipulator:show()
 			widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
 			input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
@@ -159,8 +156,7 @@ end
 
 function controllers.selection.clearSelection()
 	selectedSet = {}
-	local path = interactormodel.selectionCleared()
-	widgets.keyframes:setCurrentPath(path)
+	interactormodel.selectionCleared()
 	widgets.manipulator:hide()
 	input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
 end
