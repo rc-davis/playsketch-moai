@@ -550,24 +550,28 @@
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Ryder Ziola (QKH6WJ23CX)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/crittercismiOS-3.1.5/CrittercismSDK\"",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = PlaySketch2;
+				PROVISIONING_PROFILE = "CF39EE25-FB5F-4784-8081-544AB0386464";
 			};
 			name = Debug;
 		};
 		1D6058950D05DD3E006BFB54 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Ryder Ziola (QKH6WJ23CX)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/crittercismiOS-3.1.5/CrittercismSDK\"",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = PlaySketch2;
+				PROVISIONING_PROFILE = "CF39EE25-FB5F-4784-8081-544AB0386464";
 			};
 			name = Release;
 		};
