@@ -161,16 +161,16 @@ function Path:addRecordedMotion(scaleStream, rotateStream, translateStream)
 	local keyframeStart = self.keyframes:makeFrameForTime(startTime, {})
 	local keyframeEnd = self.keyframes:makeFrameForTime(endTime, {})
 	if scaleStream then 
-		keyframeStart.scale = self.timelists.scale:getFrameForTime(startTime)
-		keyframeEnd.scale = self.timelists.scale:getFrameForTime(endTime)
+		keyframeStart.value.scale = self.timelists.scale:getFrameForTime(startTime)
+		keyframeEnd.value.scale = self.timelists.scale:getFrameForTime(endTime)
 	end
 	if rotateStream then 
-		keyframeStart.rotate = self.timelists.rotate:getFrameForTime(startTime)
-		keyframeEnd.rotate = self.timelists.rotate:getFrameForTime(endTime)
+		keyframeStart.value.rotate = self.timelists.rotate:getFrameForTime(startTime)
+		keyframeEnd.value.rotate = self.timelists.rotate:getFrameForTime(endTime)
 	end
 	if translateStream then 
-		keyframeStart.translate = self.timelists.translate:getFrameForTime(startTime)
-		keyframeEnd.translate = self.timelists.translate:getFrameForTime(endTime)
+		keyframeStart.value.translate = self.timelists.translate:getFrameForTime(startTime)
+		keyframeEnd.value.translate = self.timelists.translate:getFrameForTime(endTime)
 	end
 
 	-- set the region as visible, and restore visibility at the end of the region
@@ -200,10 +200,10 @@ function Path:setVisibility(time, visible)
 			local oldKeyframe = self.keyframes:getFrameForTime(frameCurrent.time)
 			assert(oldKeyframe.time == frameCurrent.time, "Every visibility timelist frame corresponds to a keyframe")
 			assert(oldKeyframe.value.visibility == frameCurrent, "Should be removing the right keyframe")
-			if oldKeyframe.scale == nil and oldKeyframe.rotate == nil and oldKeyframe.translate == nil then
+			if oldKeyframe.value.scale == nil and oldKeyframe.value.rotate == nil and oldKeyframe.value.translate == nil then
 				self.keyframes:deleteFrame(oldKeyframe)
 			else
-				oldKeyframe.visibility = nil
+				oldKeyframe.value.visibility = nil
 			end
 			
 			-- then remove the actual visibility list:
