@@ -56,7 +56,7 @@ end
 function Path:stateAtTime(time)
 	local scale = self.timelists.scale:getInterpolatedValueForTime(time)
 	local rotate = self.timelists.rotate:getInterpolatedValueForTime(time)
-	local translate = self.timelists.translate:getInterpolatedValueForTime(time)	
+	local translate = util.clone(self.timelists.translate:getInterpolatedValueForTime(time))
 	local visibility = self.timelists.visibility:getValueForTime(time)	
 	return scale, rotate, translate, visibility
 end
