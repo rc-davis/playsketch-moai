@@ -35,6 +35,7 @@ function TextButton:init( centerX, centerY, width, height, text, callbackUp )
 	self.frame = {size={width=width,height=height}, origin={x=centerX-width/2, y=centerY-height/2} }
 	self.text = nil
 	self.callbackUp = callbackUp
+	self.highlighted = false
 
 	-- create background
 	self.scriptDeck = MOAIScriptDeck.new ()
@@ -71,9 +72,15 @@ function TextButton:setText(text)
 	self.textbox:setString(text)
 end
 
+function TextButton:setHighlighted(highlighted)
+	self.highlighted = highlighted
+end
+
 function TextButton:onDraw( index, xOff, yOff, xFlip, yFlip )
 	if self.touchID then
 		MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
+	elseif self.highlighted == true then
+		MOAIGfxDevice.setPenColor (0.90, 0.90, 0.90)
 	else
 		MOAIGfxDevice.setPenColor (0.957, 0.973, 0.808)
 	end
