@@ -26,7 +26,7 @@
 require "widgets/widgets"
 
 controllers.selection = {}
-local selectedSet = {} -- {prop -> drawable} for easy lookups
+controllers.selection.selectedSet = {} -- {prop -> drawable} for easy lookups
 
 
 -- startStroke(): begin a new selection lasso stroke
@@ -46,7 +46,7 @@ function controllers.selection.startStroke()
 	local cached_points = {}
 	for _,o in pairs(interactormodel.selectableDrawables(controllers.timeline.currentTime())) do
 		cached_points[o] = o:correctedPointsAtCurrentTime()
-		selectedSet = {}
+		controllers.selection.selectedSet = {}
 	end
 
 	--addPoint(x,y):	Add a point to the selection lasso.
@@ -118,7 +118,7 @@ function controllers.selection.startStroke()
 					o_matches = o_matches or ( (crossing_counts[i][j] + inferred_count)%2 == 1)
 				
 				end
-				if o_matches then selectedSet[o.prop] = o end
+				if o_matches then controllers.selection.selectedSet[o.prop] = o end
 			end
 		end
 		
@@ -130,16 +130,11 @@ function controllers.selection.startStroke()
 
 	-- doneStroke(): 	For when the lasso is finished. 
 	function selection_stroke:doneStroke()		
-		if util.tableIsEmpty(selectedSet) then
-			local path = interactormodel.selectionCleared()
-			widgets.keyframes:setCurrentPath(path)
-			widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
+		if util.tableIsEmpty(controllers.selection.selectedSet) then
+			interactormodel.selectionCleared()
 		else
-			local fixedSet = util.dictionaryValuesToArray(selectedSet)
-			local path = interactormodel.selectionMade(fixedSet)
-			widgets.keyframes:setCurrentPath(path)
-			widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
-			input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
+			local fixedSet = util.dictionaryValuesToArray(controllers.selection.selectedSet)
+			interactormodel.selectionMade(fixedSet)
 		end
 	end
 
@@ -154,14 +149,14 @@ end
 
 
 function controllers.selection.clearSelection()
-	selectedSet = {}
-	local path = interactormodel.selectionCleared()
-	widgets.keyframes:setCurrentPath(path)
-	input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
+	controllers.selection.selectedSet = {}
+	interactormodel.selectionCleared()
 end
 
+
 function controllers.selection.isSelected(drawable)
-	return selectedSet[drawable] ~= nil
+	return controllers.selection.selectedSet[drawable] ~= nil
 end
+
 
 return controllers.selection

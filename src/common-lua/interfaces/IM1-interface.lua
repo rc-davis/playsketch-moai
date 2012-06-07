@@ -42,6 +42,15 @@ controllers.timeline.setButtons(playButton)
 --TODO:remove this
 
 
+
+
+-- Create a list of the paths along the right side of the screen
+g_pathList = widgets.textButtonList.new(320, -64, 128, 640, 64, interactormodel.setSelectedPath)
+g_addPathButton = widgets.textButton.new(320, 288, 128, 64, "new path", interactormodel.makeNewUserPath)
+g_addPathButton:setEnabled(false)
+
+
+
 widgets.keyframes:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128-64, 64)
 
 
