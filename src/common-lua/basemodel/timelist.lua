@@ -29,12 +29,7 @@ basemodel.timelist.NEGINFINITY = -1e99
 local TimeList = {}
 
 function basemodel.timelist.new(defaultValue)
-	local l = {}
-	for i,v in pairs(TimeList) do
-		l[i] = v
-	end
-	l:init(defaultValue)
-	return l
+	return util.clone(TimeList):init(defaultValue)
 end
 
 function basemodel.timelist.newFromTable(t)
@@ -50,6 +45,7 @@ function TimeList:init(defaultValue)
 	self.class = "TimeList"
 	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil, previousFrame=nil }
 	self.listSize = 0
+	return self
 end
 
 function TimeList:size()

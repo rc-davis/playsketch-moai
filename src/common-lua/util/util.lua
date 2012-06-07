@@ -61,4 +61,12 @@ function util.dictionaryValuesToArray(dict)
 	return newarray
 end
 
+function util.clone(t)
+	local l = {}
+	for i,v in pairs(t) do
+		l[i] = v
+	end
+	return l
+end
+
 return util

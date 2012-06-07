@@ -29,12 +29,7 @@ local Drawable = {}
 -- Clone the Drawable prototype
 -- prop should be centred on 0,0
 function basemodel.drawable.newFromProp(prop)
-	d = {}
-	for i, v in pairs(Drawable) do
-		d[i]=v
-	end
-	d:init(prop)
-	return d
+	return util.clone(Drawable):init(prop)
 end
 
 
@@ -45,6 +40,7 @@ function Drawable:init(prop)
 	self.prop.visible = true
 	self.paths = {}
 	drawingLayer:insertProp (prop)
+	return self
 end
 
 function Drawable:addPath(path)

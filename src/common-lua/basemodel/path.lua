@@ -29,12 +29,7 @@ local Path = {}
 
 -- Clone the Path prototype
 function basemodel.path.newPath(index, defaultVisibility)
-	p = {}
-	for i, v in pairs(Path) do
-		p[i]=v
-	end
-	p:init(index, defaultVisibility)
-	return p
+	return util.clone(Path):init(index, defaultVisibility)
 end
 
 
@@ -52,6 +47,7 @@ function Path:init(index, defaultVisibility)
 	self.index = index
 	self.drawables = {}
 	self.cache = {}
+	return self
 
 end
 
