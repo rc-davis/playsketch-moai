@@ -40,6 +40,11 @@ function TextButtonList:init (centerX, centerY, width, height, buttonHeight, sel
 	self.prop:setDeck (self.scriptDeck)
 	self.prop:setLoc ( centerX, centerY )	
 	widgets.layer:insertProp ( self.prop )
+	
+	-- register for touches
+	input.manager.addDownCallback(input.manager.UILAYER, 
+								function (id,px,py) return self:onTouchDown(id,px,py) end)
+
 
 	return self
 end
@@ -79,4 +84,10 @@ function TextButtonList:setSelected(index)
 		self.selectionChangeCallback(self.buttons[self.selectionIndex].buttonListId)
 	end
 end
+
+function TextButtonList:onTouchDown(id,px,py)
+	if not self.prop:inside(px,py) then return false
+	else return true end
+end
+
 return widgets.textButtonList
