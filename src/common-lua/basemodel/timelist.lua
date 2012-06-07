@@ -214,7 +214,17 @@ function TimeList:dump()
 	while f ~= nil do
 		print("\t"..c..":\t")
 		for j,w in pairs(f) do
-			print ("\t", j, w)
+			if j == 'nextFrame' or j == 'previousFrame' then
+				--pass
+			elseif type(w) ~= 'table' then
+				print ("\t", j.."=", w)
+			else
+				print ("\t", j.." = ", "{")
+				for k1,v1 in pairs(w) do
+					print ( "\t\t\t",k1.." = "..v1)
+				end
+				print ("\t\t", "}")
+			end
 		end
 		f = f.nextFrame
 		c = c+1
