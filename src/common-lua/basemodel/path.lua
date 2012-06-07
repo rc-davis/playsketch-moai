@@ -104,7 +104,7 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	end
 
 	if translateValue then
-		self.timelists.translate:setValueForTime(time, translateValue)
+		local frame = self.timelists.translate:setValueForTime(time, translateValue)
 		keyframe.value.translate = frame
 	end
 	
