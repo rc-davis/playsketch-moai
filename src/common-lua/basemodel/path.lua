@@ -47,6 +47,8 @@ function Path:init(index, defaultVisibility)
 	self.index = index
 	self.drawables = {}
 	self.cache = {}
+	self:cacheAtTime(0)
+	
 	return self
 
 end
