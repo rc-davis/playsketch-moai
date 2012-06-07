@@ -54,6 +54,8 @@ function TextButtonList:onDraw( index, xOff, yOff, xFlip, yFlip )
 	MOAIGfxDevice.setPenColor (0.957, 0.973, 0.808)
 	MOAIDraw.fillRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
+
+	MOAIGfxDevice.setPenWidth(1)
 	MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
 	MOAIDraw.drawRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
@@ -74,14 +76,27 @@ end
 
 function TextButtonList:setSelected(index)
 	if index == self.selectionIndex then return end
-	assert(index > 0 and index <= #self.buttons)
+
+	assert(index == nil or (index > 0 and index <= #self.buttons))
+
+	-- un-highlight the old entry
 	if self.selectionIndex then
 		self.buttons[self.selectionIndex]:setHighlighted(false)
 	end
-	self.buttons[index]:setHighlighted(true)
+
+	-- highlight the new entry
 	self.selectionIndex = index
-	if self.selectionChangeCallback then 
-		self.selectionChangeCallback(self.buttons[self.selectionIndex].buttonListId)
+	if index ~= nil then
+		self.buttons[index]:setHighlighted(true)
+	end
+	
+	-- trigger the callback
+	if self.selectionChangeCallback then
+		if index == nil then
+			self.selectionChangeCallback(nil)
+		else
+			self.selectionChangeCallback(self.buttons[self.selectionIndex].buttonListId)
+		end
 	end
 end
 

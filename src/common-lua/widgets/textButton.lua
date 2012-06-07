@@ -50,7 +50,7 @@ function TextButton:init( centerX, centerY, width, height, text, callbackUp )
 	-- create text box
 	self.textbox = MOAITextBox.new ()
 	self.textbox:setFont ( font )
-	self.textbox:setTextSize ( 25)
+	self.textbox:setTextSize (18)
 	self.textbox:setColor (0.3, 0.3, 0.3)
 	self.textbox:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
 	self.textbox:setYFlip ( true )
@@ -104,6 +104,7 @@ function TextButton:onDraw( index, xOff, yOff, xFlip, yFlip )
 	else
 		MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
 	end
+	MOAIGfxDevice.setPenWidth(1)	
 	MOAIDraw.drawRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
 end
