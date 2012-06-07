@@ -127,7 +127,7 @@ function interactormodel.setSelectedPath(path)
 		
 		-- Update UI
 		g_addPathButton:setEnabled(path ~= nil)
-		widgets.manipulator:show()
+		widgets.manipulator:attachToPath(currentPath)
 		widgets.keyframes:setCurrentPath(currentPath)
 		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
 		input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )

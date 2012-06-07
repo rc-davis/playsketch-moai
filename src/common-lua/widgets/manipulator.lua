@@ -175,7 +175,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					--update the translation deltas
 					local dx,dy = px-prop.touchLoc.x, py-prop.touchLoc.y
 					prop.touchLoc = {x=px, y=py}
-					prop:addLoc(dx,dy)				
 					data.dx,data.dy = dx,dy
 
 				elseif prop.currentAction == actions.ROTATE then				
@@ -191,7 +190,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					if dAngleRad < -math.pi then dAngleRad = dAngleRad + 2*math.pi end
 					local dAngle = math.deg(dAngleRad)
 					prop.touchLoc = {x=px, y=py}
-					prop:addRot(dAngle, dAngle)
 					data.dAngle = dAngle
 
 				elseif prop.currentAction == actions.SCALE then
@@ -205,7 +203,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					
 
 					local dScale = (distNew/distLast - 1)*prop:getScl()
-					prop:addScl(dScale)
 					prop.touchLoc = {x=px, y=py}
 					data.dScale = dScale
 					
@@ -244,20 +241,24 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 		end)
 	
-	function prop:show()
+	function prop:attachToPath(path)
 		self.visible = true
 		self:setVisible(true)
-		self:setRot(0,0)
-		self:setScl(1)
-	end
-
-	function prop:moveTo(x,y)
-		self:setLoc(x,y)
+		
+		--Find any one of the path's drawables that we can inherit from to keep the motion in sync
+		local anyDrawable = util.tableAny(path:allDrawables())
+		local drawablePathProp = anyDrawable.paths[path]
+		self:setAttrLink(MOAIProp2D.ATTR_X_LOC, drawablePathProp)
+		self:setAttrLink(MOAIProp2D.ATTR_Y_LOC, drawablePathProp)
+		self:setAttrLink(MOAIProp2D.ATTR_Z_ROT, drawablePathProp)
 	end
 
 	function prop:hide()
 		self.visible = false
 		self:setVisible(false)
+		self:clearAttrLink(MOAIProp2D.ATTR_X_LOC)
+		self:clearAttrLink(MOAIProp2D.ATTR_Y_LOC)
+		self:clearAttrLink(MOAIProp2D.ATTR_Z_ROT)
 	end
 
 
