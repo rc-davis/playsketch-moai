@@ -53,6 +53,13 @@ function util.tableCount(tab)
 	return count
 end
 
+function util.tableAny(tab)
+	for _,o in pairs(tab) do
+		return o
+	end
+	return nil
+end
+
 function util.dictionaryValuesToArray(dict)
 	local newarray = {}
 	for _,o in pairs(dict) do
