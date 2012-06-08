@@ -55,18 +55,11 @@ end
 
 function interactormodel.selectionStarted()
 	g_addPathButton:setEnabled(false)
-	widgets.manipulator:hide()
 end
 
 
 function interactormodel.selectionCleared()
-	currentPath = nil
-	g_addPathButton:setEnabled(false)
 	g_pathList:setSelected(nil)
-	widgets.manipulator:hide()
-	widgets.keyframes:setCurrentPath(nil)
-	widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
-	input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
 end
 
 
@@ -114,11 +107,24 @@ end
 
 function interactormodel.setSelectedPath(path)
 
-	currentPath = path
+	-- Remove any pre-existing paths
+	if currentPath ~= nil then 
 
-	if path == nil then 
-		interactormodel.selectionCleared()
-	else
+		currentPath = nil
+
+		--update the UI
+		g_addPathButton:setEnabled(false)
+		widgets.manipulator:hide()
+		widgets.keyframes:setCurrentPath(nil)
+		widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
+		input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
+	end
+	
+	-- set the new path
+	if path ~= nil then
+	
+		currentPath = path
+	
 		--Replace the selection with the drawables in path
 		controllers.selection.selectedSet = {}	
 		for _,d in pairs(path:allDrawables()) do
@@ -126,7 +132,7 @@ function interactormodel.setSelectedPath(path)
 		end
 		
 		-- Update UI
-		g_addPathButton:setEnabled(path ~= nil)
+		g_addPathButton:setEnabled(true)
 		widgets.manipulator:attachToPath(currentPath)
 		widgets.keyframes:setCurrentPath(currentPath)
 		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)

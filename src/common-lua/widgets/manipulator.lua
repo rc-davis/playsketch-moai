@@ -40,7 +40,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 	local scriptDeck = MOAIScriptDeck.new ()
 	scriptDeck:setRect ( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
-
+	
 	local prop = MOAIProp2D.new ()
 	prop:setDeck ( scriptDeck )	
 	widgets.layer:insertProp(prop)
@@ -58,11 +58,16 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 	scriptDeck:setDrawCallback(
 		function ( index, xOff, yOff, xFlip, yFlip )
 
+			local worldScale = prop:getAttr(MOAIProp2D.ATTR_WORLD_X_SCL)
+			local scaledWidth = defaultWidth/worldScale
+			
+			scriptDeck:setRect ( -scaledWidth/2, -scaledWidth/2, scaledWidth/2, scaledWidth/2 )
+	
 			MOAIGfxDevice.setPenWidth(2)
 
 			--draw background
 			MOAIGfxDevice.setPenColor (unpack(scaleHandleBackgroundColor))
-			MOAIDraw.fillRect( -defaultWidth/2, -defaultWidth/2, defaultWidth/2, defaultWidth/2 )
+			MOAIDraw.fillRect( -scaledWidth/2, -scaledWidth/2, scaledWidth/2, scaledWidth/2 )
 
 			--draw scale handles
 			if prop.currentAction == actions.SCALE then
@@ -70,20 +75,20 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			else
 				MOAIGfxDevice.setPenColor (unpack(scaleHandleHandleColor))			
 			end
-			local scaleLoc = (defaultWidth/2)*(rotationDiameterPcnt/ROOT_2) -- x/y for the handle corner
+			local scaleLoc = (scaledWidth/2)*(rotationDiameterPcnt/ROOT_2) -- x/y for the handle corner
 			for _,i in ipairs({1,-1}) do for _,j in ipairs({1,-1}) do
-				MOAIDraw.fillRect( i*defaultWidth/2, j*defaultWidth/2, i*scaleLoc, j*scaleLoc)
+				MOAIDraw.fillRect( i*scaledWidth/2, j*scaledWidth/2, i*scaleLoc, j*scaleLoc)
 			end end
 			
 			--draw the rotation background
 			MOAIGfxDevice.setPenColor (unpack(rotationBackgroundColor))			
-			MOAIDraw.fillCircle(0,0, defaultWidth/2*rotationDiameterPcnt, 50)
+			MOAIDraw.fillCircle(0,0, scaledWidth/2*rotationDiameterPcnt, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))			
-			MOAIDraw.drawCircle(0,0, defaultWidth/2*rotationDiameterPcnt, 50)
+			MOAIDraw.drawCircle(0,0, scaledWidth/2*rotationDiameterPcnt, 50)
 
 			-- draw the rotation handles
-			local rotHandleRad = defaultWidth/2*(rotationDiameterPcnt-translateDiameterPcnt)/2
-			local rotHandleX = (defaultWidth/2*rotationDiameterPcnt - rotHandleRad)/ROOT_2
+			local rotHandleRad = scaledWidth/2*(rotationDiameterPcnt-translateDiameterPcnt)/2
+			local rotHandleX = (scaledWidth/2*rotationDiameterPcnt - rotHandleRad)/ROOT_2
 
 			if prop.currentAction == actions.ROTATE then
 				MOAIGfxDevice.setPenColor (unpack(highlightColor))	
@@ -104,9 +109,9 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			else
 				MOAIGfxDevice.setPenColor (unpack(translateHandleColor))	
 			end
-			MOAIDraw.fillCircle(0, 0, translateDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.fillCircle(0, 0, translateDiameterPcnt*scaledWidth/2, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
-			MOAIDraw.drawCircle(0, 0, translateDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.drawCircle(0, 0, translateDiameterPcnt*scaledWidth/2, 50)
 
 			-- draw the pivot adjustment handle
 			--[[
@@ -115,9 +120,9 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			else
 				MOAIGfxDevice.setPenColor (unpack(pivotAdjustHandleColor))	
 			end
-			MOAIDraw.fillCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.fillCircle(0, 0, pivotAdjustDiameterPcnt*scaledWidth/2, 50)
 			MOAIGfxDevice.setPenColor (unpack(rotationStrokeColor))	
-			MOAIDraw.drawCircle(0, 0, pivotAdjustDiameterPcnt*defaultWidth/2, 50)
+			MOAIDraw.drawCircle(0, 0, pivotAdjustDiameterPcnt*scaledWidth/2, 50)
 			--]]
 
 		end)
@@ -136,18 +141,18 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 				prop.touchID = id
 				prop.touchLoc = {x=px,y=py}
-				local x,y = prop:getLoc()
+				local x,y = prop:modelToWorld(prop:getLoc())
 			
 				-- figure out which widget we are interacting with
 				local distanceFromCenterSq = math.sqrt((px-x)*(px-x)+(py-y)*(py-y))
 
-				--[[if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2*prop:getScl() then
+				--[[if distanceFromCenterSq < pivotAdjustDiameterPcnt*defaultWidth/2 then
 					-- touching the translate manipulator
 					prop.currentAction = actions.PIVOTADJUST
-				else--]]if distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2*prop:getScl() then
+				else--]]if distanceFromCenterSq < translateDiameterPcnt*defaultWidth/2 then
 					-- touching the translate manipulator
 					prop.currentAction = actions.TRANSLATE
-				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2*prop:getScl() then
+				elseif distanceFromCenterSq < rotationDiameterPcnt*defaultWidth/2 then
 					-- touching the rotate manipulator
 					prop.currentAction = actions.ROTATE
 				else
@@ -179,7 +184,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 				elseif prop.currentAction == actions.ROTATE then				
 					--update the rotation deltas
-					local xCenter,yCenter = prop:getLoc()
+					local xCenter,yCenter = prop:modelToWorld(prop:getLoc())
 					local angleLast = math.atan2(prop.touchLoc.y - yCenter, 
 												prop.touchLoc.x - xCenter)
 					local angleNew = math.atan2(py - yCenter, 
@@ -195,14 +200,13 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				elseif prop.currentAction == actions.SCALE then
 
 					--calculate distances from the center
-					local xCenter,yCenter = prop:getLoc()
+					local xCenter,yCenter = prop:modelToWorld(prop:getLoc())
 					local distLast = math.sqrt( (xCenter-prop.touchLoc.x)*(xCenter-prop.touchLoc.x) +
 												(yCenter-prop.touchLoc.y)*(yCenter-prop.touchLoc.y))
 					local distNew  = math.sqrt( (xCenter-px)*(xCenter-px) +
 												(yCenter-py)*(yCenter-py))
-					
 
-					local dScale = (distNew/distLast - 1)*prop:getScl()
+					local dScale = (distNew/distLast - 1)
 					prop.touchLoc = {x=px, y=py}
 					data.dScale = dScale
 					
@@ -240,27 +244,28 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			end
 
 		end)
-	
+
 	function prop:attachToPath(path)
-		self.visible = true
-		self:setVisible(true)
 		
 		--Find any one of the path's drawables that we can inherit from to keep the motion in sync
 		local anyDrawable = util.tableAny(path:allDrawables())
 		local drawablePathProp = anyDrawable.paths[path]
-		self:setAttrLink(MOAIProp2D.ATTR_X_LOC, drawablePathProp)
-		self:setAttrLink(MOAIProp2D.ATTR_Y_LOC, drawablePathProp)
-		self:setAttrLink(MOAIProp2D.ATTR_Z_ROT, drawablePathProp)
+
+		-- TODO: This is a terrible way of doing this. INHERIT_TRANSFORM inherits EVERYTHING
+		-- We'd really rather inherit the location and scale
+		-- Need to investigate why that wasn't working...
+		self:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
+		self:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, drawablePathProp, MOAIProp2D.TRANSFORM_TRAIT)
+				
+		--make it visible
+		self.visible = true
+		self:setVisible(true)
 	end
 
 	function prop:hide()
-		self.visible = false
-		self:setVisible(false)
-		self:clearAttrLink(MOAIProp2D.ATTR_X_LOC)
-		self:clearAttrLink(MOAIProp2D.ATTR_Y_LOC)
-		self:clearAttrLink(MOAIProp2D.ATTR_Z_ROT)
+			self.visible = false
+			self:setVisible(false)
 	end
-
 
 	prop:hide()
 	return prop
