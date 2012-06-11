@@ -28,7 +28,7 @@ function controllers.playback.jumpToTime(time)
 end
 
 local activeThreads = {}
-local activePathAnimations = {}
+local activeAnimations = {}
 
 function controllers.playback.startPlaying(time)
 	
@@ -46,14 +46,14 @@ function controllers.playback.stopPlaying()
 	for _,t in pairs(activeThreads) do t:stop() end
 	
 	--kill animations
-	for p,set in pairs(activePathAnimations) do
-		for _,a in pairs(set) do
+	for thread,animations in pairs(activeAnimations) do
+		for _,a in pairs(animations) do
 			a:stop()
 		end
 	end
 	
 	activeThreads = {}
-	activePathAnimations = {}
+	activeAnimations = {}
 
 end
 
@@ -90,18 +90,18 @@ function controllers.playback.startPlayingPath(path, time)
 		while not it:done() do
 			local timeDelta = it:time() - controllers.timeline.currentTime() 
 	
-			activePathAnimations[path] = {}
+			activeAnimations[thisThread] = {}
 			for _,drawable in pairs(path.drawables) do
 				local prop = drawable:propForPath(path)
 				local a = animationFunction(prop, timeDelta, it:value())
-				activePathAnimations[path][a] = a
+				activeAnimations[thisThread][a] = a
 			end
 			
 			--wait for the animations to be done
-			if not util.tableIsEmpty(activePathAnimations[path]) then
-				MOAIThread.blockOnAction(util.tableAny(activePathAnimations[path]))
+			if not util.tableIsEmpty(activeAnimations[thisThread]) then
+				MOAIThread.blockOnAction(util.tableAny(activeAnimations[thisThread]))
 			end
-			activePathAnimations[path] = nil
+			activeAnimations[thisThread] = nil
 
 			it:next()
 		end

@@ -41,7 +41,6 @@ function controllers.timeline.sliderMoved(slider, new_time)
 	if controllers.timeline.playing then controllers.timeline.pause() end
 
 	controllers.playback.jumpToTime(new_time)
-	print("slider moved")
 end
 
 function controllers.timeline.sliderMoveFinished(slider, new_time)
@@ -53,10 +52,7 @@ function controllers.timeline.sliderMoveFinished(slider, new_time)
 			"slider should stay within timeline's bounds")
 			
 	if controllers.timeline.playing then controllers.timeline.pause() end
-
 	controllers.playback.jumpToTime(new_time)
-	print("slider moved")
-
 end
 
 -- currentTime():	Global way of exposing the current timeline time! Use this!
