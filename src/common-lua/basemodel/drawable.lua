@@ -119,24 +119,27 @@ function Drawable:correctedLocAtCurrentTime()
 	return self.prop:correctedLocAtCurrentTime()
 end
 
-
-
 function Drawable:visibleAtCurrentTime()
 	return self.prop.visible
 end
 
 
-function Drawable:refreshPathProps()
-	local visible = true
-	for path,prop in pairs(self.paths) do
-		local s,r,t,v = path:cached()
-		visible = visible and v
-		prop:setScl(s,s)
-		prop:setRot(r)
-		prop:setLoc(t.x, t.y)
-	end
-	self.prop.visible = visible
-	self.prop:setVisible(visible)
+function Drawable:refreshPathProps(path)
+	local prop = self.paths[path]
+	--local visible = true
+	local s,r,t,v = path:cached()
+	--visible = visible and v
+	prop:setScl(s,s)
+	prop:setRot(r)
+	prop:setLoc(t.x, t.y)
+	--self.prop.visible = visible
+	--self.prop:setVisible(visible)
+	--TODO: decide how to deal with visibility...
+end
+
+
+function Drawable:propForPath(path)
+	return self.paths[path]
 end
 
 

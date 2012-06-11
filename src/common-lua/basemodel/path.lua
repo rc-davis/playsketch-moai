@@ -64,6 +64,9 @@ end
 function Path:cacheAtTime(time)
 	self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility = 
 	self:stateAtTime(time)
+	for _,d in pairs(self.drawables) do
+		d:refreshPathProps(self)
+	end
 end	
 
 function Path:cached()
@@ -114,10 +117,6 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	
 	--Kick our related Drawables to update their position to reflect this
 	self:cacheAtTime(time)
-	for _,d in pairs(self.drawables) do
-		d:refreshPathProps() --todo: could get more efficient here if needed
-	end
-
 end
 
 --scaleStream = {{time=??, scale=??}, ...}

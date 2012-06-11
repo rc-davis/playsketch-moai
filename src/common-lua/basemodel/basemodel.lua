@@ -59,7 +59,6 @@ function basemodel.addNewDrawable(prop, time, location)
 
 	--get it to display properly:
 	path:cacheAtTime(time)
-	drawable:refreshPathProps()
 
 	return drawable
 end
