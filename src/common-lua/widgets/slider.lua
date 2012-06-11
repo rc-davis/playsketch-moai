@@ -58,7 +58,7 @@ function widgets.slider:currentValue()
 
 	if self.currentAnimation then
 		local x,_ = self.scrubber:getLoc()
-		return self:valueForScrubberX(x)
+		return self:valueForScrubberX(x, true)
 	else
 		return self.value
 	end
@@ -73,16 +73,13 @@ end
 
 function widgets.slider:setValue(value, duration, skipScrubberUpdate)
 	assert(value >= self.minvalue and value <= self.maxvalue, "slider:setValue() should be within the slider's bounds")
-	assert(value == math.floor(value), "Slider should only be set to integer values")
+	--assert(value == math.floor(value), "Slider should only be set to integer values")
 
 	self.value = value	
 	local scrubberX = self:scrubberXForValue(value)
 	
 	-- Fix up the scrubber's location
 	if duration == 0 then
-
-
-
 		if skipScrubberUpdate == nil or skipScrubberUpdate == false then
 			-- snap the scrubber's location
 			self.scrubber:setLoc(scrubberX, self.center.y)	
@@ -110,7 +107,7 @@ end
 -- Button movement callbacks 
 
 function widgets.slider.backgroundCallbackUp(button, px, py)
-	widgets.slider:setValue(widgets.slider:valueForScrubberX(px), 0)
+	widgets.slider:setValue(widgets.slider:valueForScrubberX(px, true), 0)
 	if widgets.slider.callbackMoveFinished then
 		widgets.slider.callbackMoveFinished(widgets.slider, widgets.slider.value)
 	end
@@ -118,14 +115,15 @@ end
 
 function widgets.slider.scrubberCallbackDrag(button, dx, dy)
 	local px,_ = widgets.slider.scrubber:getLoc()
-	widgets.slider:setValue(widgets.slider:valueForScrubberX(px), 0, true)	
+	widgets.slider:setValue(widgets.slider:valueForScrubberX(px, false), 0, true)	
 	if widgets.slider.callbackMoved then 
 		widgets.slider.callbackMoved(widgets.slider, widgets.slider.value)
 	end
 end
 
 function widgets.slider.scrubberCallbackUp(_,_,_)
-	widgets.slider:setValue(widgets.slider:currentValue(), 0)
+	-- Snap!
+	widgets.slider:setValue(math.floor(0.5 + widgets.slider:currentValue()), 0)
 	if widgets.slider.callbackMoveFinished then
 		widgets.slider.callbackMoveFinished(widgets.slider, widgets.slider.value)
 	end
@@ -140,10 +138,12 @@ function widgets.slider:scrubberXForValue(value)
 	return self.pixelSpan.start + valPcnt * (self.pixelSpan.stop - self.pixelSpan.start)
 end
 
-function widgets.slider:valueForScrubberX(x)
+function widgets.slider:valueForScrubberX(x, snap)
 	local xPcnt = (x - self.pixelSpan.start) / (self.pixelSpan.stop - self.pixelSpan.start)
 	xPcnt = math.max(0, math.min(1, xPcnt)) -- round up/down to truncate
-	return math.floor(0.5 + self.minvalue + xPcnt * ( self.maxvalue - self.minvalue))
+	local unRounded = self.minvalue + xPcnt * ( self.maxvalue - self.minvalue)
+	if snap then return math.floor(0.5 + unRounded)
+	else return unRounded end
 end
 
 return widgets.slider
