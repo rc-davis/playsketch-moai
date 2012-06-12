@@ -105,4 +105,16 @@ function TextButtonList:onTouchDown(id,px,py)
 	else return true end
 end
 
+function TextButtonList:clearAll()
+
+	for _,b in pairs(self.buttons) do
+		b:delete()
+	end
+	self.buttons = {}
+	self.selectionIndex = nil
+
+	if self.selectionChangeCallback then self.selectionChangeCallback(nil) end
+
+end
+
 return widgets.textButtonList

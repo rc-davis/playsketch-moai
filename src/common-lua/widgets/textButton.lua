@@ -131,4 +131,9 @@ function TextButton:onTouchUp(id,px,py)
 	return false
 end
 
+function TextButton:delete()
+	widgets.layer:removeProp ( self.prop )
+	widgets.layer:removeProp ( self.textbox )
+end
+
 return widgets.textButton
