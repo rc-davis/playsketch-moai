@@ -50,6 +50,14 @@ g_addPathButton = widgets.textButton.new(320, 288, 128, 64, "new path", interact
 g_addPathButton:setEnabled(false)
 
 
+-- clear button
+widgets.newSimpleButton(320, 480, 128, 64,
+					'resources/IM1/button_clear.png',
+					'resources/IM1/button_clear_down.png', nil,
+					interactormodel.clearAll, nil)
+
+
+
 
 widgets.keyframes:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128-64, 64)
 

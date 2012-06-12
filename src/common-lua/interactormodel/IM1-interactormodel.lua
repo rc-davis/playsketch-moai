@@ -129,6 +129,13 @@ end
 function interactormodel.updateVisibility(time, newValue)
 end
 
+function interactormodel.clearAll()
+	basemodel.clearAll()
+	g_pathList:clearAll()
+	userPaths = {}
+end
+
+
 ------------------ /INTERACTOR MODEL API ----------------------
 
 
