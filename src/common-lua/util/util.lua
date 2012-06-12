@@ -69,6 +69,7 @@ function util.dictionaryValuesToArray(dict)
 end
 
 function util.clone(t)
+	if type(t) ~= "table" then return t end
 	local l = {}
 	for i,v in pairs(t) do
 		l[i] = v
