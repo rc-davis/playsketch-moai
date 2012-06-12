@@ -108,7 +108,7 @@ end
 function TimeList:setValueForTime(time, value, precedingFrame)
 	local frame = self:makeFrameForTime(time, nil, precedingFrame)
 	assert(frame ~= nil, "must retrieve a non-nil frame when making a new frame")
-	frame.value = value
+	frame.value = util.clone(value)
 	return frame
 end
 
