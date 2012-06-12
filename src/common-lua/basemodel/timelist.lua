@@ -153,8 +153,10 @@ function TimeList:getInterpolatedValueForTime(time)
 		elseif type(frame_before.value) == "table" then
 			interp = {}
 			for k,v in pairs(frame_before.value) do
-				if frame_after.value then
+				if frame_after.value and type(v) == "number" then
 					interp[k] = v*(1-pcnt) + frame_after.value[k]*(pcnt)
+				else
+					interp[k] = v
 				end
 			end
 		end
@@ -227,7 +229,7 @@ function TimeList:dump()
 			else
 				print ("\t", j.." = ", "{")
 				for k1,v1 in pairs(w) do
-					print ( "\t\t\t",k1.." = "..v1)
+					print ( "\t\t\t",k1.." = "..tostring(v1))
 				end
 				print ("\t\t", "}")
 			end
