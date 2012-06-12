@@ -58,7 +58,7 @@ function widgets.slider:currentValue()
 
 	if self.currentAnimation then
 		local x,_ = self.scrubber:getLoc()
-		return self:valueForScrubberX(x, true)
+		return self:valueForScrubberX(x, false)
 	else
 		return self.value
 	end
