@@ -165,12 +165,19 @@ end
 
 
 function basemodel.deleteDrawables(drawablesList)
-	assert(#drawablesList > 0, "list should contain some drawables")
-	for d in pairs(drawablesList) do
+	assert(util.tableCount(drawablesList) > 0, "list should contain some drawables")
+
+	for _,d in pairs(util.clone(drawablesList)) do
 		basemodel.deleteDrawable(d)
 	end
 end
 
+
+function basemodel.clearAll()
+	if util.tableCount(basemodel.allDrawables()) > 0 then 
+		basemodel.deleteDrawables(basemodel.allDrawables())
+	end
+end
 
 --	todo: basemodel.drawablesVisibleAtTime(time) -> drawableList ??
 
