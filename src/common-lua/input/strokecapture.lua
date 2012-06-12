@@ -37,6 +37,11 @@ end
 local function downCallback(id,x,y)
 	if activeStrokes[id] == nil then
 	
+		-- bail if we aren't  in draw or select mode
+		if input.strokecapture.mode == input.strokecapture.modes.MODE_RECORD then
+			return false
+		end
+	
 		if input.strokecapture.mode == input.strokecapture.modes.MODE_DRAW then
 			activeStrokes[id] = controllers.drawing.startStroke()
 		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_SELECT 
