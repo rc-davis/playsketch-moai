@@ -63,15 +63,58 @@ function interactormodel.selectionCleared()
 end
 
 
+local recordedMotionSession = nil
+local recordingState = { loc={} }
+
 function interactormodel.recordingStarts(time)
-	print("STARTING RECORDING")
+	assert(recordedMotionSession == nil, "no other recording sessions going on")
+	recordedMotionSession = currentPath:startRecordedMotion(time)
+	recordingState.s,
+	recordingState.r,
+	recordingState.t,
+	recordingState.v = currentPath:stateAtTime(time)
+	controllers.playback.setPathToNotAnimate(currentPath)
+
+	controllers.timeline.play()
 end
 
 
 function interactormodel.recordingUpdate(data)
+
+	assert(recordedMotionSession, "Need an motion session to apply update recording")
+
+	--todo: this is a lot of paperwork due to mismatched parameter types and should be cleaner
+
+	--update our cached locations
+	local updateS, updateR, updateT = nil,nil,nil
+	if data.dScale then
+		recordingState.s = recordingState.s + data.dScale
+		updateS = recordingState.s
+	end
+	if data.dAngle then
+		recordingState.r = recordingState.r + data.dAngle
+		updateR = recordingState.r
+	end
+	if data.dx and data.dy then 
+		recordingState.t.x = recordingState.t.x + data.dx
+		recordingState.t.y = recordingState.t.y + data.dy
+		updateT = recordingState.t
+	end
+	--todo: visibility?
+
+	recordedMotionSession:addMotion(data.time, updateS, updateR, updateT)
+	
 end
 
 function interactormodel.recordingFinished(time)
+
+	assert(recordedMotionSession, "Need an motion session to apply finish recording")
+
+	controllers.timeline.pause()	
+	recordedMotionSession:endSession(time)
+	recordedMotionSession = nil
+	controllers.playback.setPathToNotAnimate(nil)
+
 end
 
 function interactormodel.updateKeyframe(data)

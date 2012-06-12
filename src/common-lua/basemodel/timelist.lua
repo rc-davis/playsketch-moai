@@ -43,7 +43,7 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil, previousFrame=nil }
+	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil, previousFrame=nil, metadata={} }
 	self.listSize = 0
 	return self
 end
@@ -81,7 +81,7 @@ function TimeList:makeFrameForTime(time, defaultValue, precedingFrame)
 		assert(precedingFrame.time < time and 
 				(not precedingFrame.nextFrame or precedingFrame.nextFrame.time > time), 
 				"inserted frames must maintain a strict ordering!")
-		local newFrame = {	time=time, nextFrame = precedingFrame.nextFrame, previousFrame=precedingFrame }
+		local newFrame = {	time=time, nextFrame = precedingFrame.nextFrame, previousFrame=precedingFrame, metadata={} }
 		if precedingFrame.nextFrame then precedingFrame.nextFrame.previousFrame = newFrame end
 		precedingFrame.nextFrame = newFrame
 		self.listSize = self.listSize + 1
@@ -200,6 +200,11 @@ function TimeList:begin()
 	function it:value()
 		return it.current.value
 	end
+
+	function it:metadata()
+		return it.current.metadata
+	end
+
 
 	function it:next()
 		if it.current ~= nil then

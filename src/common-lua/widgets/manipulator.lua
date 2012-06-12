@@ -50,6 +50,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 	prop.touchID = nil
 	prop.touchLoc = nil
 	prop.currentAction = nil
+	prop.currentPath = nil
 	prop.keyframeUpdateCallback = keyframeUpdateCallback
 	prop.recordingUpdateCallback = recordingUpdateCallback
 	prop.startRecordingCallback = startRecordingCallback
@@ -160,9 +161,13 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					prop.currentAction = actions.SCALE
 				end
 				
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN
-				and prop.startRecordingCallback then
-					prop.startRecordingCallback(controllers.timeline.currentTime())
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				
+					prop:setInheritsFromPath(nil) -- so the manipulator doesn't jump around while we're using it
+					
+					if prop.startRecordingCallback then
+						prop.startRecordingCallback(controllers.timeline.currentTime())
+					end
 				end
 			end
 			return true
@@ -175,6 +180,14 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			if prop.touchID == id then
 			
 				local data = {time = controllers.timeline.currentTime()}
+
+				local xCenter,yCenter
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+					xCenter,yCenter = prop:getLoc()
+				else
+					xCenter,yCenter = prop:modelToWorld(prop:getLoc())
+				end
+			
 			
 				if prop.currentAction == actions.TRANSLATE then
 					--update the translation deltas
@@ -184,7 +197,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 				elseif prop.currentAction == actions.ROTATE then				
 					--update the rotation deltas
-					local xCenter,yCenter = prop:modelToWorld(prop:getLoc())
 					local angleLast = math.atan2(prop.touchLoc.y - yCenter, 
 												prop.touchLoc.x - xCenter)
 					local angleNew = math.atan2(py - yCenter, 
@@ -200,7 +212,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				elseif prop.currentAction == actions.SCALE then
 
 					--calculate distances from the center
-					local xCenter,yCenter = prop:modelToWorld(prop:getLoc())
 					local distLast = math.sqrt( (xCenter-prop.touchLoc.x)*(xCenter-prop.touchLoc.x) +
 												(yCenter-prop.touchLoc.y)*(yCenter-prop.touchLoc.y))
 					local distNew  = math.sqrt( (xCenter-px)*(xCenter-px) +
@@ -219,7 +230,11 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				end
 				
 				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
-					prop.recordingUpdateCallback(data)
+					prop:repositionManually(data)
+					
+					if prop.recordingUpdateCallback then
+						prop.recordingUpdateCallback(data)
+					end
 				else
 					prop.keyframeUpdateCallback(data)
 				end
@@ -236,35 +251,67 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				prop.touchID = nil
 				prop.currentAction = nil
 				prop.touchLoc = nil
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN
-				and prop.doneRecordingCallback then
-					prop.doneRecordingCallback(controllers.timeline.currentTime())
+				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				
+					prop:setInheritsFromPath(prop.currentPath)
+				
+					if prop.doneRecordingCallback then
+						prop.doneRecordingCallback(controllers.timeline.currentTime())
+					end
 				end
 				return true
 			end
 
 		end)
 
-	function prop:attachToPath(path)
+	function prop:setInheritsFromPath(path)
+	
+		if path then
+			-- reset everything back to zero
+			self:setLoc(0,0)
+			self:setRot(90)
 		
-		--Find any one of the path's drawables that we can inherit from to keep the motion in sync
-		local anyDrawable = util.tableAny(path:allDrawables())
-		local drawablePathProp = anyDrawable.paths[path]
+			--Find any one of the path's drawables that we can inherit from to keep the motion in sync
+			local anyDrawable = util.tableAny(path:allDrawables())
+			local drawablePathProp = anyDrawable.paths[path]
+	
+			-- TODO: This is a terrible way of doing this. INHERIT_TRANSFORM inherits EVERYTHING
+			-- We'd really rather inherit the location and scale
+			-- Need to investigate why that wasn't working...
+			self:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
+			self:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, drawablePathProp, MOAIProp2D.TRANSFORM_TRAIT)
+		else		
+			-- copy position information from current path
+			local newx,newy = self:modelToWorld(self:getLoc())
+			local newrot = self:getWorldRot()
+			self:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
+			self:setLoc(newx,newy)
+			self:setRot(90-newrot)
+		end
+	end
 
-		-- TODO: This is a terrible way of doing this. INHERIT_TRANSFORM inherits EVERYTHING
-		-- We'd really rather inherit the location and scale
-		-- Need to investigate why that wasn't working...
-		self:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
-		self:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, drawablePathProp, MOAIProp2D.TRANSFORM_TRAIT)
-				
+
+	function prop:attachToPath(path)
+
+		self.currentPath = path
+
+		self:setInheritsFromPath(path)
 		--make it visible
 		self.visible = true
 		self:setVisible(true)
 	end
 
 	function prop:hide()
+			self.currentPath = nil
+			self:setInheritsFromPath(nil)
 			self.visible = false
 			self:setVisible(false)
+	end
+	
+	function prop:repositionManually(data)
+		if data.dx and data.dy then prop:addLoc(data.dx,data.dy) end
+		if data.dScale then prop:addScl(data.dScale) end
+		if data.dAngle then prop:addRot(data.dAngle) end
 	end
 
 	prop:hide()
