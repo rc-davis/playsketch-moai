@@ -37,8 +37,8 @@ end
 local function downCallback(id,x,y)
 	if activeStrokes[id] == nil then
 	
-		-- bail if we aren't  in draw or select mode
-		if input.strokecapture.mode == input.strokecapture.modes.MODE_RECORD then
+		-- if we are using the manipulator, ignore other touches!
+		if widgets.manipulator:inUse() then
 			return false
 		end
 	

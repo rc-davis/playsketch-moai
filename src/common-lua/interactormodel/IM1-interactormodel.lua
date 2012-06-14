@@ -75,13 +75,16 @@ function interactormodel.recordingStarts(time)
 	recordingState.v = currentPath:stateAtTime(time)
 	controllers.playback.setPathToNotAnimate(currentPath)
 
-	controllers.timeline.play()
+	if not controllers.timeline.playing then
+		controllers.timeline.play()
+	end
 end
 
 
 function interactormodel.recordingUpdate(data)
 
-	assert(recordedMotionSession, "Need an motion session to apply update recording")
+	-- make sure we have a session ready
+	if not recordedMotionSession then interactormodel.recordingStarts(data.time) end
 
 	--todo: this is a lot of paperwork due to mismatched parameter types and should be cleaner
 

@@ -314,6 +314,10 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 		if data.dAngle then prop:addRot(data.dAngle) end
 	end
 
+	function prop:inUse()
+		return (self.touchID ~= nil)
+	end
+
 	prop:hide()
 	return prop
 end
