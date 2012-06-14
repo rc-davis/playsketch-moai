@@ -551,15 +551,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Developer: Ryder Ziola (QKH6WJ23CX)";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/crittercismiOS-3.1.5/CrittercismSDK\"",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = PlaySketch2;
-				PROVISIONING_PROFILE = "CF39EE25-FB5F-4784-8081-544AB0386464";
-				VERSIONING_SYSTEM = "apple-generic";
+				PROVISIONING_PROFILE = "FD1DB85D-883A-45D9-9293-5D483E4DDE7D";
+				VERSIONING_SYSTEM = "";
 			};
 			name = Debug;
 		};
@@ -567,15 +567,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Developer: Ryder Ziola (QKH6WJ23CX)";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/crittercismiOS-3.1.5/CrittercismSDK\"",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = PlaySketch2;
-				PROVISIONING_PROFILE = "CF39EE25-FB5F-4784-8081-544AB0386464";
-				VERSIONING_SYSTEM = "apple-generic";
+				PROVISIONING_PROFILE = "FD1DB85D-883A-45D9-9293-5D483E4DDE7D";
+				VERSIONING_SYSTEM = "";
 			};
 			name = Release;
 		};
@@ -597,10 +597,7 @@
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/facebookiOS/lib/facebook-ios-sdk\"",
 				);
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-include",
-					"\"zipfs/zipfs_replace.h\"",
-				);
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-force_load",
 					"$(BUILT_PRODUCTS_DIR)/libmoai-ios-tapjoy.a",
@@ -631,10 +628,7 @@
 					"\"$(SRCROOT)/../../../moai-dev/3rdparty/facebookiOS/lib/facebook-ios-sdk\"",
 				);
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = (
-					"-include",
-					"\"zipfs/zipfs_replace.h\"",
-				);
+				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-force_load",
 					"$(BUILT_PRODUCTS_DIR)/libmoai-ios-tapjoy.a",
