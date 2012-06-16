@@ -19,6 +19,10 @@
 
 controllers.playback = {}
 
+function controllers.playback.refresh()
+	controllers.playback.jumpToTime(controllers.timeline.currentTime())
+end
+
 function controllers.playback.jumpToTime(time)
 
 	--todo: make FAR prettier

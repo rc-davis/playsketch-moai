@@ -168,6 +168,8 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					if prop.startRecordingCallback then
 						prop.startRecordingCallback(controllers.timeline.currentTime())
 					end
+				else
+					controllers.undo.startGroup("Manipulator Keyframe Drag")
 				end
 			end
 			return true
@@ -258,6 +260,8 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					if prop.doneRecordingCallback then
 						prop.doneRecordingCallback(controllers.timeline.currentTime())
 					end
+				else
+					controllers.undo.endGroup("Manipulator Keyframe Drag")
 				end
 				return true
 			end

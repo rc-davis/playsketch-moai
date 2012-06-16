@@ -44,8 +44,13 @@ end
 
 function basemodel.addNewDrawable(prop, time, location)
 
+	controllers.undo.startGroup('New Drawable')
+
 	-- create the drawable (& add it to the scene graph)
 	local drawable = basemodel.drawable.newFromProp(prop)
+	controllers.undo.addAction(	'Table Insert Drawable',
+								function () allDrawables[#allDrawables] = nil end,
+								function () table.insert(allDrawables, drawable) end )
 	table.insert(allDrawables, drawable)
 
 	-- create a new path to contain its location
@@ -61,11 +66,15 @@ function basemodel.addNewDrawable(prop, time, location)
 	--get it to display properly:
 	path:cacheAtTime(time)
 
+	controllers.undo.endGroup('New Drawable')
+
 	return drawable
 end
 
 
 function basemodel.addNewDrawables(propList, timeList, locationList)
+
+	controllers.undo.startGroup("New Drawables")
 
 	assert(#propList == #timeList and #propList == #locationList, 
 		"addNewDrawables() requires three lists of the same length")
@@ -75,11 +84,16 @@ function basemodel.addNewDrawables(propList, timeList, locationList)
 		local newDrawable = basemodel.addNewDrawable(propList[i], timeList[i], locationList[i])
 		table.insert(addedDrawables, newDrawable)
 	end
+
+	controllers.undo.endGroup("New Drawables")
+
 	return addedDrawables
 end
 
 
 function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
+
+	controllers.undo.startGroup("Create New Path")
 
 	if not defaultVisibility then defaultVisibility = false end
 
@@ -89,10 +103,17 @@ function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
 
 	local path = basemodel.path.newPath(index, defaultVisibility)
 	table.insert(allPaths, index, path)
+	controllers.undo.addAction(	'Table Insert Path',
+								function () table.remove(allPaths, index) end,
+								function () table.insert(allPaths, index, path) end )
 
 	--update the cached indices
 	for i,p in ipairs(allPaths) do
+		local oldIndex = p.index
 		p.index = i
+		controllers.undo.addAction(	'Update Cached Indices',
+								function () p.index = oldIndex end,
+								function () p.index = i end )
 	end
 
 	--inform the drawables
@@ -100,11 +121,15 @@ function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
 		d:addPath(path)
 	end
 
+	controllers.undo.endGroup("Create New Path")
+	
 	return path
 end
 
 function basemodel.swapPathOrder(index1, index2)
 
+	controllers.undo.startGroup("Swap Path Order")
+	
 	assert(index1 > 0 and index1 <= #allPaths and index2 > 0 and index2 <= #allPaths,
 		"swapPathOrder needs valid indices to allPaths")
 		
@@ -120,13 +145,33 @@ function basemodel.swapPathOrder(index1, index2)
 	
 	--careful to get these operations in the right order so the indices still make sense
 	table.remove(allPaths, index1)
+	controllers.undo.addAction(	"Swap Path Table Op 1",
+								function() table.insert(allPaths, index1, path1) end,
+								function() table.remove(allPaths, index1) end )	
+	
 	table.insert(allPaths, index1, path2)
-	table.remove(allPaths, index2)
+	controllers.undo.addAction(	"Swap Path Table Op 2",
+								function() table.remove(allPaths, index1) end,
+								function() table.insert(allPaths, index1, path2) end )
+
+	table.remove(allPaths, index2)	
+	controllers.undo.addAction(	"Swap Path Table Op 3",
+								function() table.insert(allPaths, index2, path2) end,
+								function() table.remove(allPaths, index2) end )	
+
 	table.insert(allPaths, index2, path1)
+	controllers.undo.addAction(	"Swap Path Table Op 1",
+								function() table.remove(allPaths, index2) end,
+								function() table.insert(allPaths, index2, path1) end )	
+	
 
 	--update the cached indices
 	for i,p in ipairs(allPaths) do
+		local oldIndex = p.index
 		p.index = i
+		controllers.undo.addAction(	"Update cached index",
+									function() p.index = oldIndex end,
+									function() p.index = i end )
 	end
 
 	--inform all the paths of the change
@@ -134,24 +179,39 @@ function basemodel.swapPathOrder(index1, index2)
 		d:swapPathOrders(path1, path2)
 	end
 
+	controllers.undo.endGroup("Swap Path Order")
+
 end
 
 
 
 function basemodel.deleteDrawable(drawable)
 
+	controllers.undo.startGroup("Delete Drawable")
+
 	--tell it to remove itself
 	drawable:delete()
 
 	--remove it from our set
-	util.tableDelete(allDrawables, drawable)
+	local oldIndex = util.tableDelete(allDrawables, drawable)
+	controllers.undo.addAction(	"Delete from allDrawables",
+								function() table.insert(allDrawables, oldIndex, drawable) end,
+								function() util.tableDelete(allDrawables, drawable) end )
+
+
+
 	
 	--look for empty paths to delete
 	local i=1
 	while i <= #allPaths do
 		if util.tableIsEmpty(allPaths[i]:allDrawables()) then
-			allPaths[i]:delete()
+			local oldPath = allPaths[i]
+			oldPath:delete()
 			table.remove(allPaths, i)
+			controllers.undo.addAction(	"Remove associated paths",
+										function() table.insert(allPaths, i, oldPath) end,
+										function() table.remove(allPaths, i) end )
+
 		else
 			i = i + 1
 		end
@@ -159,26 +219,43 @@ function basemodel.deleteDrawable(drawable)
 	
 	--update the cached indices
 	for i,p in ipairs(allPaths) do
+		local oldIndex = p.index
 		p.index = i
+		controllers.undo.addAction(	"Update Cached Indices",
+										function() p.index = oldIndex end,
+										function() p.index = i end )
 	end
+	
+	controllers.undo.endGroup("Delete Drawable")
 	
 end
 
 
 function basemodel.deleteDrawables(drawablesList)
+
+	controllers.undo.startGroup("Delete Drawables")
+
 	assert(util.tableCount(drawablesList) > 0, "list should contain some drawables")
 
 	for _,d in pairs(util.clone(drawablesList)) do
 		basemodel.deleteDrawable(d)
 	end
+	
+	controllers.undo.endGroup("Delete Drawables")
 end
 
 
 function basemodel.clearAll()
+
+	controllers.undo.startGroup("Clear All")
+	
 	if util.tableCount(basemodel.allDrawables()) > 0 then 
 		basemodel.deleteDrawables(basemodel.allDrawables())
 	end
+	
+	controllers.undo.endGroup("Clear All")
 end
+
 
 --	todo: basemodel.drawablesVisibleAtTime(time) -> drawableList ??
 

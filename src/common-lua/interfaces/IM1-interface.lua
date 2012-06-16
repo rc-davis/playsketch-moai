@@ -50,8 +50,14 @@ g_addPathButton = widgets.textButton.new(320, 288, 128, 64, "new path", interact
 g_addPathButton:setEnabled(false)
 
 
+-- undo redo buttons
+g_undoButton = widgets.textButton.new(320, 480, 128, 64, "Undo", controllers.undo.performUndo)
+g_redoButton = widgets.textButton.new(320, 416, 128, 64, "Redo", controllers.undo.performRedo)
+g_undoButton:setEnabled(false)
+g_redoButton:setEnabled(false)
+
 -- clear button
-widgets.newSimpleButton(320, 480, 128, 64,
+widgets.newSimpleButton(320, 352, 128, 64,
 					'resources/IM1/button_clear.png',
 					'resources/IM1/button_clear_down.png', nil,
 					interactormodel.clearAll, nil)

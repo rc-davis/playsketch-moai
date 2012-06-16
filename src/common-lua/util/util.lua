@@ -31,7 +31,7 @@ function util.tableDelete(tab, valref)
 	for i=1,#tab do
 		if tab[i] == valref then
 			table.remove(tab, i)
-			return
+			return i
 		end
 	end
 end
@@ -77,6 +77,13 @@ function util.clone(t)
 	return l
 end
 
+function util.any(tab, predicate)
+	if predicate == nil then predicate = function (o) return o end end
+	for _,o in pairs(tab) do
+		if predicate(o) then return true end
+	end
+	return false
+end
 
 function util.interpolate(time, val1, time1, val2, time2)
 

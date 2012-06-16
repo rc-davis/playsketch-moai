@@ -40,6 +40,11 @@ function Drawable:init(prop)
 	self.prop.visible = true
 	self.paths = {}
 	drawingLayer:insertProp (prop)
+	
+	controllers.undo.addAction(	"Init Drawable",
+								function() drawingLayer:removeProp (prop) end,
+								function() drawingLayer:insertProp (prop) end )
+	
 	return self
 end
 
@@ -49,11 +54,29 @@ function Drawable:addPath(path)
 	self.paths[path] = MOAIProp2D.new ()
 	drawingLayer:insertProp(self.paths[path])
 	path.drawables[self] = self
+
+	controllers.undo.addAction(	"Add Path to Drawable",
+							function() self:removePath(path) end,
+							function() self:addPath(path) end )
 	
 	-- brute-force redo our inheritance
 	-- TODO: this might be a good place to optimize if adding new transforms is slow
 	self:redoPathHierarchy()
 	
+end
+
+function Drawable:removePath(path)
+
+	--create a new proxy Prop for it
+	path.drawables[self] = nil
+	drawingLayer:removeProp(self.paths[path])
+	self.paths[path] = nil	
+	
+	controllers.undo.addAction(	"Remove Path from Drawable",
+							function() self:addPath(path) end,
+							function() self:removePath(path) end )
+	
+	self:redoPathHierarchy()
 end
 
 function Drawable:affectedByPath(path)
@@ -65,20 +88,22 @@ function Drawable:delete()
 	drawingLayer:removeProp(self.prop)
 	
 	--remove paths
-	for path,pathprop in pairs(self.paths) do
-		drawingLayer:removeProp(pathprop)
-		path.drawables[self] = nil
-		self.paths[path] = nil
+	for path,_ in pairs(self.paths) do
+		self:removePath(path)
 	end
+	
+	controllers.undo.addAction(	"Delete Drawable",
+							function() self:init(self.prop) end,
+							function() self:delete() end )
+	
 end
 
 ----------------- PRIVATE
 
-function Drawable:swapPathOrders(path1, path2)
+function Drawable:pathOrdersUpdated(pathlist)
 	
-	--TODO: this might be a good place to optimize if we end up swapping often
-
-	if self.paths[path1] or self.paths[path2] then
+	--TODO: this might be a good place to optimize if we end up calling this often
+	if util.any(pathlist, function (o) return self.paths[o] ~= nil end) then
 		self:redoPathHierarchy()
 	end
 end

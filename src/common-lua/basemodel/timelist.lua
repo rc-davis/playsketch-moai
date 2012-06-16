@@ -87,6 +87,10 @@ function TimeList:makeFrameForTime(time, precedingFrame)
 		if precedingFrame:next() then precedingFrame:next():setPrevious(newFrame) end
 		precedingFrame:setNext(newFrame)
 		self.listSize = self.listSize + 1
+		controllers.undo.addAction(	"Increment List Size",
+								function() self.listSize = self.listSize - 1 end,
+								function() self.listSize = self.listSize + 1 end )
+
 		return newFrame
 	end
 end
@@ -101,6 +105,11 @@ function TimeList:deleteFrame(frame)
 	end
 	--TODO: We are assuming that frame actually belongs to self!
 	self.listSize = self.listSize - 1
+	controllers.undo.addAction(	"Decrement List Size",
+							function() self.listSize = self.listSize + 1 end,
+							function() self.listSize = self.listSize - 1 end )
+
+	
 end
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time

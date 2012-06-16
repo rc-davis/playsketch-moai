@@ -17,8 +17,7 @@
 	a set of drawables over time.
 
 	TODO: Using linked-list timelists for: srtv AND keyframes.
-	Keyframes should be abstracted more nicely, and we should be able to use keyframes to 
-	speed up lookup along the timelists (like a skiplist) 
+	should be able to use keyframes to speed up lookup along the timelists (like a skiplist) 
 
 --]]
 
@@ -35,22 +34,28 @@ end
 
 --Path methods
 function Path:init(index, defaultVisibility)
+
 	self.class = "Path"
 
 	self.timelists = {	scale=basemodel.timelist.new(1),
-						rotate=basemodel.timelist.new(0),
-						translate=basemodel.timelist.new({x=0,y=0}),
-						visibility=basemodel.timelist.new(defaultVisibility) }
-	self.keyframes = basemodel.timelist.new({})
+							rotate=basemodel.timelist.new(0),
+							translate=basemodel.timelist.new({x=0,y=0}),
+							visibility=basemodel.timelist.new(defaultVisibility) }
 
+	self.keyframes = basemodel.timelist.new({})
 	self.index = index
 	self.drawables = {}
 	self.cache = {}
 	self:cacheAtTime(0)
-	
+
 	return self
 
 end
+
+function Path:delete()
+	assert(util.tableIsEmpty(self:allDrawables()), "Shouldn't be deleting a path that drawables are still using!")
+end
+
 
 function Path:stateAtTime(time)
 	local scale = self.timelists.scale:getInterpolatedValueForTime(time)
@@ -87,35 +92,60 @@ end
 
 function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, keyframeBlendFrom, keyframeBlendTo)
 
+	controllers.undo.startGroup("Path: Add Keyframed Motion")
+
 	assert(scaleValue or rotateValue or translateValue, "a keyframe needs at least one value")
 
 	--create/retrieve keyframe
 	local keyframe = self.keyframes:makeFrameForTime(time)
 
+controllers.undo.addAction(	"debug msg1",
+								function() end,
+								function() end )
+
 	-- add data to stream
 	if scaleValue then
 		local frame = self.timelists.scale:setValueForTime(time, scaleValue)
-		keyframe:value().scale = frame
+		keyframe:setTableValue('scale', frame)
 	end
+
+controllers.undo.addAction(	"debug msg2",
+								function() end,
+								function() end )
+
 
 	if rotateValue then
 		local frame = self.timelists.rotate:setValueForTime(time, rotateValue)
-		keyframe:value().rotate = frame
+		keyframe:setTableValue('rotate', frame)
 	end
+
+controllers.undo.addAction(	"debug msg3",
+								function() end,
+								function() end )
+
 
 	if translateValue then
 		local frame = self.timelists.translate:setValueForTime(time, translateValue)
-		keyframe:value().translate = frame
+		keyframe:setTableValue('translate', frame)
 	end
+	
+	controllers.undo.addAction(	"debug msg4",
+								function() end,
+								function() end )
+
 	
 	--TODO: BLENDING
 	assert(keyframeBlendFrom == nil and keyframeBlendTo == nil, "keyframe blending not yet implemented")
 	
 	--Kick our related Drawables to update their position to reflect this
 	self:cacheAtTime(time)
+	
+	controllers.undo.endGroup("Path: Add Keyframed Motion")	
 end
 
 function Path:startRecordedMotion(time)
+
+	controllers.undo.startGroup("Path Recorded Motion")
 
 	-- create a recorded motion session token
 	local recordedMotionSession = {}
@@ -178,9 +208,16 @@ function Path:startRecordedMotion(time)
 		while keyframe:next() and keyframe:next():time() <= endTime do
 
 			--zero out elements of the keyframe we are writing to
-			if self.dataTypes.scale then keyframe:next():value().scale = nil end
-			if self.dataTypes.rotate then keyframe:next():value().rotate = nil end
-			if self.dataTypes.translate then keyframe:next():value().translate = nil end
+			if self.dataTypes.scale then 
+				keyframe:next():setTableValue('scale', nil)
+			end
+			if self.dataTypes.rotate then
+				keyframe:next():setTableValue('rotate', nil)
+			end
+			
+			if self.dataTypes.translate then
+				keyframe:next():setTableValue('translate', nil)
+			end
 
 			if util.tableCount(keyframe:next():value()) == 0 then
 				self.path.keyframes:deleteFrame(keyframe:next())
@@ -197,8 +234,8 @@ function Path:startRecordedMotion(time)
 		-- Set the correct types for the keyframes by pointing at their corresponding frames
 		for _,dataType in pairs({'scale', 'rotate', 'translate'}) do
 			if self.dataTypes[dataType] then
-				keyframeStart:value()[dataType] = self.start[dataType]
-				keyframeEnd:value()[dataType] = self.finish[dataType]
+				keyframeStart:setTableValue(dataType, self.start[dataType] )
+				keyframeEnd:setTableValue(dataType, self.finish[dataType] )
 				self.start[dataType]:setMetadata('recorded', nil)
 				self.finish[dataType]:setMetadata('recorded', nil)
 			end
@@ -206,9 +243,11 @@ function Path:startRecordedMotion(time)
 
 		-- Set a visibility keyframe if we had to toggle visibility explicitly
 		if self.start.visibility then
-			keyframeStart:value().visibility = self.start.visibility
-			keyframeEnd:value().visibility = self.path:setVisibility(endTime, true)
+			keyframeStart:setTableValue('visibility', self.start.visibility)
+			keyframeEnd:setTableValue('visibility', self.path:setVisibility(endTime, true))
 		end
+
+		controllers.undo.endGroup("Path Recorded Motion")
 
 	end
 
@@ -219,16 +258,16 @@ end
 --[[
 
 	if scaleStream then 
-		keyframeStart:value().scale = self.timelists.scale:getFrameForTime(startTime)
-		keyframeEnd:value().scale = self.timelists.scale:getFrameForTime(endTime)
+		keyframeStart:setTableValue('scale', self.timelists.scale:getFrameForTime(startTime))
+		keyframeEnd:setTableValue('scale', self.timelists.scale:getFrameForTime(endTime))_
 	end
 	if rotateStream then 
-		keyframeStart:value().rotate = self.timelists.rotate:getFrameForTime(startTime)
-		keyframeEnd:value().rotate = self.timelists.rotate:getFrameForTime(endTime)
+		keyframeStart:setTableValue('rotate', self.timelists.rotate:getFrameForTime(startTime))
+		keyframeEnd:setTableValue('rotate', self.timelists.rotate:getFrameForTime(endTime))
 	end
 	if translateStream then 
-		keyframeStart:value().translate = self.timelists.translate:getFrameForTime(startTime)
-		keyframeEnd:value().translate = self.timelists.translate:getFrameForTime(endTime)
+		keyframeStart:setTableValue('translate', self.timelists.translate:getFrameForTime(startTime))
+		keyframeEnd:setTableValue('translate', self.timelists.translate:getFrameForTime(endTime))
 	end
 
 --]]
@@ -237,7 +276,7 @@ function Path:setVisibility(time, visible)
 	-- Add the new value to the list
 	local frame = self.timelists.visibility:setValueForTime(time, visible)
 	local keyframe = self.keyframes:makeFrameForTime(time)
-	keyframe:value().visibility = frame
+	keyframe:setTableValue('visibility', frame)
 	
 	-- Run through the list and remove redundancies
 	local framePrevious = self.timelists.visibility.firstFrame
@@ -248,11 +287,11 @@ function Path:setVisibility(time, visible)
 			--first remove the corresponding keyframe
 			local oldKeyframe = self.keyframes:getFrameForTime(frameCurrent:time())
 			assert(oldKeyframe:time() == frameCurrent:time(), "Every visibility timelist frame corresponds to a keyframe")
-			assert(oldKeyframe:value().visibility == frameCurrent, "Should be removing the right keyframe")
-			if oldKeyframe:value().visibility ~= nil and util.tableCount(oldKeyframe) == 1 then
+			assert(oldKeyframe:tableValue('visibility') == frameCurrent, "Should be removing the right keyframe")
+			if oldKeyframe:tableValue('visibility') ~= nil and util.tableCount(oldKeyframe) == 1 then
 				self.keyframes:deleteFrame(oldKeyframe)
 			else
-				oldKeyframe:value().visibility = nil
+				oldKeyframe:setTableValue('visibility', nil)
 			end
 			
 			-- then remove the actual visibility list:
@@ -273,13 +312,6 @@ function Path:allDrawables()
 	return self.drawables
 end
 
-
-function Path:delete()
-	self.timelists = nil
-	self.keyframes = nil
-	self.index = nil
-	assert(util.tableIsEmpty(self:allDrawables()), "Shouldn't be deleting a path that drawables are still using!")
-end
 
 --[[
 TODO: 

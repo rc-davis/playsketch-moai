@@ -33,5 +33,6 @@ require "controllers/disk"
 require "controllers/playback"
 require "controllers/timeline"
 require "controllers/selection"
+require "controllers/undo"
 
 return controllers

@@ -41,7 +41,7 @@ end
 
 function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 
-	if self.currentPath then						
+	if self.currentPath and self.currentPath:keyframeTimelist() then						
 
 		local keyframeWidth = 30
 		MOAIGfxDevice.setPenColor (0, 0, 0, 0.5)
