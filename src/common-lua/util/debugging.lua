@@ -12,6 +12,16 @@
 util.debugging = {}
 
 
+-- Override the the default assert to give a stacktrace and better message
+assert = function (stmt, msg)
+	if not stmt then
+		print("\n\n!!ASSERTION FAILED:", msg)
+		print(debug.traceback())
+		os.exit()
+	end
+end
+
+
 -- print_deep(): a print function that recurses into tables
 function print_deep(t, depth, followed)
 	if followed == nil then followed = {} end
