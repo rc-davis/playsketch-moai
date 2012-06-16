@@ -25,6 +25,7 @@ basemodel = {}
 basemodel.motionTypes = {SCALE=1, ROTATE=2, TRANSLATE=3, VISIBILITY=4}
 
 require "basemodel/drawable"
+require "basemodel/keyframe"
 require "basemodel/path"
 require "basemodel/timelist"
 require "util/util"

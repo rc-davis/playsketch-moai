@@ -104,21 +104,21 @@ function controllers.playback.startPlayingPath(path, time)
 		local it = timelist:begin()
 
 		--advance iterator to start time, ignoring past keyframes
-		while not it:done() and it:time() <= controllers.timeline.currentTime() do
+		while not it:done() and it:current():time() <= controllers.timeline.currentTime() do
 				it:next()
 		end
 	
 		-- move through remaining ones animating
 		while not it:done() do
 		
-			if it:metadata().recorded then
-				while not it:done() and it:time() > controllers.timeline.currentTime() do
+			if it:current():metadata('recorded') then
+				while not it:done() and it:current():time() > controllers.timeline.currentTime() do
 					coroutine.yield()
 				end
 
 				for _,drawable in pairs(path.drawables) do
 					local prop = drawable:propForPath(path)
-					staticFunction(prop, it:value())
+					staticFunction(prop, it:current():value())
 				end
 
 				activeAnimations[thisThread] = {}
@@ -128,11 +128,11 @@ function controllers.playback.startPlayingPath(path, time)
 					MOAIThread.blockOnAction(util.tableAny(activeAnimations[thisThread]))
 				end
 		
-				local timeDelta = it:time() - controllers.timeline.currentTime() 
+				local timeDelta = it:current():time() - controllers.timeline.currentTime() 
 				activeAnimations[thisThread] = {}
 				for _,drawable in pairs(path.drawables) do
 					local prop = drawable:propForPath(path)
-					local a = animationFunction(prop, timeDelta, it:value())
+					local a = animationFunction(prop, timeDelta, it:current():value())
 					activeAnimations[thisThread][a] = a
 				end
 			

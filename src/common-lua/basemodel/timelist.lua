@@ -43,8 +43,9 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = { time=basemodel.timelist.NEGINFINITY, value=defaultValue, nextFrame=nil, previousFrame=nil, metadata={} }
+	self.firstFrame = basemodel.keyframe.new(basemodel.timelist.NEGINFINITY, defaultValue)
 	self.listSize = 0
+	self.defaultValue = defaultValue
 	return self
 end
 
@@ -55,19 +56,20 @@ end
 
 -- getFrameForTime(time):	Returns the node with the time <= 'time'
 function TimeList:getFrameForTime(time)
-	local frame = self.firstFrame
-	while 	frame ~= nil and
-			frame.nextFrame ~= nil 
-			and frame.nextFrame.time <= time do
-		frame = frame.nextFrame	
+	local toReturn = nil
+	local it = self:begin()
+	while not it:done() and it:current():time() <= time do
+		toReturn = it:current()
+		it:next()
 	end
-	return frame
+	return toReturn
 end
 
 
--- makeFrameForTime(time, defaultValue):	Creates and returns a new frame at the right place in the linked list
---											DefaultValue is set as the value if the frame is newly created
-function TimeList:makeFrameForTime(time, defaultValue, precedingFrame)
+-- makeFrameForTime(time):	Creates and returns a new frame at the right place in the linked list
+--							its value is set to self.defaultValue
+--							precedingFrame is optional and used as a hint
+function TimeList:makeFrameForTime(time, precedingFrame)
 
 	if not precedingFrame then 
 		precedingFrame = self:getFrameForTime(time)
@@ -75,61 +77,46 @@ function TimeList:makeFrameForTime(time, defaultValue, precedingFrame)
 	
 	assert(precedingFrame ~= nil, "shouldn't be making a frame without a preceding frame")
 
-	if precedingFrame.time == time then
+	if precedingFrame:time() == time then
 		return precedingFrame
 	else
-		assert(precedingFrame.time < time and 
-				(not precedingFrame.nextFrame or precedingFrame.nextFrame.time > time), 
+		assert(precedingFrame:time() < time and 
+				(not precedingFrame:next() or precedingFrame:next():time() > time), 
 				"inserted frames must maintain a strict ordering!")
-		local newFrame = {	time=time, nextFrame = precedingFrame.nextFrame, previousFrame=precedingFrame, metadata={} }
-		if precedingFrame.nextFrame then precedingFrame.nextFrame.previousFrame = newFrame end
-		precedingFrame.nextFrame = newFrame
+		local newFrame = basemodel.keyframe.new(time, self.defaultValue, precedingFrame, precedingFrame:next())
+		if precedingFrame:next() then precedingFrame:next():setPrevious(newFrame) end
+		precedingFrame:setNext(newFrame)
 		self.listSize = self.listSize + 1
-		newFrame.value = defaultValue
 		return newFrame
 	end
 end
 
 function TimeList:deleteFrame(frame)
 
-	assert(frame.time ~= basemodel.timelist.NEGINFINITY, "Shouldn't delete root frame")
-	--todo: verify membership in this list?
-	frame.previousFrame.nextFrame = frame.nextFrame
-	if frame.nextFrame then 
-		frame.nextFrame.previousFrame = frame.previousFrame
+	assert(frame ~= self.firstFrame, "Shouldn't delete root frame")
+
+	frame:previous():setNext(frame:next())
+	if frame:next() then 
+		frame:next():setPrevious(frame:previous())
 	end
+	--TODO: We are assuming that frame actually belongs to self!
 	self.listSize = self.listSize - 1
 end
-
-
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
 -- precedingFrame is an optional hint
 function TimeList:setValueForTime(time, value, precedingFrame)
-	local frame = self:makeFrameForTime(time, nil, precedingFrame)
+	local frame = self:makeFrameForTime(time, precedingFrame)
 	assert(frame ~= nil, "must retrieve a non-nil frame when making a new frame")
-	frame.value = util.clone(value)
+	frame:setValue(value)
 	return frame
-end
-
--- setFromList(list): 	Sets 'value' from an ORDERED list of the format: {time=t, value=v}
---						Does not overwrite the current contents
-function TimeList:setFromList(list)
-
-	--TODO: This could definitely be optimized to make recording faster if necessary
-	
-	for i,o in ipairs(list) do
-		local frame = self:makeFrameForTime(o.time, nil)
-		frame.value = o.value
-	end
 end
 
 -- getValueForTime(time): returns the value from the frame immediately <= 'time'
 function TimeList:getValueForTime(time)
 	local frame = self:getFrameForTime(time)
 	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")
-	if frame.value == nil then return frame.nextFrame.value
-	else return frame.value end
+	return frame:value()
 end
 
 
@@ -137,83 +124,41 @@ end
 function TimeList:getInterpolatedValueForTime(time)
 	local frame_before = self:getFrameForTime(time)
 	assert(frame_before ~= nil, "must retrieve a non-nil frame for any given time")
-	local frame_after = frame_before.nextFrame
+	local frame_after = frame_before:next()
 	
-	if frame_after == nil or frame_after.value == nil then 
-		return frame_before.value 
-	elseif frame_before.value == nil then 
-		return frame_after.value 
-	else
-		local pcnt = (time-frame_before.time)/(frame_after.time - frame_before.time)
-		local interp = nil
-		
-		--interpolate tables and single numbers
-		if type(frame_before.value) == "number" then
-			interp = frame_before.value*(1-pcnt) + frame_after.value*(pcnt)
-		elseif type(frame_before.value) == "table" then
-			interp = {}
-			for k,v in pairs(frame_before.value) do
-				if frame_after.value and type(v) == "number" then
-					interp[k] = v*(1-pcnt) + frame_after.value[k]*(pcnt)
-				else
-					interp[k] = v
-				end
-			end
-		end
-		return interp
-	end
-end
-
---conditional: is a function that takes a value and returns if it should be deleted
-function TimeList:erase(startTime, endTime, conditional)
-	if conditional == nil then
-		conditional = function (val) return true end
-	end
-
-	local first = self:getFrameForTime(startTime)
-	while first.nextFrame and first.nextFrame.time < endTime do
-		if conditional(first.nextFrame.value) then
-			first.nextFrame = first.nextFrame.nextFrame
-			if first.nextFrame then first.nextFrame.previousFrame = first end
-			self.listSize = self.listSize - 1
-		else
-			first = first.nextFrame
-		end
-	end
+	local valueBefore = frame_before:value()
+	local timeBefore = frame_before:time()
+	local valueAfter = frame_after and frame_after:value() or nil
+	local timeAfter = frame_after and frame_after:time() or nil
+	
+	return util.interpolate(time, 
+							valueBefore, timeBefore,
+							valueAfter, timeAfter)
 end
 
 -- Get an iterator for the TimeList
 -- use:	local it = list:begin()
 --		while not it:done() do
---			print(it:time(), it:value())
+--			local keyframe = it:current()
 --			it:next()
 --		end
 function TimeList:begin()
 	
 	local it = {}
-	it.current = self.firstFrame.nextFrame
-	
-	function it:time()
-		return it.current.time
-	end
+	it._current = self.firstFrame
 
-	function it:value()
-		return it.current.value
+	function it:current()
+		return it._current
 	end
-
-	function it:metadata()
-		return it.current.metadata
-	end
-
 
 	function it:next()
-		if it.current ~= nil then
-			it.current = it.current.nextFrame
+		if it._current ~= nil then
+			it._current = it._current:next()
 		end
 	end
 	
 	function it:done()
-		return it.current == nil
+		return it._current == nil
 	end
 
 	return it
@@ -222,37 +167,26 @@ end
 -- dump(): For debugging, dump the lists for o.
 function TimeList:dump()
 	print("====DUMP: ", o)
-	local f = self.firstFrame
-	local c = 1
-	while f ~= nil do
-		print("\t"..c..":\t")
-		for j,w in pairs(f) do
-			if j == 'nextFrame' or j == 'previousFrame' then
-				--pass
-			elseif type(w) ~= 'table' then
-				print ("\t", j.."=", w)
-			else
-				print ("\t", j.." = ", "{")
-				for k1,v1 in pairs(w) do
-					print ( "\t\t\t",k1.." = "..tostring(v1))
-				end
-				print ("\t\t", "}")
-			end
-		end
-		f = f.nextFrame
-		c = c+1
+	local it = self:begin()
+	while not it:done() do
+		print("time:",it:current():time())
+		print("\tvalue:")
+		print_deep(it:current():value(), 2)
+		print("\tmetadata:")
+		print_deep(it:current():metadata(), 2)
+		it:next()
 	end
 	print("====/DUMP")	
 end
 
 
 function TimeList:tableToSave()
-	return {firstFrame=self.firstFrame}
+	--TODO
 end
 
 
 function TimeList:loadFromTable(table)
-	self.firstFrame=table.firstFrame
+	--TODO
 end
 
 

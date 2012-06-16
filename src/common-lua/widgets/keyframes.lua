@@ -48,21 +48,21 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 
 		local it = self.currentPath:keyframeTimelist():begin()
 		while not it:done() do
-			local timePx =	(it:time() - controllers.timeline.span.min)/
+			local timePx =	(it:current():time() - controllers.timeline.span.min)/
 							(controllers.timeline.span.max - controllers.timeline.span.min) *
 							self.frame.size.width + self.frame.origin.x
 			
-			if it:value().scale then
+			if it:current():value().scale then
 				MOAIGfxDevice.setPenColor (1, 0, 0, 0.5)
 				MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y, 
 									timePx+keyframeWidth/2, self.frame.origin.y + self.frame.size.height*1/3)
 			end
-			if it:value().rotate then
+			if it:current():value().rotate then
 				MOAIGfxDevice.setPenColor (0, 1, 0, 0.5)
 				MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + self.frame.size.height*1/3, 
 									timePx+keyframeWidth/2, self.frame.origin.y + self.frame.size.height*2/3)
 			end
-			if it:value().translate then
+			if it:current():value().translate then
 				MOAIGfxDevice.setPenColor (0, 0, 1, 0.5)
 				MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + self.frame.size.height*2/3,
 									timePx+keyframeWidth/2, self.frame.origin.y + self.frame.size.height*3/3)

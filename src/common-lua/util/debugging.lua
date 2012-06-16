@@ -26,7 +26,7 @@ end
 function print_deep(t, depth, followed)
 	if followed == nil then followed = {} end
 	depth = depth or 0
-	local prefix = "" for i=1,depth,1 do prefix = prefix .. "  " end
+	local prefix = "" for i=1,depth,1 do prefix = prefix .. "\t" end
 
 	if type(t) == "table" then
 		print(prefix.."{")

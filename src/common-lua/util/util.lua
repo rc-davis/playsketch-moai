@@ -77,4 +77,37 @@ function util.clone(t)
 	return l
 end
 
+
+function util.interpolate(time, val1, time1, val2, time2)
+
+	if not val1 and not val2 then
+		return nil
+
+	elseif val1 and not val2 then
+		return val1
+
+	elseif val2 and not val1 then
+		return val2
+		
+	else -- we have both!
+		assert(time1 and time2, "Need both times to interpolate")
+		local pcnt = (time - time1)/(time2 - time1)	
+	
+		-- simple number interpolation
+		if type(val1) == "number" then
+			return val1*(1-pcnt) + val2*(pcnt)
+
+		-- recursively attack tables
+		elseif type(val1) == "table" then
+			local result = {}
+			for k,v in pairs(val1) do
+				result[k] = util.interpolate(time, v, time1, val2[k], time2)
+			end
+			return result
+		else
+			assert(false, "Can't interpolate type: "..type(val1))
+		end
+	end
+end
+
 return util

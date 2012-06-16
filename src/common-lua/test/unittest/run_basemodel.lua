@@ -83,8 +83,8 @@ startSection("Testing basemodel")
 		local k5 = path1:keyframeBeforeTime(20)
 		local k6 = path1:keyframeBeforeTime(5000)
 		verify(k1 == nil and k2 == nil, "keyframeBeforeTime(): no keyframes before the new one")
-		verify(k3.time == 10 and k3 == k4, "keyframeBeforeTime(): between keyframes returns 10")
-		verify(k5.time == 20 and k5 == k6, "keyframeBeforeTime(): future keyframes returns 20")
+		verify(k3:time() == 10 and k3 == k4, "keyframeBeforeTime(): between keyframes returns 10")
+		verify(k5:time() == 20 and k5 == k6, "keyframeBeforeTime(): future keyframes returns 20")
 		basemodel.deleteDrawable(drawable1)
 		drawable1 = nil
 		path1 = nil
