@@ -43,7 +43,7 @@ end
 
 function TimeList:init(defaultValue)
 	self.class = "TimeList"
-	self.firstFrame = basemodel.keyframe.new(basemodel.timelist.NEGINFINITY, defaultValue)
+	self.firstNode = basemodel.timelistNode.new(basemodel.timelist.NEGINFINITY, defaultValue)
 	self.listSize = 0
 	self.defaultValue = defaultValue
 	return self
@@ -54,8 +54,8 @@ function TimeList:size()
 end
 
 
--- getFrameForTime(time):	Returns the node with the time <= 'time'
-function TimeList:getFrameForTime(time)
+-- getNodeForTime(time):	Returns the node with the time <= 'time'
+function TimeList:getNodeForTime(time)
 	local toReturn = nil
 	local it = self:begin()
 	while not it:done() and it:current():time() <= time do
@@ -66,44 +66,44 @@ function TimeList:getFrameForTime(time)
 end
 
 
--- makeFrameForTime(time):	Creates and returns a new frame at the right place in the linked list
+-- makeNodeForTime(time):	Creates and returns a new node at the right place in the linked list
 --							its value is set to self.defaultValue
---							precedingFrame is optional and used as a hint
-function TimeList:makeFrameForTime(time, precedingFrame)
+--							precedingNode is optional and used as a hint
+function TimeList:makeNodeForTime(time, precedingNode)
 
-	if not precedingFrame then 
-		precedingFrame = self:getFrameForTime(time)
+	if not precedingNode then 
+		precedingNode = self:getNodeForTime(time)
 	end
 	
-	assert(precedingFrame ~= nil, "shouldn't be making a frame without a preceding frame")
+	assert(precedingNode ~= nil, "shouldn't be making a node without a preceding node")
 
-	if precedingFrame:time() == time then
-		return precedingFrame
+	if precedingNode:time() == time then
+		return precedingNode
 	else
-		assert(precedingFrame:time() < time and 
-				(not precedingFrame:next() or precedingFrame:next():time() > time), 
-				"inserted frames must maintain a strict ordering!")
-		local newFrame = basemodel.keyframe.new(time, self.defaultValue, precedingFrame, precedingFrame:next())
-		if precedingFrame:next() then precedingFrame:next():setPrevious(newFrame) end
-		precedingFrame:setNext(newFrame)
+		assert(precedingNode:time() < time and 
+				(not precedingNode:next() or precedingNode:next():time() > time), 
+				"inserted nodes must maintain a strict ordering!")
+		local newNode = basemodel.timelistNode.new(time, self.defaultValue, precedingNode, precedingNode:next())
+		if precedingNode:next() then precedingNode:next():setPrevious(newNode) end
+		precedingNode:setNext(newNode)
 		self.listSize = self.listSize + 1
 		controllers.undo.addAction(	"Increment List Size",
 								function() self.listSize = self.listSize - 1 end,
 								function() self.listSize = self.listSize + 1 end )
 
-		return newFrame
+		return newNode
 	end
 end
 
-function TimeList:deleteFrame(frame)
+function TimeList:deleteNode(node)
 
-	assert(frame ~= self.firstFrame, "Shouldn't delete root frame")
+	assert(node ~= self.firstNode, "Shouldn't delete root node")
 
-	frame:previous():setNext(frame:next())
-	if frame:next() then 
-		frame:next():setPrevious(frame:previous())
+	node:previous():setNext(node:next())
+	if node:next() then 
+		node:next():setPrevious(node:previous())
 	end
-	--TODO: We are assuming that frame actually belongs to self!
+	--TODO: We are assuming that node actually belongs to self!
 	self.listSize = self.listSize - 1
 	controllers.undo.addAction(	"Decrement List Size",
 							function() self.listSize = self.listSize + 1 end,
@@ -113,32 +113,32 @@ function TimeList:deleteFrame(frame)
 end
 
 -- setValueForTime(time, value): Sets 'value' at 'time', replacing a pre-existing value at the EXACT same time
--- precedingFrame is an optional hint
-function TimeList:setValueForTime(time, value, precedingFrame)
-	local frame = self:makeFrameForTime(time, precedingFrame)
-	assert(frame ~= nil, "must retrieve a non-nil frame when making a new frame")
-	frame:setValue(value)
-	return frame
+-- precedingNode is an optional hint
+function TimeList:setValueForTime(time, value, precedingNode)
+	local node = self:makeNodeForTime(time, precedingNode)
+	assert(node ~= nil, "must retrieve a non-nil node when making a new node")
+	node:setValue(value)
+	return node
 end
 
--- getValueForTime(time): returns the value from the frame immediately <= 'time'
+-- getValueForTime(time): returns the value from the node immediately <= 'time'
 function TimeList:getValueForTime(time)
-	local frame = self:getFrameForTime(time)
-	assert(frame ~= nil, "must retrieve a non-nil frame for any given time")
-	return frame:value()
+	local node = self:getNodeForTime(time)
+	assert(node ~= nil, "must retrieve a non-nil node for any given time")
+	return node:value()
 end
 
 
--- getInterpolatedValueForTime(time): interpolates the value between the frames around 'time' 
+-- getInterpolatedValueForTime(time): interpolates the value between the nodes around 'time' 
 function TimeList:getInterpolatedValueForTime(time)
-	local frame_before = self:getFrameForTime(time)
-	assert(frame_before ~= nil, "must retrieve a non-nil frame for any given time")
-	local frame_after = frame_before:next()
+	local node_before = self:getNodeForTime(time)
+	assert(node_before ~= nil, "must retrieve a non-nil node for any given time")
+	local node_after = node_before:next()
 	
-	local valueBefore = frame_before:value()
-	local timeBefore = frame_before:time()
-	local valueAfter = frame_after and frame_after:value() or nil
-	local timeAfter = frame_after and frame_after:time() or nil
+	local valueBefore = node_before:value()
+	local timeBefore = node_before:time()
+	local valueAfter = node_after and node_after:value() or nil
+	local timeAfter = node_after and node_after:time() or nil
 	
 	return util.interpolate(time, 
 							valueBefore, timeBefore,
@@ -148,13 +148,13 @@ end
 -- Get an iterator for the TimeList
 -- use:	local it = list:begin()
 --		while not it:done() do
---			local keyframe = it:current()
+--			local node = it:current()
 --			it:next()
 --		end
 function TimeList:begin()
 	
 	local it = {}
-	it._current = self.firstFrame
+	it._current = self.firstNode
 
 	function it:current()
 		return it._current

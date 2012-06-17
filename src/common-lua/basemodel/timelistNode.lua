@@ -11,7 +11,7 @@
 
 --[[
 
-	basemodel/keyframe.lua
+	basemodel/timelistNode.lua
 	
 	A linked-list node which is used by timelists to contain each element.
 	Consists of:
@@ -23,36 +23,36 @@
 --]]
 
 
-basemodel.keyframe = {}
+basemodel.timelistNode = {}
 
-local Keyframe = {}
+local TimelistNode = {}
 
-function basemodel.keyframe.new(time, value, previous, next)
-	return util.clone(Keyframe):init(time, value, previous, next)
+function basemodel.timelistNode.new(time, value, previous, next)
+	return util.clone(TimelistNode):init(time, value, previous, next)
 end
 
 
 
------ Keyframe methods -----
+----- TimelistNode methods -----
 
-function Keyframe:init(time, value, previous, next, metadata)
+function TimelistNode:init(time, value, previous, next, metadata)
 
 	if metadata == nil then metadata = {} end
 	
-	self.class = "Keyframe"
+	self.class = "TimelistNode"
 	self._time = time
 	self._value = util.clone(value)
 	self._metadata = metadata
-	self._previousKeyframe = previous
-	self._nextKeyframe = next
+	self._previousTimelistNode = previous
+	self._nextTimelistNode = next
 
 	return self
 end
 
-function Keyframe:delete()
+function TimelistNode:delete()
 
-	self._nextKeyframe = nil
-	self._previousKeyframe = nil	
+	self._nextTimelistNode = nil
+	self._previousTimelistNode = nil	
 	self._metadata = nil
 	self._value = nil
 	self._time = nil
@@ -63,20 +63,20 @@ end
 
 -- Accessors 
 
-function Keyframe:time()
+function TimelistNode:time()
 	return self._time
 end
 
-function Keyframe:value()
+function TimelistNode:value()
 	return self._value
 end
 
-function Keyframe:setValue(v)
+function TimelistNode:setValue(v)
 
 	local oldValue = self._value
 	local newValue = util.clone(v)
 
-	controllers.undo.addAction(	"Keyframe set value",
+	controllers.undo.addAction(	"TimelistNode set value",
 						function() self._value = oldValue end,
 						function() self._value = newValue end )	
 
@@ -86,17 +86,17 @@ end
 
 
 -- Set value one level deep (can we do without this?) TODO: remove both of these
-function Keyframe:tableValue(key)
+function TimelistNode:tableValue(key)
 	return self._value[key]
 end
 
 
-function Keyframe:setTableValue(key, value)
+function TimelistNode:setTableValue(key, value)
 
 	local oldValue = self._value[key]
 	local newValue = util.clone(value)
 
-	controllers.undo.addAction(	"Keyframe set Table Value",
+	controllers.undo.addAction(	"TimelistNode set Table Value",
 						function() self._value[key] = oldValue end,
 						function() self._value[key] = newValue end )	
 
@@ -106,56 +106,56 @@ end
 
 
 
-function Keyframe:metadata(key)
+function TimelistNode:metadata(key)
 	return self._metadata[key]
 end
 
-function Keyframe:setMetadata(key, value)
+function TimelistNode:setMetadata(key, value)
 	assert(key ~= nil, "Need a key")
 
 	local oldValue = self._metadata[key]
 	local newValue = value
 	self._metadata[key] = newValue
 	
-	controllers.undo.addAction(	"Keyframe set metadata",
+	controllers.undo.addAction(	"TimelistNode set metadata",
 						function() self._metadata[key] = oldValue end,
 						function() self._metadata[key] = newValue end )		
 end
 
-function Keyframe:previous()
-	return self._previousKeyframe
+function TimelistNode:previous()
+	return self._previousTimelistNode
 end
 
-function Keyframe:setPrevious(keyframe)
-	assert(keyframe == nil or keyframe._time <= self._time, "Times should always be ordered!")
+function TimelistNode:setPrevious(timelistNode)
+	assert(timelistNode == nil or timelistNode._time <= self._time, "Times should always be ordered!")
 
-	local oldValue = self._previousKeyframe
-	local newValue = keyframe
-	self._previousKeyframe = newValue
+	local oldValue = self._previousTimelistNode
+	local newValue = timelistNode
+	self._previousTimelistNode = newValue
 	
-	controllers.undo.addAction(	"Keyframe set previous",
-						function() self._previousKeyframe = oldValue end,
-						function() self._previousKeyframe = newValue end )		
-	
-end
-
-function Keyframe:next()
-	return self._nextKeyframe
-end
-
-function Keyframe:setNext(keyframe)
-	assert(keyframe == nil or self._time <= keyframe._time, "Times should always be ordered!")
-
-	local oldValue = self._nextKeyframe
-	local newValue = keyframe
-
-	self._nextKeyframe = keyframe
-	
-	controllers.undo.addAction(	"Keyframe set next",
-						function() self._nextKeyframe = oldValue end,
-						function() self._nextKeyframe = newValue end )		
+	controllers.undo.addAction(	"TimelistNode set previous",
+						function() self._previousTimelistNode = oldValue end,
+						function() self._previousTimelistNode = newValue end )		
 	
 end
 
+function TimelistNode:next()
+	return self._nextTimelistNode
+end
 
-return basemodel.keyframe
+function TimelistNode:setNext(timelistNode)
+	assert(timelistNode == nil or self._time <= timelistNode._time, "Times should always be ordered!")
+
+	local oldValue = self._nextTimelistNode
+	local newValue = timelistNode
+
+	self._nextTimelistNode = timelistNode
+	
+	controllers.undo.addAction(	"TimelistNode set next",
+						function() self._nextTimelistNode = oldValue end,
+						function() self._nextTimelistNode = newValue end )		
+	
+end
+
+
+return basemodel.timelistNode

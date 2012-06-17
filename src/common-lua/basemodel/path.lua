@@ -82,7 +82,7 @@ function Path:keyframeTimelist()
 end
 
 function Path:keyframeBeforeTime(time)
-	local keyframe = self.keyframes:getFrameForTime(time)
+	local keyframe = self.keyframes:getNodeForTime(time)
 	if not keyframe or keyframe:time() == basemodel.timelist.NEGINFINITY then
 		return nil
 	else
@@ -97,7 +97,7 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	assert(scaleValue or rotateValue or translateValue, "a keyframe needs at least one value")
 
 	--create/retrieve keyframe
-	local keyframe = self.keyframes:makeFrameForTime(time)
+	local keyframe = self.keyframes:makeNodeForTime(time)
 
 controllers.undo.addAction(	"debug msg1",
 								function() end,
@@ -159,10 +159,10 @@ function Path:startRecordedMotion(time)
 	
 	-- Get pointers to the frames right before the start time (to advance as we record)
 	recordedMotionSession.frames = {}
-	recordedMotionSession.frames.scale = self.timelists.scale:getFrameForTime(time)
-	recordedMotionSession.frames.rotate = self.timelists.rotate:getFrameForTime(time)
-	recordedMotionSession.frames.translate = self.timelists.translate:getFrameForTime(time)
-	recordedMotionSession.frames.visibility = self.timelists.visibility:getFrameForTime(time)	
+	recordedMotionSession.frames.scale = self.timelists.scale:getNodeForTime(time)
+	recordedMotionSession.frames.rotate = self.timelists.rotate:getNodeForTime(time)
+	recordedMotionSession.frames.translate = self.timelists.translate:getNodeForTime(time)
+	recordedMotionSession.frames.visibility = self.timelists.visibility:getNodeForTime(time)	
 	
 	--Make the path visible if necessary (and remember a keyframe if this was necessary)
 	if not self.timelists.visibility:getValueForTime(time) then
@@ -181,7 +181,7 @@ function Path:startRecordedMotion(time)
 
 			-- erase data between our last pointer entry and the new time
 			while self.frames[dataType]:next() and self.frames[dataType]:next():time() <= time do
-				self.path.timelists[dataType]:deleteFrame(self.frames[dataType]:next())
+				self.path.timelists[dataType]:deleteNode(self.frames[dataType]:next())
 			end
 		
 			-- Set our new data properly
@@ -204,7 +204,7 @@ function Path:startRecordedMotion(time)
 	function recordedMotionSession:endSession(endTime)
 	
 		--erase old keyframes that are no longer necessary
-		local keyframe = self.path.keyframes:getFrameForTime(self.start.time)
+		local keyframe = self.path.keyframes:getNodeForTime(self.start.time)
 		while keyframe:next() and keyframe:next():time() <= endTime do
 
 			--zero out elements of the keyframe we are writing to
@@ -220,7 +220,7 @@ function Path:startRecordedMotion(time)
 			end
 
 			if util.tableCount(keyframe:next():value()) == 0 then
-				self.path.keyframes:deleteFrame(keyframe:next())
+				self.path.keyframes:deleteNode(keyframe:next())
 			else
 				keyframe = keyframe:next()
 			end
@@ -228,8 +228,8 @@ function Path:startRecordedMotion(time)
 	
 	
 		-- Add new keyframes at startTime and endTime
-		local keyframeStart = self.path.keyframes:makeFrameForTime(self.start.time)
-		local keyframeEnd = self.path.keyframes:makeFrameForTime(endTime)
+		local keyframeStart = self.path.keyframes:makeNodeForTime(self.start.time)
+		local keyframeEnd = self.path.keyframes:makeNodeForTime(endTime)
 		
 		-- Set the correct types for the keyframes by pointing at their corresponding frames
 		for _,dataType in pairs({'scale', 'rotate', 'translate'}) do
@@ -258,16 +258,16 @@ end
 --[[
 
 	if scaleStream then 
-		keyframeStart:setTableValue('scale', self.timelists.scale:getFrameForTime(startTime))
-		keyframeEnd:setTableValue('scale', self.timelists.scale:getFrameForTime(endTime))_
+		keyframeStart:setTableValue('scale', self.timelists.scale:getNodeForTime(startTime))
+		keyframeEnd:setTableValue('scale', self.timelists.scale:getNodeForTime(endTime))_
 	end
 	if rotateStream then 
-		keyframeStart:setTableValue('rotate', self.timelists.rotate:getFrameForTime(startTime))
-		keyframeEnd:setTableValue('rotate', self.timelists.rotate:getFrameForTime(endTime))
+		keyframeStart:setTableValue('rotate', self.timelists.rotate:getNodeForTime(startTime))
+		keyframeEnd:setTableValue('rotate', self.timelists.rotate:getNodeForTime(endTime))
 	end
 	if translateStream then 
-		keyframeStart:setTableValue('translate', self.timelists.translate:getFrameForTime(startTime))
-		keyframeEnd:setTableValue('translate', self.timelists.translate:getFrameForTime(endTime))
+		keyframeStart:setTableValue('translate', self.timelists.translate:getNodeForTime(startTime))
+		keyframeEnd:setTableValue('translate', self.timelists.translate:getNodeForTime(endTime))
 	end
 
 --]]
@@ -275,27 +275,28 @@ end
 function Path:setVisibility(time, visible)
 	-- Add the new value to the list
 	local frame = self.timelists.visibility:setValueForTime(time, visible)
-	local keyframe = self.keyframes:makeFrameForTime(time)
+	local keyframe = self.keyframes:makeNodeForTime(time)
 	keyframe:setTableValue('visibility', frame)
 	
 	-- Run through the list and remove redundancies
-	local framePrevious = self.timelists.visibility.firstFrame
-	local frameCurrent = self.timelists.visibility.firstFrame:next()
+	local framePrevious = self.timelists.visibility.firstNode
+	local frameCurrent = self.timelists.visibility.firstNode:next()
+
 	while frameCurrent ~= nil do
 		if frameCurrent:value() == framePrevious:value() then 	
 
 			--first remove the corresponding keyframe
-			local oldKeyframe = self.keyframes:getFrameForTime(frameCurrent:time())
+			local oldKeyframe = self.keyframes:getNodeForTime(frameCurrent:time())
 			assert(oldKeyframe:time() == frameCurrent:time(), "Every visibility timelist frame corresponds to a keyframe")
 			assert(oldKeyframe:tableValue('visibility') == frameCurrent, "Should be removing the right keyframe")
 			if oldKeyframe:tableValue('visibility') ~= nil and util.tableCount(oldKeyframe) == 1 then
-				self.keyframes:deleteFrame(oldKeyframe)
+				self.keyframes:deleteNode(oldKeyframe)
 			else
 				oldKeyframe:setTableValue('visibility', nil)
 			end
 			
 			-- then remove the actual visibility list:
-			self.timelists.visibility:deleteFrame(frameCurrent)
+			self.timelists.visibility:deleteNode(frameCurrent)
 
 			frameCurrent = framePrevious:next()
 		else
