@@ -83,7 +83,7 @@ function TimeList:makeNodeForTime(time, precedingNode)
 		assert(precedingNode:time() < time and 
 				(not precedingNode:next() or precedingNode:next():time() > time), 
 				"inserted nodes must maintain a strict ordering!")
-		local newNode = basemodel.timelistNode.new(time, self.defaultValue, precedingNode, precedingNode:next())
+		local newNode = basemodel.timelistNode.new(time, util.clone(self.defaultValue), precedingNode, precedingNode:next())
 		if precedingNode:next() then precedingNode:next():setPrevious(newNode) end
 		precedingNode:setNext(newNode)
 		self.listSize = self.listSize + 1

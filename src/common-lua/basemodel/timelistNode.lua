@@ -41,7 +41,7 @@ function TimelistNode:init(time, value, previous, next, metadata)
 	
 	self.class = "TimelistNode"
 	self._time = time
-	self._value = util.clone(value)
+	self._value = value
 	self._metadata = metadata
 	self._previousTimelistNode = previous
 	self._nextTimelistNode = next
@@ -74,7 +74,7 @@ end
 function TimelistNode:setValue(v)
 
 	local oldValue = self._value
-	local newValue = util.clone(v)
+	local newValue = v
 
 	controllers.undo.addAction(	"TimelistNode set value",
 						function() self._value = oldValue end,
@@ -94,7 +94,7 @@ end
 function TimelistNode:setTableValue(key, value)
 
 	local oldValue = self._value[key]
-	local newValue = util.clone(value)
+	local newValue = value
 
 	controllers.undo.addAction(	"TimelistNode set Table Value",
 						function() self._value[key] = oldValue end,
