@@ -33,20 +33,14 @@
 
 require "util/util"
 
+if not controllers then controllers = {} end
+
 controllers.undo = {}
 
 local pastActionStack = {} 		-- actions to be 'undone'
 local futureActionStack = {} 	-- actions that have been undone that can be redone
 local currentGroupStack = {}	-- The stack of currently active groups, so we can nest actions
 local recordUndos = true
-
--- TODO: this is temp and should be covered in our new shared state controller
-local function refreshInterface()
-	g_undoButton:setEnabled(not util.tableIsEmpty(pastActionStack))
-	g_redoButton:setEnabled(not util.tableIsEmpty(futureActionStack))
-	controllers.playback.refresh()
-end
-
 
 function controllers.undo.startGroup(groupname)
 
@@ -69,7 +63,7 @@ function controllers.undo.endGroup(groupname)
 	table.insert(pastActionStack, { endGroup=true, name=groupname })
 	futureActionStack = {} --clear out any redos sitting on the stack
 
-	refreshInterface()
+	--refreshInterface()
 
 end
 
@@ -116,7 +110,7 @@ function controllers.undo.performUndo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	refreshInterface()
+	--refreshInterface()
 end
 
 
@@ -149,6 +143,6 @@ function controllers.undo.performRedo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	refreshInterface()
+	--refreshInterface()
 end
 

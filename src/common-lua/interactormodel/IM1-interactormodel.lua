@@ -149,7 +149,7 @@ function interactormodel.makeNewUserPath()
 	if #interactormodel.getUserPaths() >= 10 then return end
 
 	local drawableArray = util.dictionaryValuesToArray(controllers.selection.selectedSet)
-	local path = basemodel.createNewPath(drawableArray, nil, true)
+	local path = basemodel.createNewPath(drawableArray, nil, controllers.timeline.currentTime(), true)
 	table.insert(userPaths, path)
 	
 	local label =	"Path " .. #interactormodel.getUserPaths() ..

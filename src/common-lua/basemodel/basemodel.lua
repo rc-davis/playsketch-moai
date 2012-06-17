@@ -29,6 +29,7 @@ require "basemodel/keyframe"
 require "basemodel/path"
 require "basemodel/timelist"
 require "util/util"
+require "controllers/undo"
 
 
 local allDrawables = {}
@@ -53,22 +54,35 @@ function basemodel.addNewDrawable(stroke, time)
 								function () table.insert(allDrawables, drawable) end )
 	table.insert(allDrawables, drawable)
 
+	-- create a new path to contain its location
+	local path = basemodel.createNewPath({drawable}, nil, time, false)
+	
+	-- set path to location
+	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
+
+	-- set visibility to come on only at current time
+	path:setVisibility(time, true)
+
+
+	--get it to display properly:
+	path:cacheAtTime(time)
+
 	controllers.undo.endGroup('New Drawable')
 
 	return drawable
 end
 
 
-function basemodel.addNewDrawables(strokeList, timeList, locationList)
+function basemodel.addNewDrawables(strokeList, timeList)
 
 	controllers.undo.startGroup("New Drawables")
 
-	assert(#strokeList == #timeList and #strokeList == #locationList, 
-		"addNewDrawables() requires three lists of the same length")
+	assert(#strokeList == #timeList,
+		"addNewDrawables() requires lists of the same length")
 
 	local addedDrawables = {}
 	for i=1,#strokeList do
-		local newDrawable = basemodel.addNewDrawable(strokeList[i], timeList[i], locationList[i])
+		local newDrawable = basemodel.addNewDrawable(strokeList[i], timeList[i])
 		table.insert(addedDrawables, newDrawable)
 	end
 
@@ -78,7 +92,7 @@ function basemodel.addNewDrawables(strokeList, timeList, locationList)
 end
 
 
-function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
+function basemodel.createNewPath(drawablesSet, index, time, defaultVisibility)
 
 	controllers.undo.startGroup("Create New Path")
 
@@ -93,6 +107,9 @@ function basemodel.createNewPath(drawablesSet, index, defaultVisibility)
 	controllers.undo.addAction(	'Table Insert Path',
 								function () table.remove(allPaths, index) end,
 								function () table.insert(allPaths, index, path) end )
+
+	-- add a neutral keyframe to anchor us at the current time
+	path:addKeyframedMotion(time, 1.0, 0, {x=0,y=0}, nil, nil)
 
 	--update the cached indices
 	for i,p in ipairs(allPaths) do
