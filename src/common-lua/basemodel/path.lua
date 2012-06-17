@@ -38,11 +38,15 @@ function Path:init(index, defaultVisibility)
 	self.class = "Path"
 
 	self.timelists = {	scale=basemodel.timelist.new(1),
-							rotate=basemodel.timelist.new(0),
-							translate=basemodel.timelist.new({x=0,y=0}),
-							visibility=basemodel.timelist.new(defaultVisibility) }
+						rotate=basemodel.timelist.new(0),
+						translate=basemodel.timelist.new({x=0,y=0}),
+						visibility=basemodel.timelist.new(defaultVisibility) }
 
-	self.keyframes = basemodel.timelist.new({})
+	self.keyframes = {	scale=basemodel.timelist.new(nil),
+						rotate=basemodel.timelist.new(nil),
+						translate=basemodel.timelist.new(nil),
+						visibility=basemodel.timelist.new(nil) }
+
 	self.index = index
 	self.drawables = {}
 	self.cache = {}
@@ -77,12 +81,12 @@ function Path:cached()
 	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
 end	
 
-function Path:keyframeTimelist()
-	return self.keyframes
+function Path:keyframeTimelist(motionType)
+	return self.keyframes[motionType]
 end
 
-function Path:keyframeBeforeTime(time)
-	local keyframe = self.keyframes:getNodeForTime(time)
+function Path:keyframeBeforeTime(time, motionType)
+	local keyframe = self.keyframes[motionType]:getNodeForTime(time)
 	if not keyframe or keyframe:time() == basemodel.timelist.NEGINFINITY then
 		return nil
 	else
@@ -96,43 +100,24 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 
 	assert(scaleValue or rotateValue or translateValue, "a keyframe needs at least one value")
 
-	--create/retrieve keyframe
-	local keyframe = self.keyframes:makeNodeForTime(time)
-
-controllers.undo.addAction(	"debug msg1",
-								function() end,
-								function() end )
-
 	-- add data to stream
 	if scaleValue then
 		local frame = self.timelists.scale:setValueForTime(time, scaleValue)
-		keyframe:setTableValue('scale', frame)
+		local keyframe = self.keyframes.scale:setValueForTime(time, frame)
+		frame:setMetadata('keyframeScale', keyframe)
 	end
-
-controllers.undo.addAction(	"debug msg2",
-								function() end,
-								function() end )
-
 
 	if rotateValue then
 		local frame = self.timelists.rotate:setValueForTime(time, rotateValue)
-		keyframe:setTableValue('rotate', frame)
+		local keyframe = self.keyframes.rotate:setValueForTime(time, frame)
+		frame:setMetadata('keyframeRotate', keyframe)
 	end
-
-controllers.undo.addAction(	"debug msg3",
-								function() end,
-								function() end )
-
 
 	if translateValue then
-		local frame = self.timelists.translate:setValueForTime(time, translateValue)
-		keyframe:setTableValue('translate', frame)
+		local frame = self.timelists.translate:setValueForTime(time, util.clone(translateValue))
+		local keyframe = self.keyframes.translate:setValueForTime(time, frame)
+		frame:setMetadata('keyframeTranslate', keyframe)
 	end
-	
-	controllers.undo.addAction(	"debug msg4",
-								function() end,
-								function() end )
-
 	
 	--TODO: BLENDING
 	assert(keyframeBlendFrom == nil and keyframeBlendTo == nil, "keyframe blending not yet implemented")
@@ -157,14 +142,22 @@ function Path:startRecordedMotion(time)
 	
 	recordedMotionSession.dataTypes = {}
 	
-	-- Get pointers to the frames right before the start time (to advance as we record)
-	recordedMotionSession.frames = {}
-	recordedMotionSession.frames.scale = self.timelists.scale:getNodeForTime(time)
-	recordedMotionSession.frames.rotate = self.timelists.rotate:getNodeForTime(time)
-	recordedMotionSession.frames.translate = self.timelists.translate:getNodeForTime(time)
-	recordedMotionSession.frames.visibility = self.timelists.visibility:getNodeForTime(time)	
+	-- Get pointers to the nodes right before the start time (to advance as we record)
+	recordedMotionSession.nodes = {}
+	recordedMotionSession.nodes.scale = self.timelists.scale:getNodeForTime(time)
+	recordedMotionSession.nodes.rotate = self.timelists.rotate:getNodeForTime(time)
+	recordedMotionSession.nodes.translate = self.timelists.translate:getNodeForTime(time)
+	recordedMotionSession.nodes.visibility = self.timelists.visibility:getNodeForTime(time)	
+
+	--Get pointers to the keyframes to do the same with them
+	recordedMotionSession.keyframenode = {}
+	recordedMotionSession.keyframenode.scale = self.keyframes.scale:getNodeForTime(time)
+	recordedMotionSession.keyframenode.rotate = self.keyframes.rotate:getNodeForTime(time)
+	recordedMotionSession.keyframenode.translate = self.keyframes.translate:getNodeForTime(time)
+	recordedMotionSession.keyframenode.visibility = self.keyframes.visibility:getNodeForTime(time)	
+
 	
-	--Make the path visible if necessary (and remember a keyframe if this was necessary)
+	--Make the path visible if necessary (and remember if this was necessary)
 	if not self.timelists.visibility:getValueForTime(time) then
 		recordedMotionSession.start.visibility = self:setVisibility(time, true)
 	end
@@ -180,17 +173,22 @@ function Path:startRecordedMotion(time)
 			self.dataTypes[dataType] = true
 
 			-- erase data between our last pointer entry and the new time
-			while self.frames[dataType]:next() and self.frames[dataType]:next():time() <= time do
-				self.path.timelists[dataType]:deleteNode(self.frames[dataType]:next())
+			while self.nodes[dataType]:next() and self.nodes[dataType]:next():time() <= time do
+				self.path.timelists[dataType]:deleteNode(self.nodes[dataType]:next())
+			end
+		
+			--erase keyframes as move along
+			while self.keyframenode[dataType]:next() and self.keyframenode[dataType]:next():time() <= time do
+				self.path.keyframes[dataType]:deleteNode(self.keyframenode[dataType]:next())
 			end
 		
 			-- Set our new data properly
-			local newFrame = self.path.timelists[dataType]:setValueForTime(time, dataValue, self.frames[dataType])
-			newFrame:setMetadata('recorded', true)
-			self.frames[dataType] = newFrame
+			local newNode = self.path.timelists[dataType]:setValueForTime(time, util.clone(dataValue), self.nodes[dataType])
+			newNode:setMetadata('recorded', true)
+			self.nodes[dataType] = newNode
 		
-			if not self.start[dataType] then self.start[dataType] = newFrame end
-			self.finish[dataType] = newFrame
+			if not self.start[dataType] then self.start[dataType] = newNode end
+			self.finish[dataType] = newNode
 		end
 		
 		if scaleValue then addMotionInternal('scale', scaleValue) end
@@ -202,49 +200,25 @@ function Path:startRecordedMotion(time)
 	end
 
 	function recordedMotionSession:endSession(endTime)
-	
-		--erase old keyframes that are no longer necessary
-		local keyframe = self.path.keyframes:getNodeForTime(self.start.time)
-		while keyframe:next() and keyframe:next():time() <= endTime do
-
-			--zero out elements of the keyframe we are writing to
-			if self.dataTypes.scale then 
-				keyframe:next():setTableValue('scale', nil)
-			end
-			if self.dataTypes.rotate then
-				keyframe:next():setTableValue('rotate', nil)
-			end
-			
-			if self.dataTypes.translate then
-				keyframe:next():setTableValue('translate', nil)
-			end
-
-			if util.tableCount(keyframe:next():value()) == 0 then
-				self.path.keyframes:deleteNode(keyframe:next())
-			else
-				keyframe = keyframe:next()
-			end
-		end
-	
-	
-		-- Add new keyframes at startTime and endTime
-		local keyframeStart = self.path.keyframes:makeNodeForTime(self.start.time)
-		local keyframeEnd = self.path.keyframes:makeNodeForTime(endTime)
 		
-		-- Set the correct types for the keyframes by pointing at their corresponding frames
+		-- Add keyframes for anything we've touched
 		for _,dataType in pairs({'scale', 'rotate', 'translate'}) do
 			if self.dataTypes[dataType] then
-				keyframeStart:setTableValue(dataType, self.start[dataType] )
-				keyframeEnd:setTableValue(dataType, self.finish[dataType] )
+				local keyframeStart = self.path.keyframes[dataType]:setValueForTime(self.start.time, self.start[dataType])
+				self.start[dataType]:setMetadata('keyframeScale', keyframeStart)
+
+				local keyframeFinish = self.path.keyframes[dataType]:setValueForTime(endTime, self.finish[dataType])
+				self.finish[dataType]:setMetadata('keyframeScale', keyframeFinish)
+
+				--hacky way to keep the aniamtion working right
 				self.start[dataType]:setMetadata('recorded', nil)
 				self.finish[dataType]:setMetadata('recorded', nil)
 			end
 		end
 
-		-- Set a visibility keyframe if we had to toggle visibility explicitly
-		if self.start.visibility then
-			keyframeStart:setTableValue('visibility', self.start.visibility)
-			keyframeEnd:setTableValue('visibility', self.path:setVisibility(endTime, true))
+		-- Make it invisible again if we had to force this visible
+		if self.start.visibility then 
+			self.path:setVisibility(endTime, false)
 		end
 
 		controllers.undo.endGroup("Path Recorded Motion")
@@ -255,56 +229,39 @@ function Path:startRecordedMotion(time)
 
 end
 
---[[
-
-	if scaleStream then 
-		keyframeStart:setTableValue('scale', self.timelists.scale:getNodeForTime(startTime))
-		keyframeEnd:setTableValue('scale', self.timelists.scale:getNodeForTime(endTime))_
-	end
-	if rotateStream then 
-		keyframeStart:setTableValue('rotate', self.timelists.rotate:getNodeForTime(startTime))
-		keyframeEnd:setTableValue('rotate', self.timelists.rotate:getNodeForTime(endTime))
-	end
-	if translateStream then 
-		keyframeStart:setTableValue('translate', self.timelists.translate:getNodeForTime(startTime))
-		keyframeEnd:setTableValue('translate', self.timelists.translate:getNodeForTime(endTime))
-	end
-
---]]
 
 function Path:setVisibility(time, visible)
+
 	-- Add the new value to the list
 	local frame = self.timelists.visibility:setValueForTime(time, visible)
-	local keyframe = self.keyframes:makeNodeForTime(time)
-	keyframe:setTableValue('visibility', frame)
+	local keyframe = self.keyframes.visibility:setValueForTime(time, frame)
+	frame:setMetadata('keyframeVisibility', keyframe)
+	assert(frame:metadata('keyframeVisibility') == keyframe, "make sure we've set this right: frame to keyframe")
+	assert(keyframe:value() == frame, "make sure we've set this right: keyfreame to frame")
 	
-	-- Run through the list and remove redundancies
-	local framePrevious = self.timelists.visibility.firstNode
-	local frameCurrent = self.timelists.visibility.firstNode:next()
+	-- Run through the visibility list and remove redundancies
+	local it = self.timelists.visibility:begin()	
 
-	while frameCurrent ~= nil do
-		if frameCurrent:value() == framePrevious:value() then 	
+	while not it:done() and it:current():next() do
 
-			--first remove the corresponding keyframe
-			local oldKeyframe = self.keyframes:getNodeForTime(frameCurrent:time())
-			assert(oldKeyframe:time() == frameCurrent:time(), "Every visibility timelist frame corresponds to a keyframe")
-			assert(oldKeyframe:tableValue('visibility') == frameCurrent, "Should be removing the right keyframe")
-			if oldKeyframe:tableValue('visibility') ~= nil and util.tableCount(oldKeyframe) == 1 then
-				self.keyframes:deleteNode(oldKeyframe)
-			else
-				oldKeyframe:setTableValue('visibility', nil)
-			end
+		local currentVisible = it:current():value()
+	
+		local nextVisible = it:current():next():value()
+		
+		if nextVisible == currentVisible then -- next frame isn't needed!
+		
+			local nodeToDelete = it:current():next()
+			local keyframeToDelete = nodeToDelete:metadata('keyframeVisibility')
+			assert(keyframeToDelete:value() == nodeToDelete, "Keyframe must refer to this node")
 			
-			-- then remove the actual visibility list:
-			self.timelists.visibility:deleteNode(frameCurrent)
+			self.timelists.visibility:deleteNode(nodeToDelete)
+			self.keyframes.visibility:deleteNode(keyframeToDelete)
 
-			frameCurrent = framePrevious:next()
-		else
-			framePrevious = frameCurrent
-			frameCurrent = frameCurrent:next()
+		else 
+			it:next()
 		end
 	end
-
+	
 	return keyframe
 end
 

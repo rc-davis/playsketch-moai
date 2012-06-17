@@ -83,29 +83,6 @@ function TimelistNode:setValue(v)
 	self._value = newValue						
 end
 
-
-
--- Set value one level deep (can we do without this?) TODO: remove both of these
-function TimelistNode:tableValue(key)
-	return self._value[key]
-end
-
-
-function TimelistNode:setTableValue(key, value)
-
-	local oldValue = self._value[key]
-	local newValue = value
-
-	controllers.undo.addAction(	"TimelistNode set Table Value",
-						function() self._value[key] = oldValue end,
-						function() self._value[key] = newValue end )	
-
-	self._value[key] = newValue
-end
-
-
-
-
 function TimelistNode:metadata(key)
 	return self._metadata[key]
 end
