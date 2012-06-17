@@ -27,23 +27,24 @@ basemodel.drawable = {}
 local Drawable = {}
 
 -- Clone the Drawable prototype
--- prop should be centred on 0,0
-function basemodel.drawable.newFromProp(prop)
-	return util.clone(Drawable):init(prop)
+-- stroke should be centred on 0,0
+function basemodel.drawable.newFromStroke(stroke)
+	return util.clone(Drawable):init(stroke)
 end
 
 
 --Drawable methods
-function Drawable:init(prop)
+function Drawable:init(stroke)
 	self.class = "Drawable"
-	self.prop = prop
+	self.stroke = stroke
+	self.prop = stroke.prop
 	self.prop.visible = true
 	self.paths = {}
-	drawingLayer:insertProp (prop)
+	drawingLayer:insertProp (self.prop)
 	
 	controllers.undo.addAction(	"Init Drawable",
-								function() drawingLayer:removeProp (prop) end,
-								function() drawingLayer:insertProp (prop) end )
+								function() drawingLayer:removeProp (self.prop) end,
+								function() drawingLayer:insertProp (self.prop) end )
 	
 	return self
 end
@@ -93,7 +94,7 @@ function Drawable:delete()
 	end
 	
 	controllers.undo.addAction(	"Delete Drawable",
-							function() self:init(self.prop) end,
+							function() self:init(self.stroke) end,
 							function() self:delete() end )
 	
 end
@@ -137,11 +138,11 @@ function Drawable:redoPathHierarchy()
 end
 
 function Drawable:correctedPointsAtCurrentTime()
-	return self.prop:correctedPointsAtCurrentTime()
+	return self.stroke:correctedPointsAtCurrentTime()
 end
 
 function Drawable:correctedLocAtCurrentTime()
-	return self.prop:correctedLocAtCurrentTime()
+	return self.stroke:correctedLocAtCurrentTime()
 end
 
 function Drawable:visibleAtCurrentTime()

@@ -31,8 +31,8 @@ local userPaths = {} -- paths that correspond to the user's creations
 
 ------------------ INTERACTOR MODEL API ----------------------
 
-function interactormodel.newDrawableCreated(prop, time, location)
-	basemodel.addNewDrawable(prop, time, location)
+function interactormodel.newDrawableCreated(prop)
+	basemodel.addNewDrawable(prop, controllers.timeline.currentTime())
 end
 
 function interactormodel.selectableDrawables(time)
@@ -181,7 +181,7 @@ function interactormodel.setSelectedPath(path)
 		--Replace the selection with the drawables in path
 		controllers.selection.selectedSet = {}	
 		for _,d in pairs(path:allDrawables()) do
-			controllers.selection.selectedSet[d.prop] = d
+			controllers.selection.selectedSet[d.stroke] = d
 		end
 		
 		-- Update UI

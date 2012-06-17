@@ -42,29 +42,16 @@ function basemodel.allDrawables()
 	return allDrawables
 end
 
-function basemodel.addNewDrawable(prop, time, location)
+function basemodel.addNewDrawable(stroke, time)
 
 	controllers.undo.startGroup('New Drawable')
 
 	-- create the drawable (& add it to the scene graph)
-	local drawable = basemodel.drawable.newFromProp(prop)
+	local drawable = basemodel.drawable.newFromStroke(stroke)
 	controllers.undo.addAction(	'Table Insert Drawable',
 								function () allDrawables[#allDrawables] = nil end,
 								function () table.insert(allDrawables, drawable) end )
 	table.insert(allDrawables, drawable)
-
-	-- create a new path to contain its location
-	local path = basemodel.createNewPath({drawable}, false)
-	
-	-- set path to location
-	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
-
-	-- set visibility to come on only at current time
-	path:setVisibility(time, true)
-
-
-	--get it to display properly:
-	path:cacheAtTime(time)
 
 	controllers.undo.endGroup('New Drawable')
 
@@ -72,16 +59,16 @@ function basemodel.addNewDrawable(prop, time, location)
 end
 
 
-function basemodel.addNewDrawables(propList, timeList, locationList)
+function basemodel.addNewDrawables(strokeList, timeList, locationList)
 
 	controllers.undo.startGroup("New Drawables")
 
-	assert(#propList == #timeList and #propList == #locationList, 
+	assert(#strokeList == #timeList and #strokeList == #locationList, 
 		"addNewDrawables() requires three lists of the same length")
 
 	local addedDrawables = {}
-	for i=1,#propList do
-		local newDrawable = basemodel.addNewDrawable(propList[i], timeList[i], locationList[i])
+	for i=1,#strokeList do
+		local newDrawable = basemodel.addNewDrawable(strokeList[i], timeList[i], locationList[i])
 		table.insert(addedDrawables, newDrawable)
 	end
 

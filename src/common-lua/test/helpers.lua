@@ -27,7 +27,7 @@ function test.helpers.generateLines(nLines, nPointsPerLine)
 
 	for i=1,nLines do
 	
-		local o = controllers.drawing.startStroke()
+		local o = controllers.stroke.new()
 
 		--make the points!
 		local x = math.random(-SCALED_WIDTH/2, SCALED_WIDTH/2)

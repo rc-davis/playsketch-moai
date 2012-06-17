@@ -43,7 +43,7 @@ local function downCallback(id,x,y)
 		end
 	
 		if input.strokecapture.mode == input.strokecapture.modes.MODE_DRAW then
-			activeStrokes[id] = controllers.drawing.startStroke()
+			activeStrokes[id] = controllers.stroke.new()
 		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_SELECT 
 			and selectionStroke == nil then
 			activeStrokes[id] = controllers.selection.startStroke()	
@@ -73,7 +73,11 @@ local function upCallback(id,x,y)
 		activeStrokes[id] = nil	
 		drawingLayer:removeProp (stroke)
 		stroke:doneStroke()
-		if id == selectionStroke then selectionStroke = nil end
+		if id == selectionStroke then 
+			selectionStroke = nil 
+		else
+			interactormodel.newDrawableCreated(	stroke )
+		end
 	end
 	return false
 end

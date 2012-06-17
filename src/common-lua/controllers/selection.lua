@@ -26,7 +26,7 @@
 require "widgets/widgets"
 
 controllers.selection = {}
-controllers.selection.selectedSet = {} -- {prop -> drawable} for easy lookups
+controllers.selection.selectedSet = {} -- {stroke -> drawable} for easy lookups
 
 
 -- startStroke(): begin a new selection lasso stroke
@@ -34,7 +34,7 @@ function controllers.selection.startStroke()
 
 	controllers.selection.clearSelection()
 
-	local selection_stroke = controllers.drawing.startStroke()
+	local selection_stroke = controllers.stroke.new()
 	selection_stroke.color = {1, 1, 0}
 	selection_stroke.penWidth = 10.0
 	
@@ -100,7 +100,7 @@ function controllers.selection.startStroke()
 					local py = points[j+1]
 					
 					if m ~= nil then					
-						local hits = px >= min_x and px < max_x and (m*px+b) > py						
+						local hits = px >= min_x and px < max_x and (m*px+b) > py
 						if hits then 
 							crossing_counts[i][j] = crossing_counts[i][j] + 1
 						end
@@ -118,7 +118,7 @@ function controllers.selection.startStroke()
 					o_matches = o_matches or ( (crossing_counts[i][j] + inferred_count)%2 == 1)
 				
 				end
-				if o_matches then controllers.selection.selectedSet[o.prop] = o end
+				if o_matches then controllers.selection.selectedSet[o.stroke] = o end
 			end
 		end
 		
@@ -129,7 +129,8 @@ function controllers.selection.startStroke()
 
 
 	-- doneStroke(): 	For when the lasso is finished. 
-	function selection_stroke:doneStroke()		
+	function selection_stroke:doneStroke()
+		drawingLayer:removeProp (self.prop)
 		if util.tableIsEmpty(controllers.selection.selectedSet) then
 			interactormodel.selectionCleared()
 		else
@@ -140,7 +141,7 @@ function controllers.selection.startStroke()
 
 	--cancel():	Cancel the drawing of the selection stroke	
 	function selection_stroke:cancel()
-		drawingLayer:removeProp (self)
+		drawingLayer:removeProp (self.prop)
 		controllers.selection.clearSelection()
 	end
 
@@ -154,8 +155,8 @@ function controllers.selection.clearSelection()
 end
 
 
-function controllers.selection.isSelected(drawable)
-	return controllers.selection.selectedSet[drawable] ~= nil
+function controllers.selection.isSelected(stroke)
+	return controllers.selection.selectedSet[stroke] ~= nil
 end
 
 

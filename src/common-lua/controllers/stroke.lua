@@ -11,7 +11,7 @@
 
 --[[
 
-	controllers/drawing.lua
+	controllers/stroke.lua
 	
 	Builds an ink stroke drawing with startStroke()
 	This stroke can be updated with additional points as they come in from the user.
@@ -21,128 +21,107 @@
 --]]
 
 
-controllers.drawing = {}
+controllers.stroke = {}
+local Stroke = {}
 
+function controllers.stroke.new()
+	return util.clone(Stroke):init()
+end
 
-function controllers.drawing.newStroke()
+function Stroke:init()
 
-	local strokeDeck = MOAIScriptDeck.new ()
-	local new_stroke = MOAIProp2D.new ()
-	new_stroke:setDeck ( strokeDeck )
-	
-	strokeDeck:setRect ( -10, -10, 10, 10 ) --temporarily
-	new_stroke.points = {}
-	new_stroke.color = {0.0, 0.0, 0.0}
-	new_stroke.penWidth = 4.0
+	self.deck = MOAIScriptDeck.new ()
+	self.prop =  MOAIProp2D.new ()
 
+	self.prop:setDeck ( self.deck )
+	self.deck:setRect ( -10, -10, 10, 10 ) --temporarily
 
-	strokeDeck:setDrawCallback(
-		function ( index, xOff, yOff, xFlip, yFlip )
-			if controllers.selection.isSelected(new_stroke) then
-				MOAIGfxDevice.setPenColor (1.0, 1.00, 0)
-				MOAIGfxDevice.setPenWidth(10.0)
-				MOAIDraw.drawLine ( new_stroke.points)
-			end
-			MOAIGfxDevice.setPenColor (unpack(new_stroke.color))
-			MOAIGfxDevice.setPenWidth(new_stroke.penWidth)
-			MOAIDraw.drawLine ( new_stroke.points)
-		end)
+	self.points = {}
+	self.color = {0.0, 0.0, 0.0}
+	self.penWidth = 4.0
 
-
-	drawingLayer:insertProp ( new_stroke )
-
-
-	--	addPoint(x,y): Adds the next point to the stroke that is being drawn
-	function new_stroke:addPoint(x,y)
-		table.insert(new_stroke.points, x)
-		table.insert(new_stroke.points, y)		
-	end
-
-
-	-- doneStroke(): Finishes off the stroke and passes it to the objects controller
-	function new_stroke:doneStroke()
-	
-		-- clean up the points so that they are centred
-		local minx,miny = 1E100,1E100
-		local maxx,maxy = -1E100,-1E100
-		for j=1,#self.points,2 do
-			minx = math.min(minx,self.points[j])
-			maxx = math.max(maxx,self.points[j])
-			miny = math.min(miny,self.points[j+1])
-			maxy = math.max(maxy,self.points[j+1])
-		end
-		local width = (maxx - minx)
-		local height = (maxy-miny)
-		local new_x,new_y = minx + width/2, miny + height/2
-		
-		--fix up the numbers to be relative to the new zero point
-		for j=1,#self.points,2 do
-			self.points[j] = self.points[j] - new_x
-			self.points[j+1] = self.points[j+1] - new_y
-		end
-		
-		strokeDeck:setRect (-width/2, -height/2, width/2, height/2)
-
-		interactormodel.newDrawableCreated(	self, 
-											controllers.timeline.currentTime(),
-											{x=minx + width/2,y=miny + height/2})
-	end
-	
-	--cancel():	Cancel the drawing of the stroke	
-	function new_stroke:cancel()
-		drawingLayer:removeProp (self)
-		print("CANCELLING")
-	end
-
-
-	function new_stroke:propToSave()
-		local x,y = self:getLoc()
-		return {points=self.points, proptype="DRAWING", location={x=x,y=y}}
-	end
-
-	function new_stroke:loadSaved(proptable)
-		self.points = {}
-		local max_id = 0
-		for k,v in pairs(proptable.points) do
-			max_id = math.max(max_id, k)
-		end
-		for i=1,max_id do
-			table.insert(self.points, proptable.points[i])
-		end
-		self:doneStroke()
-		self:setLoc(proptable.location.x, proptable.location.y)		
-	end
-
-	function new_stroke:correctedPointsAtCurrentTime()
-		local corrected = {}
-		for i=1,#self.points,2 do
-			corrected[i],corrected[i+1] = self:modelToWorld(self.points[i],self.points[i+1])
-		end
-		return corrected
-	end
-
-	function new_stroke:correctedLocAtCurrentTime()
-		return self:modelToWorld(0,0)
-	end
-
-
-
-	return new_stroke
+	self.deck:setDrawCallback(function () self:onDraw() end)
+	drawingLayer:insertProp ( self.prop )
+	return self
 
 end
 
 
-function controllers.drawing.startStroke()
-	return controllers.drawing.newStroke()
+function Stroke:onDraw()
+	if controllers.selection.isSelected(self) then
+		MOAIGfxDevice.setPenColor (1.0, 1.00, 0)
+		MOAIGfxDevice.setPenWidth(10.0)
+		MOAIDraw.drawLine ( self.points )
+	end
+	MOAIGfxDevice.setPenColor ( unpack(self.color) )
+	MOAIGfxDevice.setPenWidth( self.penWidth )
+	MOAIDraw.drawLine ( self.points)
+end
+
+--	addPoint(x,y): Adds the next point to the stroke that is being drawn
+function Stroke:addPoint(x,y)
+	table.insert(self.points, x)
+	table.insert(self.points, y)		
+end
+
+-- doneStroke(): Finishes off the stroke and passes it to the objects controller
+function Stroke:doneStroke()
+	
+	-- Find the bounding rectangle of the points
+	local minx,miny = 1E100,1E100
+	local maxx,maxy = -1E100,-1E100
+	for j=1,#self.points,2 do
+		minx = math.min(minx,self.points[j])
+		maxx = math.max(maxx,self.points[j])
+		miny = math.min(miny,self.points[j+1])
+		maxy = math.max(maxy,self.points[j+1])
+	end
+	
+	self.deck:setRect (minx, miny, maxx, maxy)
+	
+	-- If anyone wants to keep this stroke around, they'll need to be responsible for adding it
+	drawingLayer:removeProp(self.prop)
 end
 
 
-function controllers.drawing.loadSavedProp(proptable)
-
-	local new_stroke = controllers.drawing.newStroke()
-	new_stroke:loadSaved(proptable)
-	return new_stroke
+--cancel():	Cancel the drawing of the stroke	
+function Stroke:cancel()
+	drawingLayer:removeProp (self.prop)
 end
 
 
-return controllers.drawing
+--[[	TODO: saving/loading
+function Stroke:propToSave()
+	local x,y = self:getLoc()
+	return {points=self.points, proptype="DRAWING", location={x=x,y=y}}
+end
+
+
+function new_stroke:loadSaved(proptable)
+	self.points = {}
+	local max_id = 0
+	for k,v in pairs(proptable.points) do
+		max_id = math.max(max_id, k)
+	end
+	for i=1,max_id do
+		table.insert(self.points, proptable.points[i])
+	end
+	self:doneStroke()
+	self:setLoc(proptable.location.x, proptable.location.y)		
+end
+--]]
+
+function Stroke:correctedPointsAtCurrentTime()
+	local corrected = {}
+	for i=1,#self.points,2 do
+		corrected[i],corrected[i+1] = self.prop:modelToWorld(self.points[i],self.points[i+1])
+	end
+	return corrected
+end
+
+function Stroke:correctedLocAtCurrentTime()
+	return self.prop:modelToWorld(0,0)
+end
+
+
+return controllers.stroke
