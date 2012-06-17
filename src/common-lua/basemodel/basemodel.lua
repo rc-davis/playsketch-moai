@@ -180,7 +180,7 @@ function basemodel.swapPathOrder(index1, index2)
 
 	--inform all the paths of the change
 	for i,d in ipairs(allDrawables) do
-		d:swapPathOrders(path1, path2)
+		d:pathOrdersUpdated({path1, path2})
 	end
 
 	controllers.undo.endGroup("Swap Path Order")
