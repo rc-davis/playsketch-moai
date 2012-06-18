@@ -63,7 +63,7 @@ function controllers.undo.endGroup(groupname)
 	table.insert(pastActionStack, { endGroup=true, name=groupname })
 	futureActionStack = {} --clear out any redos sitting on the stack
 
-	--refreshInterface()
+	refreshInterface()
 
 end
 
@@ -80,6 +80,13 @@ function controllers.undo.addAction(name, undoFunction, redoFunction)
 
 end
 
+function controllers.undo.canPerformUndo()
+	return not util.tableIsEmpty(pastActionStack)
+end
+
+function controllers.undo.canPerformRedo()
+	return not util.tableIsEmpty(futureActionStack)
+end
 
 function controllers.undo.performUndo()
 
@@ -110,7 +117,8 @@ function controllers.undo.performUndo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	--refreshInterface()
+	refreshInterface() --TEMP
+	rebuildPathList() --TEMP
 end
 
 
@@ -143,6 +151,7 @@ function controllers.undo.performRedo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	--refreshInterface()
+	refreshInterface()  --TEMP!!
+	rebuildPathList() --TEMP!!
 end
 

@@ -81,3 +81,26 @@ widgets.modifierButton.init(-SCALED_WIDTH/2+192/2, 400, 192, 192,
 
 
 
+function refreshInterface()
+
+	g_undoButton:setEnabled(controllers.undo.canPerformUndo())
+	g_redoButton:setEnabled(controllers.undo.canPerformRedo())
+end
+
+
+function rebuildPathList()
+
+	--empty
+	g_pathList:clearAll()
+	
+	--loop through and add
+	for _,path in pairs(interactormodel.getUserPaths()) do
+		local label =	"Path " .. path.id ..
+					" (" .. util.tableCount(path:allDrawables()) .. ")"
+		g_pathList:addItem(label, path)
+	end
+	g_pathList:setSelected(nil)
+end
+	
+
+

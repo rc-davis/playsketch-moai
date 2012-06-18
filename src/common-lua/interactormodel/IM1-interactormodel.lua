@@ -25,8 +25,7 @@ require "basemodel/basemodel"
 interactormodel = {}
 
 local currentPath = nil
-local userPaths = {} -- paths that correspond to the user's creations
-
+local nextId = 1
 
 
 ------------------ INTERACTOR MODEL API ----------------------
@@ -135,7 +134,6 @@ end
 function interactormodel.clearAll()
 	basemodel.clearAll()
 	g_pathList:clearAll()
-	userPaths = {}
 end
 
 
@@ -150,9 +148,11 @@ function interactormodel.makeNewUserPath()
 
 	local drawableArray = util.dictionaryValuesToArray(controllers.selection.selectedSet)
 	local path = basemodel.createNewPath(drawableArray, nil, controllers.timeline.currentTime(), true)
-	table.insert(userPaths, path)
+	path.isUserPath = true --HACK
+	path.id = nextId
+	nextId = nextId + 1
 	
-	local label =	"Path " .. #interactormodel.getUserPaths() ..
+	local label =	"Path " .. path.id ..
 					" (" .. util.tableCount(path:allDrawables()) .. ")"
 	g_pathList:addItem(label, path)
 end
@@ -194,6 +194,13 @@ function interactormodel.setSelectedPath(path)
 end
 
 function interactormodel.getUserPaths()
+	local allPaths = basemodel.allPaths()
+	local userPaths = {}
+	for _,p in pairs(allPaths) do
+		if p.isUserPath then
+			table.insert(userPaths, p)
+		end
+	end
 	return userPaths
 end
 
