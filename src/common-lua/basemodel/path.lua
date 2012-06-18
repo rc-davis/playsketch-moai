@@ -205,10 +205,12 @@ function Path:startRecordedMotion(time)
 		for _,dataType in pairs({'scale', 'rotate', 'translate'}) do
 			if self.dataTypes[dataType] then
 				local keyframeStart = self.path.keyframes[dataType]:setValueForTime(self.start.time, self.start[dataType])
+				keyframeStart:setMetadata('recordingStarts', true)
 				self.start[dataType]:setMetadata('keyframeScale', keyframeStart)
 
 				local keyframeFinish = self.path.keyframes[dataType]:setValueForTime(endTime, self.finish[dataType])
 				self.finish[dataType]:setMetadata('keyframeScale', keyframeFinish)
+				keyframeFinish:setMetadata('recordingFinishes', true)
 
 				--hacky way to keep the aniamtion working right
 				self.start[dataType]:setMetadata('recorded', nil)
