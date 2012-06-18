@@ -43,6 +43,7 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 
 	local function drawKeyframes(it, heightOffsetStart, heightOffsetEnd, r,g,b)
 		local keyframeWidth = 30
+		local spanStartPx = nil
 		while not it:done() do		
 			local timePx =	(it:current():time() - controllers.timeline.span.min)/
 							(controllers.timeline.span.max - controllers.timeline.span.min) *
@@ -50,6 +51,19 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 			MOAIGfxDevice.setPenColor (r, g, b, 0.5)
 			MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + heightOffsetStart, 
 								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
+								
+			-- Draw a line if we are finishing a recording span!
+			if it:current():metadata('recordingFinishes') then
+				assert(spanStartPx ~= nil, "Keyframe rendering should only see a finish frame after a start")
+				local spanHeightOffsetDiff = (heightOffsetEnd - heightOffsetStart)/4
+				MOAIDraw.fillRect(	spanStartPx, self.frame.origin.y + heightOffsetStart + spanHeightOffsetDiff,
+									timePx, self.frame.origin.y + heightOffsetEnd - spanHeightOffsetDiff)
+				spanStartPx = nil
+			elseif it:current():metadata('recordingStarts') then
+				assert(spanStartPx == nil, "Keyframe rendering should only see a start frame when not in a span")
+				spanStartPx = timePx
+			end
+								
 			it:next()
 		end
 	end
