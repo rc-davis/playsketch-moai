@@ -55,6 +55,29 @@ function input.manager.addCancelledCallback(layer, c)
 end
 
 
+-----
+
+function input.manager.removeDownCallback(layer, c)
+	input.manager.callbacks.down[layer] = input.manager.callbacks.down[layer] or {}
+	util.tableDelete(input.manager.callbacks.down[layer], c)
+end
+
+function input.manager.removeUpCallback(layer, c)
+	input.manager.callbacks.up[layer] = input.manager.callbacks.up[layer] or {}
+	local index = util.tableDelete(input.manager.callbacks.up[layer], c)
+end
+
+function input.manager.removeMovedCallback(layer, c)
+	input.manager.callbacks.moved[layer] = input.manager.callbacks.moved[layer] or {}
+	util.tableDelete(input.manager.callbacks.moved[layer], c)
+end
+
+function input.manager.removeCancelledCallback(layer, c)
+	input.manager.callbacks.cancelled[layer] = input.manager.callbacks.cancelled[layer] or {}
+	util.tableDelete(input.manager.callbacks.cancelled[layer], c)
+end
+
+
 -- Internal Callbacks for passing along input we've received
 local function mouseClickCallbackInternal()
 	x,y = drawingLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
