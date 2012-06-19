@@ -57,11 +57,7 @@ g_undoButton:setEnabled(false)
 g_redoButton:setEnabled(false)
 
 -- clear button
-widgets.newSimpleButton(320, 352, 128, 64,
-					'resources/IM1/button_clear.png',
-					'resources/IM1/button_clear_down.png', nil,
-					interactormodel.clearAll, nil)
-
+g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", interactormodel.clearAll)
 
 
 
