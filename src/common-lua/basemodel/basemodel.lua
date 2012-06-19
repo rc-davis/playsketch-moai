@@ -249,6 +249,29 @@ function basemodel.deleteDrawables(drawablesList)
 end
 
 
+function basemodel.deletePath(path)
+
+	controllers.undo.startGroup('Delete Path')
+
+	-- remove path from all drawables
+	for _,d in pairs(path:allDrawables()) do
+		d:removePath(path)
+	end
+	
+	-- delete path
+	path:delete()
+	
+	-- remove from collections
+	local oldIndex = util.tableDelete(allPaths, path)
+	controllers.undo.addAction(	"Delete from allPaths",
+								function() table.insert(allPaths, oldIndex, path) end,
+								function() util.tableDelete(allPaths, path) end )
+
+	controllers.undo.endGroup('Delete Path')
+
+end
+
+
 function basemodel.clearAll()
 
 	controllers.undo.startGroup("Clear All")

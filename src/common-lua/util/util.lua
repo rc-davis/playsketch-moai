@@ -27,13 +27,23 @@ require "util/debugging"
 require "util/pickle"
 
 
-function util.tableDelete(tab, valref)
+function util.tableDelete(tab, o)
+	local index = util.indexOf(tab, o)
+	if index then
+		table.remove(tab, index)
+		return index
+	else
+		return nil	
+	end
+end
+
+function util.indexOf(tab, o)
 	for i=1,#tab do
-		if tab[i] == valref then
-			table.remove(tab, i)
+		if tab[i] == o then
 			return i
 		end
 	end
+	return nil
 end
 
 -- this is necessary because #table doesn't work for associative tables
