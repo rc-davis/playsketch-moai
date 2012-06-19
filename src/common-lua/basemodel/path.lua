@@ -212,6 +212,14 @@ function Path:startRecordedMotion(time)
 				self.finish[dataType]:setMetadata('keyframeScale', keyframeFinish)
 				keyframeFinish:setMetadata('recordingFinishes', true)
 
+				-- put a nice start/end on any pre-existing recorded spans we are overwriting
+				if self.start[dataType]:previous() and self.start[dataType]:previous():metadata('recorded') then
+					keyframeStart:setMetadata('recordingFinishes', true)
+				end
+				if self.finish[dataType]:next() and self.finish[dataType]:next():metadata('recorded') then
+					keyframeFinish:setMetadata('recordingStarts', true)
+				end
+				
 				--hacky way to keep the aniamtion working right
 				self.start[dataType]:setMetadata('recorded', nil)
 				self.finish[dataType]:setMetadata('recorded', nil)

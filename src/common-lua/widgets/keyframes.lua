@@ -53,14 +53,14 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
 								
 			-- Draw a line if we are finishing a recording span!
-			if it:current():metadata('recordingFinishes') then
-				assert(spanStartPx ~= nil, "Keyframe rendering should only see a finish frame after a start")
+			if it:current():metadata('recordingFinishes') and spanStartPx ~= nil then
 				local spanHeightOffsetDiff = (heightOffsetEnd - heightOffsetStart)/4
 				MOAIDraw.fillRect(	spanStartPx, self.frame.origin.y + heightOffsetStart + spanHeightOffsetDiff,
 									timePx, self.frame.origin.y + heightOffsetEnd - spanHeightOffsetDiff)
 				spanStartPx = nil
-			elseif it:current():metadata('recordingStarts') then
-				assert(spanStartPx == nil, "Keyframe rendering should only see a start frame when not in a span")
+			end
+			
+			if it:current():metadata('recordingStarts') then
 				spanStartPx = timePx
 			end
 								
