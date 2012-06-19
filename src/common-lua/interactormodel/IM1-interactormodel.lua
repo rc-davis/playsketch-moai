@@ -168,6 +168,7 @@ function interactormodel.setSelectedPath(path)
 		--update the UI
 		g_addPathButton:setEnabled(false)
 		g_deletePathButton:setEnabled(false)
+		g_visibilityButton:setEnabled(false)
 		widgets.manipulator:hide()
 		widgets.keyframes:setCurrentPath(nil)
 		widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
@@ -188,6 +189,7 @@ function interactormodel.setSelectedPath(path)
 		-- Update UI
 		g_addPathButton:setEnabled(true)
 		g_deletePathButton:setEnabled(true)
+		g_visibilityButton:setEnabled(true)
 		widgets.manipulator:attachToPath(currentPath)
 		widgets.keyframes:setCurrentPath(currentPath)
 		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
@@ -198,11 +200,19 @@ end
 
 function interactormodel.deleteSelectedPath()
 
-	local pathToDelete = currentPath
-	basemodel.deletePath(pathToDelete)
-	
-	--refresh interface
+	assert(currentPath, "Need a current path to delete")
+	basemodel.deletePath(currentPath)
 	rebuildPathList()
+
+end
+
+
+function interactormodel.toggleCurrentPathVisibility()
+
+	assert(currentPath, "Need a current path to toggle visibility for")
+	local time = controllers.timeline:currentTime()
+	local _,_,_,v = currentPath:stateAtTime(time)
+	currentPath:setVisibility(time, not v)
 
 end
 

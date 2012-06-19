@@ -18,6 +18,8 @@
 
 --]]
 
+--MOAIDebugLines.showStyle(MOAIDebugLines.PROP_MODEL_BOUNDS, true)
+
 
 -- background colour
 MOAIGfxDevice.setClearColor( 0.796875 , 0.84765625, 0.890625 )
@@ -45,12 +47,11 @@ controllers.timeline.setButtons(playButton)
 
 
 -- Create a list of the paths along the right side of the screen
-g_pathList = widgets.textButtonList.new(320, -96, 128, 576, 64, interactormodel.setSelectedPath)
-g_addPathButton = widgets.textButton.new(320, 288, 128, 64, "new path", interactormodel.makeNewUserPath)
-g_deletePathButton = widgets.textButton.new(320, 224, 128, 64, "delete path", interactormodel.deleteSelectedPath)
+g_pathList = widgets.textButtonList.new(320, -128, 128, 512, 64, interactormodel.setSelectedPath)
+g_addPathButton = widgets.textButton.new(320, 224, 128, 64, "new path", interactormodel.makeNewUserPath)
+g_deletePathButton = widgets.textButton.new(320, 160, 128, 64, "delete path", interactormodel.deleteSelectedPath)
 g_addPathButton:setEnabled(false)
 g_deletePathButton:setEnabled(false)
-
 
 
 -- undo redo buttons
@@ -61,6 +62,10 @@ g_redoButton:setEnabled(false)
 
 -- clear button
 g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", interactormodel.clearAll)
+
+-- visibility toggle
+g_visibilityButton = widgets.textButton.new(320, 288, 128, 64, "toggle visibility", interactormodel.toggleCurrentPathVisibility)
+g_visibilityButton:setEnabled(false)
 
 
 
