@@ -77,7 +77,7 @@ end
 function TextButtonList:setSelected(index)
 	if index == self.selectionIndex then return end
 
-	assert(index == nil or (index > 0 and index <= #self.buttons))
+	assert(index == nil or (index > 0 and index <= #self.buttons), "Must be a valid index")
 
 	-- un-highlight the old entry
 	if self.selectionIndex then

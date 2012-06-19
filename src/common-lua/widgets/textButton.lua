@@ -59,10 +59,10 @@ function TextButton:init( centerX, centerY, width, height, text, callbackUp )
 	widgets.layer:insertProp ( self.textbox )
 	
 	-- register for touches
-	input.manager.addDownCallback(input.manager.UILAYER, 
-								function (id,px,py) return self:onTouchDown(id,px,py) end)
-	input.manager.addUpCallback(input.manager.UILAYER, 
-								function (id,px,py) return self:onTouchUp(id,px,py) end)
+	self.downcallback = function (id,px,py) return self:onTouchDown(id,px,py) end
+	self.upcallback = function (id,px,py) return self:onTouchUp(id,px,py) end
+	input.manager.addDownCallback(input.manager.UILAYER, self.downcallback)
+	input.manager.addUpCallback(input.manager.UILAYER, self.upcallback)
 
 	self:setText(text)
 	return self
@@ -134,6 +134,8 @@ end
 function TextButton:delete()
 	widgets.layer:removeProp ( self.prop )
 	widgets.layer:removeProp ( self.textbox )
+	input.manager.removeDownCallback(input.manager.UILAYER, self.downcallback)
+	input.manager.removeUpCallback(input.manager.UILAYER, self.upcallback)
 end
 
 return widgets.textButton
