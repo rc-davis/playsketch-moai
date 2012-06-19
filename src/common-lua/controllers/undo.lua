@@ -117,6 +117,7 @@ function controllers.undo.performUndo()
 	--re-enable saving undo actions
 	recordUndos = true
 
+	controllers.playback.refresh()
 	refreshInterface() --TEMP
 	rebuildPathList() --TEMP
 end
@@ -151,6 +152,7 @@ function controllers.undo.performRedo()
 	--re-enable saving undo actions
 	recordUndos = true
 
+	controllers.playback.refresh()
 	refreshInterface()  --TEMP!!
 	rebuildPathList() --TEMP!!
 end
