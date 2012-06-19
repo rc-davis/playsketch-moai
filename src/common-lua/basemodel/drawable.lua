@@ -124,16 +124,20 @@ function Drawable:redoPathHierarchy()
 	for i=1,#sortedPaths do
 		local prop1 = sortedPaths[i][2]
 		prop1:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		prop1:clearAttrLink(MOAIProp2D.ATTR_VISIBLE)
 		if i < #sortedPaths then
 			local prop2 = sortedPaths[i+1][2]		
 			prop1:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop2, MOAIProp2D.TRANSFORM_TRAIT)
+			prop1:setAttrLink (MOAIProp2D.ATTR_VISIBLE, prop2, MOAIProp2D.ATTR_VISIBLE )
 		end
 	end
 	
 	--finally, set our drawable prop to inherit from the first on the list
 	self.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+	self.prop:clearAttrLink(MOAIProp2D.ATTR_VISIBLE)
 	if #sortedPaths > 0 then
 		self.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, sortedPaths[1][2], MOAIProp2D.TRANSFORM_TRAIT)
+		self.prop:setAttrLink(MOAIProp2D.ATTR_VISIBLE, sortedPaths[1][2], MOAIProp2D.ATTR_VISIBLE ) 
 	end
 end
 
@@ -146,21 +150,23 @@ function Drawable:correctedLocAtCurrentTime()
 end
 
 function Drawable:visibleAtCurrentTime()
-	return self.prop.visible
+	--TODO: should be able to retrieve this from self.prop?
+	local visible = true
+	for path,_ in pairs(self.paths) do
+		local _,_,_,v = path:cached()
+		visible = v and visible
+	end
+	return visible
 end
 
 
 function Drawable:refreshPathProps(path)
-	local prop = self.paths[path]
-	--local visible = true
+	local pathProp = self.paths[path]
 	local s,r,t,v = path:cached()
-	--visible = visible and v
-	prop:setScl(s,s)
-	prop:setRot(r)
-	prop:setLoc(t.x, t.y)
-	--self.prop.visible = visible
-	--self.prop:setVisible(visible)
-	--TODO: decide how to deal with visibility...
+	pathProp:setScl(s,s)
+	pathProp:setRot(r)
+	pathProp:setLoc(t.x, t.y)
+	pathProp:setVisible(v)
 end
 
 
