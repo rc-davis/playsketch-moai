@@ -143,8 +143,8 @@ end
 ------------------ HELPERS FOR THIS SPECIFIC INTERFACE --------
 function interactormodel.makeNewUserPath()
 
-	 -- arbitrarily limit us to 10 paths to fit in the UI
-	if #interactormodel.getUserPaths() >= 10 then return end
+	 -- arbitrarily limit us to 9 paths to fit in the UI
+	if #interactormodel.getUserPaths() >= 9 then return end
 
 	local drawableArray = util.dictionaryValuesToArray(controllers.selection.selectedSet)
 	local path = basemodel.createNewPath(drawableArray, nil, controllers.timeline.currentTime(), true)
@@ -167,6 +167,7 @@ function interactormodel.setSelectedPath(path)
 
 		--update the UI
 		g_addPathButton:setEnabled(false)
+		g_deletePathButton:setEnabled(false)
 		widgets.manipulator:hide()
 		widgets.keyframes:setCurrentPath(nil)
 		widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
@@ -186,12 +187,25 @@ function interactormodel.setSelectedPath(path)
 		
 		-- Update UI
 		g_addPathButton:setEnabled(true)
+		g_deletePathButton:setEnabled(true)
 		widgets.manipulator:attachToPath(currentPath)
 		widgets.keyframes:setCurrentPath(currentPath)
 		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
 		input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
 	end
 end
+
+
+function interactormodel.deleteSelectedPath()
+
+	local pathToDelete = currentPath
+	basemodel.deletePath(pathToDelete)
+	
+	--refresh interface
+	rebuildPathList()
+
+end
+
 
 function interactormodel.getUserPaths()
 	local allPaths = basemodel.allPaths()

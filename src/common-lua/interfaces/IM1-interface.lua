@@ -45,9 +45,12 @@ controllers.timeline.setButtons(playButton)
 
 
 -- Create a list of the paths along the right side of the screen
-g_pathList = widgets.textButtonList.new(320, -64, 128, 640, 64, interactormodel.setSelectedPath)
+g_pathList = widgets.textButtonList.new(320, -96, 128, 576, 64, interactormodel.setSelectedPath)
 g_addPathButton = widgets.textButton.new(320, 288, 128, 64, "new path", interactormodel.makeNewUserPath)
+g_deletePathButton = widgets.textButton.new(320, 224, 128, 64, "delete path", interactormodel.deleteSelectedPath)
 g_addPathButton:setEnabled(false)
+g_deletePathButton:setEnabled(false)
+
 
 
 -- undo redo buttons
