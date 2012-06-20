@@ -213,7 +213,7 @@ function interactormodel.toggleCurrentPathVisibility()
 	local time = controllers.timeline:currentTime()
 	local _,_,_,v = currentPath:stateAtTime(time)
 	currentPath:setVisibility(time, not v)
-
+	controllers.playback.refresh()
 end
 
 
