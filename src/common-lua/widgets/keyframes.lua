@@ -38,16 +38,21 @@ function widgets.keyframes:init(centerX,centerY,width,height)
 
 end
 
+local keyframeWidth = 15
 
 function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 
+	local function timeToPx(time)
+		return (time - controllers.timeline.span.min)/
+				(controllers.timeline.span.max - controllers.timeline.span.min) *
+				self.frame.size.width + self.frame.origin.x
+	end
+
 	local function drawKeyframes(it, heightOffsetStart, heightOffsetEnd, r,g,b)
-		local keyframeWidth = 30
+
 		local spanStartPx = nil
 		while not it:done() do		
-			local timePx =	(it:current():time() - controllers.timeline.span.min)/
-							(controllers.timeline.span.max - controllers.timeline.span.min) *
-							self.frame.size.width + self.frame.origin.x
+			local timePx =	timeToPx(it:current():time())
 			MOAIGfxDevice.setPenColor (r, g, b, 0.5)
 			MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + heightOffsetStart, 
 								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
@@ -68,6 +73,41 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 		end
 	end
 	
+	local function drawVisibility(it, heightOffsetStart, heightOffsetEnd, r,g,b)
+		local spanStartPx = timeToPx(0)
+		it:next()
+
+		MOAIGfxDevice.setPenColor (r, g, b, 0.5)
+		
+		while not it:done() do
+			local timePx =	timeToPx(it:current():time())
+
+			MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + heightOffsetStart, 
+								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
+
+			-- Draw a line if we are finishing a time span!
+			if it:current():value():value() == true then
+				spanStartPx = timePx
+			elseif spanStartPx ~= nil then
+				local spanHeightOffsetDiff = (heightOffsetEnd - heightOffsetStart)/4
+				MOAIDraw.fillRect(	spanStartPx,
+									self.frame.origin.y + heightOffsetStart + spanHeightOffsetDiff,
+									timePx,
+									self.frame.origin.y + heightOffsetEnd - spanHeightOffsetDiff)
+				spanStartPx = nil
+			end								
+			it:next()
+		end
+		
+		if spanStartPx ~= nil then
+			local spanHeightOffsetDiff = (heightOffsetEnd - heightOffsetStart)/4
+			MOAIDraw.fillRect(	spanStartPx,
+								self.frame.origin.y + heightOffsetStart + spanHeightOffsetDiff,
+								self.frame.origin.x + self.frame.size.width,
+								self.frame.origin.y + heightOffsetEnd - spanHeightOffsetDiff)		
+		end
+	end
+	
 	if self.currentPath then
 		drawKeyframes(	self.currentPath:keyframeTimelist('scale'):begin(),
 						0,
@@ -81,10 +121,10 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 						self.frame.size.height*2/4,
 						self.frame.size.height*3/4,
 						0,0,1)
-		drawKeyframes(	self.currentPath:keyframeTimelist('visibility'):begin(),
+		drawVisibility(	self.currentPath:keyframeTimelist('visibility'):begin(),
 						self.frame.size.height*3/4,
 						self.frame.size.height*4/4,
-						0.5,0.5,0)
+						1, 0.1, 0.5)
 	end
 end
 
