@@ -104,7 +104,7 @@ end
 function Drawable:pathOrdersUpdated(pathlist)
 	
 	--TODO: this might be a good place to optimize if we end up calling this often
-	if util.any(pathlist, function (o) return self.paths[o] ~= nil end) then
+	if util.any(pathlist, function (_,o) return self.paths[o] ~= nil end) then
 		self:redoPathHierarchy()
 	end
 end

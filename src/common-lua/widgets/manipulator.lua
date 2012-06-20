@@ -276,7 +276,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			self:setRot(90)
 		
 			--Find any one of the path's drawables that we can inherit from to keep the motion in sync
-			local anyDrawable = util.tableAny(path:allDrawables())
+			local anyDrawable = util.anyItem(path:allDrawables())
 			local drawablePathProp = anyDrawable.paths[path]
 	
 			-- TODO: This is a terrible way of doing this. INHERIT_TRANSFORM inherits EVERYTHING

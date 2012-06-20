@@ -63,7 +63,7 @@ function util.tableCount(tab)
 	return count
 end
 
-function util.tableAny(tab)
+function util.anyItem(tab)
 	for _,o in pairs(tab) do
 		return o
 	end
@@ -87,10 +87,10 @@ function util.clone(t)
 	return l
 end
 
+--predicate like: function(key,value) return true end
 function util.any(tab, predicate)
-	if predicate == nil then predicate = function (o) return o end end
-	for _,o in pairs(tab) do
-		if predicate(o) then return true end
+	for k,v in pairs(tab) do
+		if predicate(k,v) then return true end
 	end
 	return false
 end
