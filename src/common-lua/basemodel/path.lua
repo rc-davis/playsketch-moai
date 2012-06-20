@@ -50,7 +50,7 @@ function Path:init(index, defaultVisibility)
 	self.index = index
 	self.drawables = {}
 	self.cache = {}
-	self:cacheAtTime(0)
+	self:displayAtTime(0)
 
 	return self
 
@@ -69,16 +69,18 @@ function Path:stateAtTime(time)
 	return scale, rotate, translate, visibility
 end
 
-function Path:cacheAtTime(time)
+function Path:currentState()
+	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
+end	
+
+function Path:displayAtTime(time)
+	print("DISPLAYING AT", time)
 	self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility = 
 	self:stateAtTime(time)
 	for _,d in pairs(self.drawables) do
-		d:refreshPathProps(self)
+		print("\trefreshing one")
+		d:refreshDisplayOfPath(self, self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility)
 	end
-end	
-
-function Path:cached()
-	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
 end	
 
 function Path:keyframeTimelist(motionType)
@@ -123,7 +125,7 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	assert(keyframeBlendFrom == nil and keyframeBlendTo == nil, "keyframe blending not yet implemented")
 	
 	--Kick our related Drawables to update their position to reflect this
-	self:cacheAtTime(time)
+	self:displayAtTime(time)
 	
 	controllers.undo.endGroup("Path: Add Keyframed Motion")	
 end
@@ -196,7 +198,7 @@ function Path:startRecordedMotion(time)
 		if translateValue then addMotionInternal('translate', translateValue) end
 
 		--Kick our related Drawables to update their position to reflect this
-		self.path:cacheAtTime(time)
+		self.path:displayAtTime(time)
 	end
 
 	function recordedMotionSession:endSession(endTime)

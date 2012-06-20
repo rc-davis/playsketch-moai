@@ -65,7 +65,7 @@ function basemodel.addNewDrawable(stroke, time)
 
 
 	--get it to display properly:
-	path:cacheAtTime(time)
+	path:displayAtTime(time)
 
 	controllers.undo.endGroup('New Drawable')
 

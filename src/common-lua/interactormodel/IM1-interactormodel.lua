@@ -40,7 +40,7 @@ function interactormodel.selectableDrawables(time)
 		"efficiency. This can be updated if this assumption stops being true")
 	local selectable = {}
 	for _,o in pairs(basemodel.allDrawables()) do
-		if o:visibleAtCurrentTime() then table.insert(selectable, o) end
+		if o:currentlyVisible() then table.insert(selectable, o) end
 	end
 	return selectable
 end

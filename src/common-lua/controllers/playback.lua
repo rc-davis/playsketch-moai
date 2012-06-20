@@ -24,10 +24,10 @@ function controllers.playback.refresh()
 end
 
 function controllers.playback.jumpToTime(time)
-
 	--todo: make FAR prettier
 	for _,path in pairs(basemodel.allPaths()) do
-		path:cacheAtTime(time)
+		path:displayAtTime(time)
+		
 	end
 end
 
@@ -129,7 +129,7 @@ function controllers.playback.startPlayingPath(path, time)
 			else
 				--wait for the animations to be done
 				if not util.tableIsEmpty(activeAnimations[thisThread]) then
-					MOAIThread.blockOnAction(util.tableAny(activeAnimations[thisThread]))
+					MOAIThread.blockOnAction(util.anyItem(activeAnimations[thisThread]))
 				end
 		
 				local timeDelta = it:current():time() - controllers.timeline.currentTime() 
@@ -153,7 +153,7 @@ function controllers.playback.startPlayingPath(path, time)
 
 
 	-- kick off the actual playback!
-	path:cacheAtTime(time) --initialize location
+	path:displayAtTime(time) --initialize location
 	local t1,t2,t3 = MOAIThread.new(), MOAIThread.new(), MOAIThread.new()
 	t1:run(	backgroundPlayback, path, path.timelists.translate, 
 			animateDrawablePropForPathTranslation,

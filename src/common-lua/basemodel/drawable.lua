@@ -38,7 +38,7 @@ function Drawable:init(stroke)
 	self.class = "Drawable"
 	self.stroke = stroke
 	self.prop = stroke.prop
-	self.prop.visible = true
+	self.visible = true
 	self.paths = {}
 	drawingLayer:insertProp (self.prop)
 	
@@ -124,20 +124,16 @@ function Drawable:redoPathHierarchy()
 	for i=1,#sortedPaths do
 		local prop1 = sortedPaths[i][2]
 		prop1:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
-		prop1:clearAttrLink(MOAIProp2D.ATTR_VISIBLE)
 		if i < #sortedPaths then
 			local prop2 = sortedPaths[i+1][2]		
 			prop1:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop2, MOAIProp2D.TRANSFORM_TRAIT)
-			prop1:setAttrLink (MOAIProp2D.ATTR_VISIBLE, prop2, MOAIProp2D.ATTR_VISIBLE )
 		end
 	end
 	
 	--finally, set our drawable prop to inherit from the first on the list
 	self.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
-	self.prop:clearAttrLink(MOAIProp2D.ATTR_VISIBLE)
 	if #sortedPaths > 0 then
 		self.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, sortedPaths[1][2], MOAIProp2D.TRANSFORM_TRAIT)
-		self.prop:setAttrLink(MOAIProp2D.ATTR_VISIBLE, sortedPaths[1][2], MOAIProp2D.ATTR_VISIBLE ) 
 	end
 end
 
@@ -149,26 +145,34 @@ function Drawable:correctedLocAtCurrentTime()
 	return self.stroke:correctedLocAtCurrentTime()
 end
 
-function Drawable:visibleAtCurrentTime()
-	--TODO: should be able to retrieve this from self.prop?
-	local visible = true
-	for path,_ in pairs(self.paths) do
-		local _,_,_,v = path:cached()
-		visible = v and visible
-	end
-	return visible
+function Drawable:currentlyVisible()
+	return self.visible
 end
 
 
-function Drawable:refreshPathProps(path)
+function Drawable:refreshDisplayOfPath(path, s, r, t, v)
 	local pathProp = self.paths[path]
-	local s,r,t,v = path:cached()
 	pathProp:setScl(s,s)
 	pathProp:setRot(r)
 	pathProp:setLoc(t.x, t.y)
-	pathProp:setVisible(v)
+	
+	-- We have to set the drawable's visibility manually since it doesn't inherit the way we want
+	-- TODO: we probably don't want to run this so often
+	-- would be better to cache per-path visibility and run only if its changed?
+	self:updateVisibility() 
+
 end
 
+function Drawable:updateVisibility()
+	--TODO: we could cache this to make it O(1)
+	self.visible = not util.any(self.paths, 
+			function (path,prop) 
+				local _,_,_,v = path:currentState()
+				return not v
+			end)
+	print("SETTING VIS:", self.visible)
+	self.prop:setVisible(self.visible)
+end
 
 function Drawable:propForPath(path)
 	return self.paths[path]
