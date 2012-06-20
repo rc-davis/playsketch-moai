@@ -69,20 +69,6 @@ function Path:stateAtTime(time)
 	return scale, rotate, translate, visibility
 end
 
-function Path:currentState()
-	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
-end	
-
-function Path:displayAtTime(time)
-	print("DISPLAYING AT", time)
-	self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility = 
-	self:stateAtTime(time)
-	for _,d in pairs(self.drawables) do
-		print("\trefreshing one")
-		d:refreshDisplayOfPath(self, self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility)
-	end
-end	
-
 function Path:keyframeTimelist(motionType)
 	return self.keyframes[motionType]
 end
@@ -281,6 +267,82 @@ end
 function Path:allDrawables()
 	return self.drawables
 end
+
+
+-- FUNCTIONS FOR DISPLAYING AND ANIMATING THIS PATH!
+
+function Path:currentState()
+	return self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility
+end	
+
+function Path:displayAtTime(time)
+	self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility = 
+	self:stateAtTime(time)
+	self:refreshDependentDrawables()
+end	
+
+function Path:setDisplayScale(scale, duration)
+	if duration == 0 then
+		for _,d in pairs(self.drawables) do
+			d:propForPath(self):setScl(scale, scale)
+		end
+	else
+		local animations = {}
+		for _,d in pairs(self.drawables) do
+			local a = d:propForPath(self):seekScl(scale, scale, duration, MOAIEaseType.LINEAR)
+			table.insert(animations, a)
+		end
+		return animations
+	end
+end
+
+function Path:setDisplayRotation(rot, duration)
+	if duration == 0 then
+		for _,d in pairs(self.drawables) do
+			d:propForPath(self):setRot(rot)
+		end
+	else
+		local animations = {}
+		for _,d in pairs(self.drawables) do
+			local a = d:propForPath(self):seekRot(rot, duration, MOAIEaseType.LINEAR)
+			table.insert(animations, a)
+		end
+		return animations
+	end
+end
+
+function Path:setDisplayTranslation(loc,duration)
+	if duration == 0 then
+		for _,d in pairs(self.drawables) do
+			d:propForPath(self):setLoc(loc.x, loc.y)
+		end
+	else
+		local animations = {}
+		for _,d in pairs(self.drawables) do
+			local a = d:propForPath(self):seekLoc(loc.x, loc.y, duration, MOAIEaseType.LINEAR)	
+			table.insert(animations, a)
+		end
+		return animations
+	end
+end
+
+function Path:setDisplayVisibility(visible, duration)
+
+	local desiredTime = controllers.timeline.currentTime() + duration
+	while desiredTime > controllers.timeline.currentTime() do coroutine.yield() end
+	self.cache.visibility = visible
+	for _,d in pairs(self.drawables) do
+		d:updateVisibility()
+	end
+end
+
+
+function Path:refreshDependentDrawables()
+	for _,d in pairs(self.drawables) do
+		d:refreshDisplayOfPath(self, self.cache.scale,self.cache.rotate,self.cache.translate,self.cache.visibility)
+	end
+end
+
 
 
 --[[

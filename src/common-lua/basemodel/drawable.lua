@@ -170,7 +170,6 @@ function Drawable:updateVisibility()
 				local _,_,_,v = path:currentState()
 				return not v
 			end)
-	print("SETTING VIS:", self.visible)
 	self.prop:setVisible(self.visible)
 end
 

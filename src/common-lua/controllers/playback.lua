@@ -67,43 +67,13 @@ function controllers.playback.setPathToNotAnimate(path)
 end
 
 function controllers.playback.startPlayingPath(path, time)
-
-	-- Bail out if we've been told not to animate this path (used for recording)
-	--if path == pathToNotAnimate then return nil end
-
-	--Define the animation functions that actually operate on the drawable's props
-	local function animateDrawablePropForPathScale(prop, timeDelta, value)
-		return prop:seekScl(value, value, timeDelta, MOAIEaseType.LINEAR)
-	end
-
-	local function animateDrawablePropForPathRotation(prop, timeDelta, value)
-		return prop:seekRot(value, timeDelta, MOAIEaseType.LINEAR)
-	end
-
-	local function animateDrawablePropForPathTranslation(prop, timeDelta, value)
-		return prop:seekLoc(value.x, value.y, timeDelta, MOAIEaseType.LINEAR)
-	end
-
-	--Define the static functions for when we just want to jump to the state
-	local function staticDrawablePropForPathScale(prop, value)
-		return prop:setScl(value, value)
-	end
-
-	local function staticDrawablePropForPathRotation(prop, value)
-		return prop:setRot(value)
-	end
-
-	local function staticDrawablePropForPathTranslation(prop, value)
-		return prop:setLoc(value.x, value.y)
-	end
-
 	
 	-- Define a function that tracks {S,R, or T} on its own thread
 	-- Do this by maintaining our position in a timelist and animating to the next frame
-	local function backgroundPlayback(path, timelist, animationFunction, staticFunction, thisThread)
+	local function backgroundPlayback(path, timelist, thisThread, updateFunctionName)
 
 		activeThreads[thisThread] = thisThread
-		activeAnimations[thisThread] = {}
+		activeAnimations[thisThread] = nil
 
 		local it = timelist:begin()
 
@@ -120,12 +90,9 @@ function controllers.playback.startPlayingPath(path, time)
 					coroutine.yield()
 				end
 
-				for _,drawable in pairs(path.drawables) do
-					local prop = drawable:propForPath(path)
-					staticFunction(prop, it:current():value())
-				end
+				path[updateFunctionName](path, it:current():value(), 0)
 
-				activeAnimations[thisThread] = {}
+				activeAnimations[thisThread] = nil
 			else
 				--wait for the animations to be done
 				if not util.tableIsEmpty(activeAnimations[thisThread]) then
@@ -133,18 +100,12 @@ function controllers.playback.startPlayingPath(path, time)
 				end
 		
 				local timeDelta = it:current():time() - controllers.timeline.currentTime() 
-				activeAnimations[thisThread] = {}
-				for _,drawable in pairs(path.drawables) do
-					local prop = drawable:propForPath(path)
-					local a = animationFunction(prop, timeDelta, it:current():value())
-					activeAnimations[thisThread][a] = a
-				end
+				
+				activeAnimations[thisThread] = path[updateFunctionName](path, it:current():value(), timeDelta)
 			
 			end
-			
-	
+
 			it:next()
-			
 	
 		end
 		
@@ -154,16 +115,11 @@ function controllers.playback.startPlayingPath(path, time)
 
 	-- kick off the actual playback!
 	path:displayAtTime(time) --initialize location
-	local t1,t2,t3 = MOAIThread.new(), MOAIThread.new(), MOAIThread.new()
-	t1:run(	backgroundPlayback, path, path.timelists.translate, 
-			animateDrawablePropForPathTranslation,
-			staticDrawablePropForPathTranslation, t1)
-	t2:run(	backgroundPlayback, path, path.timelists.rotate, 
-			animateDrawablePropForPathRotation,
-			staticDrawablePropForPathRotation, t2)
-	t3:run(	backgroundPlayback, path, path.timelists.scale, 
-			animateDrawablePropForPathScale,
-			staticDrawablePropForPathScale, t3)	
+	local t1,t2,t3,t4 = MOAIThread.new(), MOAIThread.new(), MOAIThread.new(), MOAIThread.new()
+	t1:run(	backgroundPlayback, path, path.timelists.translate, t1, 'setDisplayTranslation')
+	t2:run(	backgroundPlayback, path, path.timelists.rotate, t2, 'setDisplayRotation')
+	t3:run(	backgroundPlayback, path, path.timelists.scale, t3, 'setDisplayScale')
+	t4:run(	backgroundPlayback, path, path.timelists.visibility, t4, 'setDisplayVisibility')
 end
 
 
