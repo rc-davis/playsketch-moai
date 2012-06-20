@@ -48,6 +48,7 @@ end
 
 -- this is necessary because #table doesn't work for associative tables
 function util.tableIsEmpty(tab)
+	if not tab then return true end
 	for _,_ in pairs(tab) do
 		return false
 	end
