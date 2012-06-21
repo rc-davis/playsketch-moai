@@ -32,6 +32,7 @@ require "controllers/disk"
 require "controllers/playback"
 require "controllers/timeline"
 require "controllers/selection"
+require "controllers/state"
 require "controllers/stroke"
 require "controllers/undo"
 
