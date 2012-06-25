@@ -71,7 +71,7 @@ function TextButtonList:addItem(textLabel, id)
 						function() self:setSelected(newIndex) end )
 	newbutton.buttonListId = id
 	table.insert(self.buttons, newbutton)
-	self:setSelected(newIndex)
+	return newIndex
 end
 
 function TextButtonList:setSelected(index)
