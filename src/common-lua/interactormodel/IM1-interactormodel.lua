@@ -179,12 +179,6 @@ function interactormodel.setSelectedPath(path)
 	
 		controllers.interfacestate.setCurrentPath(path)
 	
-		--Replace the selection with the drawables in path
-		controllers.selection.selectedSet = {}	
-		for _,d in pairs(path:allDrawables()) do
-			controllers.selection.selectedSet[d.stroke] = d
-		end
-		
 		-- Update UI
 		g_addPathButton:setEnabled(true)
 		g_deletePathButton:setEnabled(true)

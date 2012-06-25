@@ -76,7 +76,18 @@ function controllers.interfacestate.currentPath()
 end
 
 function controllers.interfacestate.setCurrentPath(path)
-	_currentPath = path
+
+	if path ~= nil then
+
+		--Replace the current selection with the drawables in path
+		controllers.selection.setSelectedDrawables(path:allDrawables())
+	end
+	
+	--kick interfaces to update
+	--TODO: 	rebuildPathList()
+
+	_currentPath = path	
+
 end
 
 

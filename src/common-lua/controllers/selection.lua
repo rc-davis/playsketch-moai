@@ -149,6 +149,13 @@ function controllers.selection.startStroke()
 end
 
 
+function controllers.selection.setSelectedDrawables(drawablesList)
+	controllers.selection.selectedSet = {}	
+	for _,d in pairs(drawablesList) do
+		controllers.selection.selectedSet[d.stroke] = d
+	end
+end
+
 function controllers.selection.clearSelection()
 	controllers.selection.selectedSet = {}
 	interactormodel.selectionCleared()
