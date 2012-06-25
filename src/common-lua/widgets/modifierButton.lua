@@ -22,114 +22,119 @@
 
 
 widgets.modifierButton = {}
-widgets.modifierButton.states = {SELECT_UP=1, SELECT_DOWN=2, RECORD_UP=3, RECORD_DOWN=4}
 
+local Modifier = {}
 
-function widgets.modifierButton.init(centerX, centerY, width, height, 
-									imgSelectPath, imgSelectDownPath,
-									imgRecordPath, imgRecordDownPath,
-									callbackStartSelect, callbackStopSelect,
-									callbackStartRecord, callbackStopRecord)
+function widgets.modifierButton.new(centerX, centerY, width, height, 
+										callbackStartModifier, callbackStopModifier)
+	return util.clone(Modifier):init(centerX, centerY, width, height, 
+										callbackStartModifier, callbackStopModifier)
+end
 
-	local states = widgets.modifierButton.states
+function Modifier:init(centerX, centerY, width, height, callbackStartModifier, callbackStopModifier)
 
-	--load graphics
-	widgets.modifierButton.graphics = {}
-	widgets.modifierButton.graphics[states.SELECT_UP] = MOAIGfxQuad2D.new ()
-	widgets.modifierButton.graphics[states.SELECT_DOWN] = MOAIGfxQuad2D.new ()
-	widgets.modifierButton.graphics[states.RECORD_UP] = MOAIGfxQuad2D.new ()
-	widgets.modifierButton.graphics[states.RECORD_DOWN] = MOAIGfxQuad2D.new ()
-	widgets.modifierButton.graphics[states.SELECT_UP]:setTexture(imgSelectPath)
-	widgets.modifierButton.graphics[states.SELECT_DOWN]:setTexture(imgSelectDownPath)
-	widgets.modifierButton.graphics[states.RECORD_UP]:setTexture(imgRecordPath)
-	widgets.modifierButton.graphics[states.RECORD_DOWN]:setTexture(imgRecordDownPath)
-	widgets.modifierButton.graphics[states.SELECT_UP]:setRect ( -width/2, -height/2, width/2, height/2 )
-	widgets.modifierButton.graphics[states.SELECT_DOWN]:setRect ( -width/2, -height/2, width/2, height/2 )
-	widgets.modifierButton.graphics[states.RECORD_UP]:setRect ( -width/2, -height/2, width/2, height/2 )
-	widgets.modifierButton.graphics[states.RECORD_DOWN]:setRect ( -width/2, -height/2, width/2, height/2 )
+	self.storedGraphics = {} -- maps cached file paths to MOAIGfxQuad2D objects
 
 	--create prop
-	widgets.modifierButton.prop = MOAIProp2D.new ()
-	widgets.modifierButton.prop:setLoc ( centerX, centerY )
-	widgets.layer:insertProp (widgets.modifierButton.prop)	
+	self.prop = MOAIProp2D.new ()
+	self.prop:setLoc ( centerX, centerY )
+	widgets.layer:insertProp (self.prop)	
 	
-	--store variables
-	widgets.modifierButton.callbackStartSelect = callbackStartSelect
-	widgets.modifierButton.callbackStopSelect = callbackStopSelect
-	widgets.modifierButton.callbackStartRecord = callbackStartRecord
-	widgets.modifierButton.callbackStopRecord = callbackStopRecord
+	--store callbacks
+	self.callbackStartModifier = callbackStartModifier
+	self.callbackStopModifier = callbackStopModifier
 	
-	--register for touch callbacks
+	--register for touches
 	input.manager.addDownCallback(input.manager.UILAYER, 
-		function (id,px,py)
-			if widgets.modifierButton.touchID == nil and widgets.modifierButton.prop:inside(px,py) then
-				widgets.modifierButton.touchID = id
-				if widgets.modifierButton.state == states.SELECT_UP then
-					widgets.modifierButton:setState(states.SELECT_DOWN)
-					return true
-				elseif widgets.modifierButton.state == states.RECORD_UP then
-					widgets.modifierButton:setState(states.RECORD_DOWN)
-					return true
-				elseif widgets.modifierButton.state == states.SELECT_DOWN then
-					widgets.modifierButton:setState(states.SELECT_UP)
-					return true
-				elseif widgets.modifierButton.state == states.RECORD_DOWN then
-					widgets.modifierButton:setState(states.RECORD_UP)
-					return true
-				end
-			end
-			return false
-		end)
+		function (id,px,py) return self:touchDown(id,px,py) end)
 
 	input.manager.addUpCallback(input.manager.UILAYER, 
-		function (id,px,py)
-			if widgets.modifierButton.touchID ~= nil and id == widgets.modifierButton.touchID then
-				widgets.modifierButton.touchID = nil
-				
-				-- On a touchscreen, you have to hold the button
-				if MOAIInputMgr.device.touch then
-					if widgets.modifierButton.state == states.SELECT_DOWN then
-						widgets.modifierButton:setState(states.SELECT_UP)
-						return true
-					elseif widgets.modifierButton.state == states.RECORD_DOWN then
-						widgets.modifierButton:setState(states.RECORD_UP)
-						return true
-					end
-				end
-				
-			end
-			return false			
-		end)
-
-	function widgets.modifierButton:setState(state)
-
-		--callbacks for the state we are leaving
-		if widgets.modifierButton.state == states.SELECT_DOWN and widgets.modifierButton.callbackStopSelect then
-			widgets.modifierButton.callbackStopSelect()
-		elseif widgets.modifierButton.state == states.RECORD_DOWN and widgets.modifierButton.callbackStopRecord then
-			widgets.modifierButton.callbackStopRecord()
-		end
-
-		--update graphics
-		widgets.modifierButton.state = state
-		widgets.modifierButton.prop:setDeck(widgets.modifierButton.graphics[state])
+		function (id,px,py) return self:touchUp(id,px,py) end)
 		
-		--callbacks for the state we are starting
-		if state == states.SELECT_DOWN and widgets.modifierButton.callbackStartSelect then
-			widgets.modifierButton.callbackStartSelect()
-		elseif state == states.RECORD_DOWN and widgets.modifierButton.callbackStartRecord then
-			widgets.modifierButton.callbackStartRecord()
-		end
-	end
-
-	function widgets.modifierButton:setSelectionMode()
-		self:setState(states.SELECT_UP)
-	end
-	function widgets.modifierButton:setRecordingMode()
-		self:setState(states.RECORD_UP)
-	end
-
-	--set state
-	widgets.modifierButton.state = nil
-	widgets.modifierButton:setState(states.SELECT_UP)
+		
+	self.size = {width=width, height=height}	
+	self.touchID = nil
+	self.isModifying = false
+	self.upImage = nil
+	self.downImage = nil
+	
+	return self
 end
+
+function Modifier:touchDown(id,px,py)
+	if self.touchID == nil and self.prop:inside(px,py) then
+		self.touchID = id
+		
+		if MOAIInputMgr.device.touch then
+			self.isModifying = true
+			if self.callbackStartModifier then self.callbackStartModifier() end
+		end
+		self:refreshPropGfx()
+		return true
+	end
+	return false
+end
+
+
+function Modifier:touchUp(id,px,py)
+	if self.touchID == id then
+		self.touchID = nil
+		
+		if MOAIInputMgr.device.touch or self.isModifying then --touchscreen up: stop modifying
+			self.isModifying = false
+			if self.callbackStopModifier then self.callbackStopModifier() end
+		else -- mouse up while not modifying : start modifying
+			self.isModifying = true
+			if self.callbackStartModifier then self.callbackStartModifier() end
+		end
+		
+		self:refreshPropGfx()
+	
+		return true
+	end
+	return false
+end
+
+function Modifier:setImages(upImagePath, downImagePath)
+
+	--cache the up image
+	if self.storedGraphics[upImagePath] == nil then
+		local gfx = MOAIGfxQuad2D.new()
+		gfx:setTexture(upImagePath)
+		gfx:setRect( -self.size.width/2, -self.size.height/2, self.size.width/2, self.size.height/2 )
+		self.storedGraphics[upImagePath] = gfx
+	end
+
+	--cache the down image
+	if self.storedGraphics[downImagePath] == nil then
+		local gfx = MOAIGfxQuad2D.new()
+		gfx:setTexture(downImagePath)
+		gfx:setRect( -self.size.width/2, -self.size.height/2, self.size.width/2, self.size.height/2 )
+		self.storedGraphics[downImagePath] = gfx
+	end
+
+	--set the current image
+	self.upImage = self.storedGraphics[upImagePath]
+	self.downImage = self.storedGraphics[downImagePath]
+
+	self:forceUp()
+end
+	
+function Modifier:forceUp()	
+	self.touchID = nil
+	self.isModifying = false
+	self:refreshPropGfx()
+end
+
+
+
+function Modifier:refreshPropGfx()
+
+	if (self.isModifying == true or self.touchID ~= nil) and self.downImage then
+		self.prop:setDeck(self.downImage)
+	elseif self.upImage then
+		self.prop:setDeck(self.upImage)
+	end
+end
+
+return widgets.modifierButton
