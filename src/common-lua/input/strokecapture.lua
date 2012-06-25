@@ -14,7 +14,7 @@
 	input/strokecapture.lua
 
 	Registers for mouse events with the input.manager.
-	Depending on the input.strokecapture.mode state, either uses touches to build a 
+	Depending on the interfacestate current state, either uses touches to build a 
 	new object or a selection lasso.
 	
 	To pass them along to a consumer, it needs to support:
@@ -24,34 +24,40 @@
 --]]
 
 input.strokecapture = {}
-input.strokecapture.modes = {MODE_DRAW=1, MODE_SELECT=2, MODE_RECORD=3}
-input.strokecapture.mode = input.strokecapture.modes.MODE_DRAW
 local activeStrokes = {}
 local selectionStroke = nil
 
-
-function input.strokecapture.setMode(mode)
-	input.strokecapture.mode = mode
-end
-
 local function downCallback(id,x,y)
 	if activeStrokes[id] == nil then
-	
-		-- if we are using the manipulator, ignore other touches!
-		if widgets.manipulator:inUse() then
-			return false
-		end
-	
-		if input.strokecapture.mode == input.strokecapture.modes.MODE_DRAW then
+
+		local state = controllers.interfacestate.state()
+		
+		if	state == STATES.NEUTRAL or state == STATES.DRAWING then
+		
+			--start drawing
 			activeStrokes[id] = controllers.stroke.new()
-		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_SELECT 
-			and selectionStroke == nil then
+			controllers.interfacestate.setState(STATES.DRAWING)
+			
+		elseif state ==  STATES.SELECT_BUTTON_DOWN then
+		
+			--start SELECTING
+			assert(selectionStroke == nil, "Should not be selecting if we begin a selection")
 			activeStrokes[id] = controllers.selection.startStroke()	
 			selectionStroke = id
-		elseif input.strokecapture.mode == input.strokecapture.modes.MODE_RECORD then
-			-- change modes
-			widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)
-			controllers.selection.clearSelection()
+			controllers.interfacestate.setState(STATES.SELECTING)
+			
+		elseif	state == STATES.SELECTING or
+				state == STATES.RECORDING then
+		
+			--ignore since we are busy doing something else!
+			
+		elseif	state == STATES.DRAWABLES_SELECTED or 
+				state == STATES.PATH_SELECTED or 
+				state == STATES.RECORDING_BUTTON_DOWN or 
+				state == STATES.MANIPULATOR_IN_USE then
+				
+			--clear out and go back to NEUTRAL
+			controllers.interfacestate.setState(STATES.NEUTRAL)
 		end
 
 		return true
@@ -73,10 +79,18 @@ local function upCallback(id,x,y)
 		activeStrokes[id] = nil	
 		drawingLayer:removeProp (stroke)
 		stroke:doneStroke()
+		
+		
 		if id == selectionStroke then 
 			selectionStroke = nil 
+			if controllers.selection.selectionIsEmpty() then
+				controllers.interfacestate.setState(STATES.SELECT_BUTTON_DOWN)
+			else
+				controllers.interfacestate.setState(STATES.DRAWABLES_SELECTED)
+			end
 		else
 			interactormodel.newDrawableCreated(	stroke )
+			controllers.interfacestate.setState(STATES.NEUTRAL)
 		end
 	end
 	return false
