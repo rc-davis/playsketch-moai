@@ -204,7 +204,7 @@ function interactormodel.deleteSelectedPath()
 end
 
 
-function interactormodel.toggleCurrentPathVisibility()
+function interactormodel.toggleSelectedPathVisibility()
 
 	assert(controllers.interfacestate.currentPath(), "Need a current path to toggle visibility for")
 	local time = controllers.timeline:currentTime()

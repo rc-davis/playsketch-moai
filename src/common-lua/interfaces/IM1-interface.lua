@@ -64,7 +64,7 @@ g_redoButton:setEnabled(false)
 g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", interactormodel.clearAll)
 
 -- visibility toggle
-g_visibilityButton = widgets.textButton.new(320, 288, 128, 64, "toggle visibility", interactormodel.toggleCurrentPathVisibility)
+g_visibilityButton = widgets.textButton.new(320, 288, 128, 64, "toggle visibility", interactormodel.toggleSelectedPathVisibility)
 g_visibilityButton:setEnabled(false)
 
 
