@@ -92,19 +92,13 @@ function refreshInterface()
 end
 
 
-function rebuildPathList()
 
-	--empty
+function refreshAfterUndo()
+	--brute-force redo the path list
 	g_pathList:clearAll()
-	
-	--loop through and add
 	for _,path in pairs(interactormodel.getUserPaths()) do
-		local label =	"Path " .. path.id ..
-					" (" .. util.tableCount(path:allDrawables()) .. ")"
-		g_pathList:addItem(label, path)
+		g_pathList:addItem("Path " .. path.id, path)
 	end
-	g_pathList:setSelected(nil)
-end
 	
-
+	controllers.interfacestate.setState(STATES.NEUTRAL)
 

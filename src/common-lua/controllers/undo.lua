@@ -63,8 +63,6 @@ function controllers.undo.endGroup(groupname)
 	table.insert(pastActionStack, { endGroup=true, name=groupname })
 	futureActionStack = {} --clear out any redos sitting on the stack
 
-	refreshInterface()
-
 end
 
 
@@ -117,9 +115,9 @@ function controllers.undo.performUndo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	controllers.playback.refresh()
-	refreshInterface() --TEMP
-	rebuildPathList() --TEMP
+	assert(refreshAfterUndo, "Your interface file should define refreshAfterUndo() to clean up after an undo/redo")
+	refreshAfterUndo(path)
+	
 end
 
 
@@ -152,8 +150,7 @@ function controllers.undo.performRedo()
 	--re-enable saving undo actions
 	recordUndos = true
 
-	controllers.playback.refresh()
-	refreshInterface()  --TEMP!!
-	rebuildPathList() --TEMP!!
+	assert(refreshAfterUndo, "Your interface file should define refreshAfterUndo() to clean up after an undo/redo")
+	refreshAfterUndo(path)
 end
 
