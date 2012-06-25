@@ -24,7 +24,6 @@ require "basemodel/basemodel"
 
 interactormodel = {}
 
-local currentPath = nil
 local nextId = 1
 
 
@@ -67,12 +66,13 @@ local recordingState = { loc={} }
 
 function interactormodel.recordingStarts(time)
 	assert(recordedMotionSession == nil, "no other recording sessions going on")
-	recordedMotionSession = currentPath:startRecordedMotion(time)
+	assert(controllers.interfacestate.currentPath() ~= nil, "Shouldn't start recording without a path")
+	recordedMotionSession = controllers.interfacestate.currentPath():startRecordedMotion(time)
 	recordingState.s,
 	recordingState.r,
 	recordingState.t,
-	recordingState.v = currentPath:stateAtTime(time)
-	controllers.playback.setPathToNotAnimate(currentPath)
+	recordingState.v = controllers.interfacestate.currentPath():stateAtTime(time)
+	controllers.playback.setPathToNotAnimate(controllers.interfacestate.currentPath())
 
 	if not controllers.timeline.playing then
 		controllers.timeline.play()
@@ -120,12 +120,12 @@ function interactormodel.recordingFinished(time)
 end
 
 function interactormodel.updateKeyframe(data)
-	assert(currentPath, "can't update keyframe without a current Path")
-	local s,r,t,v = currentPath:stateAtTime(data.time)
+	assert(controllers.interfacestate.currentPath(), "can't update keyframe without a current Path")
+	local s,r,t,v = controllers.interfacestate.currentPath():stateAtTime(data.time)
 	if data.dScale then s = s + data.dScale else s = nil end
 	if data.dAngle then r = r + data.dAngle else r = nil end
 	if data.dx and data.dy then t.x,t.y = t.x + data.dx, t.y + data.dy else t = nil end
-	currentPath:addKeyframedMotion(data.time, s, r, t, nil, nil)
+	controllers.interfacestate.currentPath():addKeyframedMotion(data.time, s, r, t, nil, nil)
 end
 
 function interactormodel.updateVisibility(time, newValue)
@@ -161,9 +161,9 @@ end
 function interactormodel.setSelectedPath(path)
 
 	-- Remove any pre-existing paths
-	if currentPath ~= nil then 
+	if controllers.interfacestate.currentPath() ~= nil then 
 
-		currentPath = nil
+		controllers.interfacestate.setCurrentPath(nil)
 
 		--update the UI
 		g_addPathButton:setEnabled(false)
@@ -177,7 +177,7 @@ function interactormodel.setSelectedPath(path)
 	-- set the new path
 	if path ~= nil then
 	
-		currentPath = path
+		controllers.interfacestate.setCurrentPath(path)
 	
 		--Replace the selection with the drawables in path
 		controllers.selection.selectedSet = {}	
@@ -189,7 +189,7 @@ function interactormodel.setSelectedPath(path)
 		g_addPathButton:setEnabled(true)
 		g_deletePathButton:setEnabled(true)
 		g_visibilityButton:setEnabled(true)
-		widgets.manipulator:attachToPath(currentPath)
+		widgets.manipulator:attachToPath(controllers.interfacestate.currentPath())
 		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
 		input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
 	end
@@ -198,19 +198,18 @@ end
 
 function interactormodel.deleteSelectedPath()
 
-	assert(currentPath, "Need a current path to delete")
-	basemodel.deletePath(currentPath)
-	rebuildPathList()
-
+	assert(controllers.interfacestate.currentPath(), "Need a current path to delete")
+	basemodel.deletePath(controllers.interfacestate.currentPath())
+	controllers.interfacestate.setCurrentPath(nil)
 end
 
 
 function interactormodel.toggleCurrentPathVisibility()
 
-	assert(currentPath, "Need a current path to toggle visibility for")
+	assert(controllers.interfacestate.currentPath(), "Need a current path to toggle visibility for")
 	local time = controllers.timeline:currentTime()
-	local _,_,_,v = currentPath:stateAtTime(time)
-	currentPath:setVisibility(time, not v)
+	local _,_,_,v = controllers.interfacestate.currentPath():stateAtTime(time)
+	controllers.interfacestate.currentPath():setVisibility(time, not v)
 	controllers.playback.refresh()
 end
 
