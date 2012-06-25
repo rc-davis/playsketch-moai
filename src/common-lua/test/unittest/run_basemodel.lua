@@ -161,11 +161,11 @@ startSection("Testing basemodel")
 		verify(path1:keyframeTimelist('visibility'):size() == 2, "Should be 2 visibility keyframes now (10,21)")
 
 		-- add a recorded motion, overwrites 19 and 21
-		local recordSession = path1:startRecordedMotion(18)
-		recordSession:addMotion(19, nil, nil, {x=100, y = 100})
-		recordSession:addMotion(20, nil, nil, {x=-100, y = 100})
-		recordSession:addMotion(21, nil, nil, {x=-100, y = -100} )
-		recordSession:addMotion(22, nil, nil, {x=0, y = 0})
+		local recordSession = path1:startRecordedMotion(18, 'translate')
+		recordSession:addMotion(19, {x=100, y = 100})
+		recordSession:addMotion(20, {x=-100, y = 100})
+		recordSession:addMotion(21, {x=-100, y = -100} )
+		recordSession:addMotion(22, {x=0, y = 0})
 		recordSession:endSession(22)
 
 		local s,r,t,v  = path1:stateAtTime(19)
