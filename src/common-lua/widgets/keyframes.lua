@@ -14,7 +14,7 @@
 	widgets/keyframes.lua
 
 	- A (crude for now) display of the keyframes associated with a selection.
-	- On each draw loop, it reads from self.currentPath and displays the keyframes
+	- On each draw loop, it reads from interfacestate.currentPath() and displays the keyframes
 --]]
 
 
@@ -22,8 +22,6 @@ widgets.keyframes = {}
 
 
 function widgets.keyframes:init(centerX,centerY,width,height)
-
-	self.currentPath = nil
 
 	local scriptDeck = MOAIScriptDeck.new ()
 	scriptDeck:setRect(centerX - width/2, centerY - height/2, width, height)
@@ -108,28 +106,26 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 		end
 	end
 	
-	if self.currentPath then
-		drawKeyframes(	self.currentPath:keyframeTimelist('scale'):begin(),
+	local path = controllers.interfacestate.currentPath()
+	
+	if path then
+		drawKeyframes(	path:keyframeTimelist('scale'):begin(),
 						0,
 						self.frame.size.height*1/4,
 						1,0,0)
-		drawKeyframes(	self.currentPath:keyframeTimelist('rotate'):begin(),
+		drawKeyframes(	path:keyframeTimelist('rotate'):begin(),
 						self.frame.size.height*1/4,
 						self.frame.size.height*2/4,
 						0,1,0)
-		drawKeyframes(	self.currentPath:keyframeTimelist('translate'):begin(),
+		drawKeyframes(	path:keyframeTimelist('translate'):begin(),
 						self.frame.size.height*2/4,
 						self.frame.size.height*3/4,
 						0,0,1)
-		drawVisibility(	self.currentPath:keyframeTimelist('visibility'):begin(),
+		drawVisibility(	path:keyframeTimelist('visibility'):begin(),
 						self.frame.size.height*3/4,
 						self.frame.size.height*4/4,
 						1, 0.1, 0.5)
 	end
-end
-
-function widgets.keyframes:setCurrentPath(p)
-	self.currentPath = p
 end
 
 return widgets.keyframes
