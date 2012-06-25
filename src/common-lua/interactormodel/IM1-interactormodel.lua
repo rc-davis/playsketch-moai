@@ -46,18 +46,16 @@ end
 
 function interactormodel.selectionMade(set)
 
-	-- Update the user interface to this state!
-	g_addPathButton:setEnabled(true)
 end
 
 
 function interactormodel.selectionStarted()
-	g_addPathButton:setEnabled(false)
+
 end
 
 
 function interactormodel.selectionCleared()
-	g_pathList:setSelected(nil)
+
 end
 
 
@@ -126,12 +124,8 @@ function interactormodel.updateKeyframe(data)
 	controllers.interfacestate.currentPath():addKeyframedMotion(data.time, s, r, t, nil, nil)
 end
 
-function interactormodel.updateVisibility(time, newValue)
-end
-
 function interactormodel.clearAll()
 	basemodel.clearAll()
-	g_pathList:clearAll()
 end
 
 
@@ -145,48 +139,12 @@ function interactormodel.makeNewUserPath()
 	if #interactormodel.getUserPaths() >= 8 then return end
 
 	local drawablesList = controllers.selection.getSelectedDrawables()
-	local path = basemodel.createNewPath(drawableList, nil, controllers.timeline.currentTime(), true)
+	local path = basemodel.createNewPath(drawablesList, nil, controllers.timeline.currentTime(), true)
 	path.isUserPath = true --HACK
 	path.id = nextId
 	nextId = nextId + 1
-	
-	local label =	"Path " .. path.id ..
-					" (" .. util.tableCount(path:allDrawables()) .. ")"
-	g_pathList:addItem(label, path)
+	return path
 end
-
-
-function interactormodel.setSelectedPath(path)
-
-	-- Remove any pre-existing paths
-	if controllers.interfacestate.currentPath() ~= nil then 
-
-		controllers.interfacestate.setCurrentPath(nil)
-
-		--update the UI
-		g_addPathButton:setEnabled(false)
-		g_deletePathButton:setEnabled(false)
-		g_visibilityButton:setEnabled(false)
-		widgets.manipulator:hide()
-		widgets.modifierButton:setState(widgets.modifierButton.states.SELECT_UP)			
-		input.strokecapture.setMode(input.strokecapture.modes.MODE_DRAW)
-	end
-	
-	-- set the new path
-	if path ~= nil then
-	
-		controllers.interfacestate.setCurrentPath(path)
-	
-		-- Update UI
-		g_addPathButton:setEnabled(true)
-		g_deletePathButton:setEnabled(true)
-		g_visibilityButton:setEnabled(true)
-		widgets.manipulator:attachToPath(controllers.interfacestate.currentPath())
-		widgets.modifierButton:setState(widgets.modifierButton.states.RECORD_UP)
-		input.strokecapture.setMode(input.strokecapture.modes.MODE_RECORD )
-	end
-end
-
 
 function interactormodel.deleteSelectedPath()
 
@@ -206,6 +164,7 @@ function interactormodel.toggleSelectedPathVisibility()
 end
 
 
+-- These are just the subset of paths that have been explicitly created in our interface
 function interactormodel.getUserPaths()
 	local allPaths = basemodel.allPaths()
 	local userPaths = {}
