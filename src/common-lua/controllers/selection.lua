@@ -171,5 +171,8 @@ function controllers.selection.getSelectedDrawables()
 	return util.dictionaryValuesToArray(_selectedSet)
 end
 
+function controllers.selection.selectionIsEmpty()
+	return util.tableIsEmpty(_selectedSet)
+end
 
 return controllers.selection
