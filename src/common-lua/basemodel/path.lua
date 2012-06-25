@@ -177,14 +177,16 @@ function Path:startRecordedMotion(time, dataType)
 														self.node:next():metadata('recorded'))
 	
 		-- Add in our new data
-		local newNode = self.path.timelists[self.dataType]:setValueForTime(time, util.clone(value), self.node)
+		if value then
+			local newNode = self.path.timelists[self.dataType]:setValueForTime(time, util.clone(value), self.node)
 
-		-- Label it as 'recorded' for all but the first node (TODO: fix hacky workaround)
-		if self.firstNewNodeWritten then 
-			newNode:setMetadata('recorded', true)
-		else self.firstNewNodeWritten = true end
-			
-		self.node = newNode
+			-- Label it as 'recorded' for all but the first node (TODO: fix hacky workaround)
+			if self.firstNewNodeWritten then 
+				newNode:setMetadata('recorded', true)
+			else self.firstNewNodeWritten = true end
+				
+			self.node = newNode
+		end
 
 		--advance the visibility node
 		local nextVisibility = self.endVisibilityNode:value()
@@ -207,6 +209,9 @@ function Path:startRecordedMotion(time, dataType)
 	end
 
 	function recordedMotionSession:endSession(endTime)
+	
+		-- Clean up any areas we didn't record over
+		self:addMotion(endTime, nil)
 	
 		-- Get rid of our visisbility nodes if they weren't necessary
 		if self.startVisibilityNode:previous() and self.startVisibilityNode:previous():value() == true then
