@@ -84,16 +84,18 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
 
 			-- Draw a line if we are finishing a time span!
-			if it:current():value():value() == true then
-				spanStartPx = timePx
-			elseif spanStartPx ~= nil then
+			if spanStartPx ~= nil then
 				local spanHeightOffsetDiff = (heightOffsetEnd - heightOffsetStart)/4
 				MOAIDraw.fillRect(	spanStartPx,
 									self.frame.origin.y + heightOffsetStart + spanHeightOffsetDiff,
 									timePx,
 									self.frame.origin.y + heightOffsetEnd - spanHeightOffsetDiff)
 				spanStartPx = nil
-			end								
+			end
+			
+			if it:current():value():value() == true then
+				spanStartPx = timePx
+			end			
 			it:next()
 		end
 		
