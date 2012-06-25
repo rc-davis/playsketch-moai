@@ -67,6 +67,11 @@ function TimelistNode:time()
 	return self._time
 end
 
+-- Use this very judiciously!!!
+function TimelistNode:setTime(time)
+	self._time = time
+end
+
 function TimelistNode:value()
 	return self._value
 end
