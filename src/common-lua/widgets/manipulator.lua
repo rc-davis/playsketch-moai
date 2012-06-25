@@ -50,7 +50,6 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 	prop.touchID = nil
 	prop.touchLoc = nil
 	prop.currentAction = nil
-	prop.currentPath = nil
 	prop.keyframeUpdateCallback = keyframeUpdateCallback
 	prop.recordingUpdateCallback = recordingUpdateCallback
 	prop.startRecordingCallback = startRecordingCallback
@@ -254,8 +253,8 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				prop.currentAction = nil
 				prop.touchLoc = nil
 				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
-				
-					prop:setInheritsFromPath(prop.currentPath)
+
+					--todo: hook back up to recording! (should happen in interfacecontroller)
 				
 					if prop.doneRecordingCallback then
 						prop.doneRecordingCallback(controllers.timeline.currentTime())
@@ -267,7 +266,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 			end
 
 		end)
-
+		
 	function prop:setInheritsFromPath(path)
 	
 		if path then
@@ -296,20 +295,15 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 
 
 	function prop:attachToPath(path)
-
-		self.currentPath = path
-
 		self:setInheritsFromPath(path)
-		--make it visible
 		self.visible = true
 		self:setVisible(true)
 	end
 
 	function prop:hide()
-			self.currentPath = nil
-			self:setInheritsFromPath(nil)
-			self.visible = false
-			self:setVisible(false)
+		self:setInheritsFromPath(nil)	
+		self.visible = false
+		self:setVisible(false)
 	end
 	
 	function prop:repositionManually(data)
