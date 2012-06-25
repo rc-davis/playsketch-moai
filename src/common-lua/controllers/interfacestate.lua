@@ -23,53 +23,49 @@
 
 controllers.interfacestate = {}
 
-
---[[
-controllers.state.all = {
+STATES = {
 	
-	NONE					=	1,
-	DRAW_BUTTON_DOWN		=	2,
-	DRAWING					=	3,
-	SELECT_BUTTON_DOWN		=	4,
-	SELECTING				=	5,
-	DRAWABLES_SELECTED		=	6,
-	PATH_SELECTED			=	7,
-	RECORDING_BUTTON_DOWN	=	8,
-	MANIPULATOR_IN_USE		=	9,
-	RECORDING				=	10
-	
-	}
-	
-controllers.state.current = controllers.state.all.NONE
+	NEUTRAL					=	"NEUTRAL",
+	DRAW_BUTTON_DOWN		=	"DRAW_BUTTON_DOWN",
+	DRAWING					=	"DRAWING",
+	SELECT_BUTTON_DOWN		=	"SELECT_BUTTON_DOWN",
+	SELECTING				=	"SELECTING",
+	DRAWABLES_SELECTED		=	"DRAWABLES_SELECTED",
+	PATH_SELECTED			=	"PATH_SELECTED",
+	RECORDING_BUTTON_DOWN	=	"RECORDING_BUTTON_DOWN",
+	MANIPULATOR_IN_USE		=	"MANIPULATOR_IN_USE",
+	RECORDING				=	"RECORDING"
+}
 
-function controllers.state.refreshInterface()
+local _state = STATES.NEUTRAL
+local _currentPath = nil
 
-	--go through widgets and set them!
 
+function controllers.interfacestate.state()
+	return _state
 end
 
+function controllers.interfacestate.setState(newstate)
+	local oldstate = _state
+	_state = newstate
 
-
-function controllers.state.changeToState(newstate)
-
-	--giant switch statement of changing states!
-
-
+	print(oldstate, "->", newstate)	
+	
+	if newstate == STATES.PATH_SELECTED then
+		assert(_currentPath, "We should have a non-nil current path if we are in PATH_SELECTED")
+		widgets.manipulator:attachToPath(_currentPath)
+	elseif not controllers.interfacestate.isAManipulatorState() then
+		widgets.manipulator:hide()
+	end
+	
+	if newstate == STATES.NEUTRAL then
+		controllers.selection.clearSelection()
+		controllers.interfacestate.setCurrentPath(nil)
+	end
+		
+	assert(refreshToNewState, "Your interface file should define refreshToNewState(newstate) to respond to state changes")
+	refreshToNewState(newstate)
 end
-
-
--- TODO: this is temp and should be covered in our new shared state controller
-local function refreshInterface()
-	g_undoButton:setEnabled(not util.tableIsEmpty(pastActionStack))
-	g_redoButton:setEnabled(not util.tableIsEmpty(futureActionStack))
-	controllers.playback.refresh()
-end
-
-
---]]
-
-
-local _currentPath
 
 function controllers.interfacestate.currentPath()
 	return _currentPath
@@ -77,18 +73,29 @@ end
 
 function controllers.interfacestate.setCurrentPath(path)
 
+	_currentPath = path	
+
 	if path ~= nil then
 
 		--Replace the current selection with the drawables in path
 		controllers.selection.setSelectedDrawables(path:allDrawables())
+
+		controllers.interfacestate.setState(STATES.PATH_SELECTED)
 	end
 	
-	--kick interfaces to update
-	--TODO: 	rebuildPathList()
-
-	_currentPath = path	
+	assert(refreshCurrentPath, "Your interface file should define refreshCurrentPath(newPath) to respond to state changes")
+	refreshCurrentPath(path)
 
 end
+
+function controllers.interfacestate.isAManipulatorState()
+	return	_state == STATES.PATH_SELECTED or
+			_state == STATES.RECORDING_BUTTON_DOWN or
+			_state == STATES.MANIPULATOR_IN_USE or
+			_state == STATES.RECORDING
+end
+
+
 
 
 return controllers.interfacestate

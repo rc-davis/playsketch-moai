@@ -47,50 +47,84 @@ controllers.timeline.setButtons(playButton)
 
 
 -- Create a list of the paths along the right side of the screen
-g_pathList = widgets.textButtonList.new(320, -128, 128, 512, 64, interactormodel.setSelectedPath)
-g_addPathButton = widgets.textButton.new(320, 224, 128, 64, "new path", interactormodel.makeNewUserPath)
+g_pathList = widgets.textButtonList.new(320, -128, 128, 512, 64, controllers.interfacestate.setCurrentPath)
+g_addPathButton = widgets.textButton.new(320, 224, 128, 64, "new path", 
+	function ()
+		local p = interactormodel.makeNewUserPath()
+		local index = g_pathList:addItem("Path " .. p.id, p)
+		g_pathList:setSelected(index)
+	end)
 g_deletePathButton = widgets.textButton.new(320, 160, 128, 64, "delete path", interactormodel.deleteSelectedPath)
-g_addPathButton:setEnabled(false)
-g_deletePathButton:setEnabled(false)
 
 
 -- undo redo buttons
 g_undoButton = widgets.textButton.new(320, 480, 128, 64, "Undo", controllers.undo.performUndo)
 g_redoButton = widgets.textButton.new(320, 416, 128, 64, "Redo", controllers.undo.performRedo)
-g_undoButton:setEnabled(false)
-g_redoButton:setEnabled(false)
+
 
 -- clear button
-g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", interactormodel.clearAll)
+g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", 
+	function () 
+		interactormodel.clearAll()
+		g_pathList:clearAll()
+		controllers.interfacestate.setState(STATES.NEUTRAL)
+	end)
 
--- visibility toggle
+
+-- visibility toggle button
 g_visibilityButton = widgets.textButton.new(320, 288, 128, 64, "toggle visibility", interactormodel.toggleSelectedPathVisibility)
-g_visibilityButton:setEnabled(false)
 
 
-
+--keyframes visualization
 widgets.keyframes:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128-64, 64)
 
 
+--initialize modifier button to do both recording and selection
+g_modifier = widgets.modifierButton.new(-SCALED_WIDTH/2+192/2, 400, 192, 192, 
+	function () 
+		if not controllers.interfacestate.isAManipulatorState() then
+			controllers.interfacestate.setState(STATES.SELECT_BUTTON_DOWN)
+		else
+			controllers.interfacestate.setState(STATES.RECORDING_BUTTON_DOWN)
+		end
+	end,
+	function () 
+		if not controllers.interfacestate.isAManipulatorState() then
+			controllers.interfacestate.setState(STATES.NEUTRAL)
+		else
+			controllers.interfacestate.setState(STATES.PATH_SELECTED)
+		end
+	end )
 
-widgets.modifierButton.init(-SCALED_WIDTH/2+192/2, 400, 192, 192,
-								"resources/IM1/modifier_button_select.png",
-								"resources/IM1/modifier_button_select_down.png",
-								"resources/IM1/modifier_button_record.png",
-								"resources/IM1/modifier_button_record_down.png",
-								function () input.strokecapture.setMode( input.strokecapture.modes.MODE_SELECT ) end,
-								function () input.strokecapture.setMode( input.strokecapture.modes.MODE_DRAW ) end,
-								nil,
-								nil)
 
+---------- Implement the functions for refreshing the interface required by the other controllers
 
+function refreshToNewState(newstate)
 
-function refreshInterface()
-
+	g_addPathButton:setEnabled(not controllers.selection.selectionIsEmpty())
+	g_deletePathButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
+	g_visibilityButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
 	g_undoButton:setEnabled(controllers.undo.canPerformUndo())
 	g_redoButton:setEnabled(controllers.undo.canPerformRedo())
+	g_clearButton:setEnabled( not util.tableIsEmpty(basemodel.allPaths()) or not util.tableIsEmpty(basemodel.allDrawables()))
+
+	if newstate == STATES.PATH_SELECTED then	
+		g_modifier:setImages("resources/IM1/modifier_button_record.png",
+						"resources/IM1/modifier_button_record_down.png")
+	elseif newstate == STATES.NEUTRAL then
+		g_modifier:setImages("resources/IM1/modifier_button_select.png",
+						"resources/IM1/modifier_button_select_down.png")
+	elseif newstate == STATES.DRAWABLES_SELECTED then
+		g_modifier:forceUp()
+	end
+
+	controllers.playback.refresh()
 end
 
+
+function refreshCurrentPath(newPath)
+	g_pathList:setSelectedObject(newPath)
+end
 
 
 function refreshAfterUndo()
@@ -101,4 +135,11 @@ function refreshAfterUndo()
 	end
 	
 	controllers.interfacestate.setState(STATES.NEUTRAL)
+end
+
+
+-----------------
+-- start in a neutral state
+controllers.interfacestate.setState(STATES.NEUTRAL)
+
 
