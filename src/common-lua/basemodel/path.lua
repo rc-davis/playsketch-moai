@@ -116,107 +116,107 @@ function Path:addKeyframedMotion(time, scaleValue, rotateValue, translateValue, 
 	controllers.undo.endGroup("Path: Add Keyframed Motion")	
 end
 
-function Path:startRecordedMotion(time)
+-- dataType = {'scale', 'rotate', 'translate'}
+function Path:startRecordedMotion(time, dataType)
+
+	assert(dataType == 'scale' or dataType == 'rotate' or dataType == 'translate', 
+			"dataType needs to be scale, rotate, or translate")
 
 	controllers.undo.startGroup("Path Recorded Motion")
 
 	-- create a recorded motion session token
 	local recordedMotionSession = {}
 	recordedMotionSession.path = self
-	recordedMotionSession.start = {}
-	recordedMotionSession.start.time = time
-	recordedMotionSession.finish = {}
-	
-	
-	recordedMotionSession.dataTypes = {}
-	
-	-- Get pointers to the nodes right before the start time (to advance as we record)
-	recordedMotionSession.nodes = {}
-	recordedMotionSession.nodes.scale = self.timelists.scale:getNodeForTime(time)
-	recordedMotionSession.nodes.rotate = self.timelists.rotate:getNodeForTime(time)
-	recordedMotionSession.nodes.translate = self.timelists.translate:getNodeForTime(time)
-	recordedMotionSession.nodes.visibility = self.timelists.visibility:getNodeForTime(time)	
+	recordedMotionSession.dataType = dataType
+	recordedMotionSession.startTime = time
 
-	--Get pointers to the keyframes to do the same with them
-	recordedMotionSession.keyframenode = {}
-	recordedMotionSession.keyframenode.scale = self.keyframes.scale:getNodeForTime(time)
-	recordedMotionSession.keyframenode.rotate = self.keyframes.rotate:getNodeForTime(time)
-	recordedMotionSession.keyframenode.translate = self.keyframes.translate:getNodeForTime(time)
-	recordedMotionSession.keyframenode.visibility = self.keyframes.visibility:getNodeForTime(time)	
+	-- Get a pointer to the node right before the start time (to advance as we record)
+	recordedMotionSession.node = self.timelists[dataType]:getNodeForTime(time)
 
+	-- Create start and end keyframes (slightly offset)
+	recordedMotionSession.startKeyframe = self.keyframes[dataType]:setValueForTime(time, true)
+	recordedMotionSession.startKeyframe:setMetadata('recordingStarts', true)
+	recordedMotionSession.startKeyframe:setMetadata('recordingFinishes', 
+										recordedMotionSession.node:previous() ~= nil and
+										recordedMotionSession.node:previous():metadata('recorded'))
+
+	recordedMotionSession.endKeyframe = self.keyframes[dataType]:setValueForTime(time + 1e-10, true)
+	recordedMotionSession.endKeyframe:setMetadata('recordingFinishes', true)
+	recordedMotionSession.endKeyframe:setMetadata('recordingStarts', 
+										recordedMotionSession.node:next() ~= nil and
+										recordedMotionSession.node:next():metadata('recorded'))
+	assert(	recordedMotionSession.startKeyframe ~= recordedMotionSession.endKeyframe, "start and end keyframes should be distinct" )
 	
-	--Make the path visible if necessary (and remember if this was necessary)
-	if not self.timelists.visibility:getValueForTime(time) then
-		recordedMotionSession.start.visibility = self:setVisibility(time, true)
-	end
 	
+	--do the same for visibility, since we have to keep this visible for the duration
+	local visibleAtStart = self.timelists.visibility:getValueForTime(time)
+	recordedMotionSession.startVisibilityNode = self.timelists['visibility']:setValueForTime(time, true)
+	recordedMotionSession.endVisibilityNode = self.timelists['visibility']:setValueForTime(time + 1e-10, visibleAtStart)
+	recordedMotionSession.startVisibilityKeyframe = self.keyframes['visibility']:setValueForTime(time, 
+				recordedMotionSession.startVisibilityNode)
+	recordedMotionSession.endVisibilityKeyframe = self.keyframes['visibility']:setValueForTime(time + 1e-10,
+				recordedMotionSession.endVisibilityNode)
+	recordedMotionSession.startVisibilityNode:setMetadata('keyframeVisibility', recordedMotionSession.startVisibilityKeyframe)
+	recordedMotionSession.endVisibilityNode:setMetadata('keyframeVisibility', recordedMotionSession.endVisibilityKeyframe)
 	
 	--define the functions for working with the recordedMotionSession
 
-	function recordedMotionSession:addMotion(time, scaleValue, rotateValue, translateValue)
+	function recordedMotionSession:addMotion(time, value)
 	
-		assert(scaleValue or rotateValue or translateValue, "need at least one kind of data to record")
-
-		local function addMotionInternal(dataType, dataValue)
-			self.dataTypes[dataType] = true
-
-			-- erase data between our last pointer entry and the new time
-			while self.nodes[dataType]:next() and self.nodes[dataType]:next():time() <= time do
-				self.path.timelists[dataType]:deleteNode(self.nodes[dataType]:next())
-			end
-		
-			--erase keyframes as move along
-			while self.keyframenode[dataType]:next() and self.keyframenode[dataType]:next():time() <= time do
-				self.path.keyframes[dataType]:deleteNode(self.keyframenode[dataType]:next())
-			end
-		
-			-- Set our new data properly
-			local newNode = self.path.timelists[dataType]:setValueForTime(time, util.clone(dataValue), self.nodes[dataType])
-			newNode:setMetadata('recorded', true)
-			self.nodes[dataType] = newNode
-		
-			if not self.start[dataType] then self.start[dataType] = newNode end
-			self.finish[dataType] = newNode
+		-- erase data between our last pointer entry and the new time
+		while self.node:next() and self.node:next():time() <= time do
+			self.path.timelists[self.dataType]:deleteNode(self.node:next())
 		end
-		
-		if scaleValue then addMotionInternal('scale', scaleValue) end
-		if rotateValue then addMotionInternal('rotate', rotateValue) end
-		if translateValue then addMotionInternal('translate', translateValue) end
+	
+		--erase keyframes as move along and update our endKeyframe
+		while self.endKeyframe:next() and self.endKeyframe:next():time() <= time do
+			self.path.keyframes[self.dataType]:deleteNode(self.endKeyframe:next())
+		end
+		self.endKeyframe:setTime(time)
+		self.endKeyframe:setMetadata('recordingStarts', self.node:next() ~= nil and
+														self.node:next():metadata('recorded'))
+	
+		-- Add in our new data
+		local newNode = self.path.timelists[self.dataType]:setValueForTime(time, util.clone(value), self.node)
 
+		-- Label it as 'recorded' for all but the first node (TODO: fix hacky workaround)
+		if self.firstNewNodeWritten then 
+			newNode:setMetadata('recorded', true)
+		else self.firstNewNodeWritten = true end
+			
+		self.node = newNode
+
+		--advance the visibility node
+		local nextVisibility = self.endVisibilityNode:value()
+		while self.endVisibilityNode:next() and self.endVisibilityNode:next():time() <= time do
+			nextVisibility = self.endVisibilityNode:next():value()
+			self.path.timelists['visibility']:deleteNode(self.endVisibilityNode:next())
+		end
+		self.endVisibilityNode:setTime(time)
+		self.endVisibilityNode:setValue(nextVisibility)
+
+		--advance the visibility keyframe
+		while self.endVisibilityKeyframe:next() and self.endVisibilityKeyframe:next():time() <= time do
+			self.path.keyframes['visibility']:deleteNode(self.endVisibilityKeyframe:next())
+		end
+		self.endVisibilityKeyframe:setTime(time)
+				
 		--Kick our related Drawables to update their position to reflect this
 		self.path:displayAtTime(time)
+
 	end
 
 	function recordedMotionSession:endSession(endTime)
-		
-		-- Add keyframes for anything we've touched
-		for _,dataType in pairs({'scale', 'rotate', 'translate'}) do
-			if self.dataTypes[dataType] then
-				local keyframeStart = self.path.keyframes[dataType]:setValueForTime(self.start.time, self.start[dataType])
-				keyframeStart:setMetadata('recordingStarts', true)
-				self.start[dataType]:setMetadata('keyframeScale', keyframeStart)
-
-				local keyframeFinish = self.path.keyframes[dataType]:setValueForTime(endTime, self.finish[dataType])
-				self.finish[dataType]:setMetadata('keyframeScale', keyframeFinish)
-				keyframeFinish:setMetadata('recordingFinishes', true)
-
-				-- put a nice start/end on any pre-existing recorded spans we are overwriting
-				if self.start[dataType]:previous() and self.start[dataType]:previous():metadata('recorded') then
-					keyframeStart:setMetadata('recordingFinishes', true)
-				end
-				if self.finish[dataType]:next() and self.finish[dataType]:next():metadata('recorded') then
-					keyframeFinish:setMetadata('recordingStarts', true)
-				end
-				
-				--hacky way to keep the aniamtion working right
-				self.start[dataType]:setMetadata('recorded', nil)
-				self.finish[dataType]:setMetadata('recorded', nil)
-			end
+	
+		-- Get rid of our visisbility nodes if they weren't necessary
+		if self.startVisibilityNode:previous() and self.startVisibilityNode:previous():value() == true then
+			self.path.keyframes['visibility']:deleteNode(self.startVisibilityKeyframe)
+			self.path.timelists['visibility']:deleteNode(self.startVisibilityNode)
 		end
-
-		-- Make it invisible again if we had to force this visible
-		if self.start.visibility then 
-			self.path:setVisibility(endTime, false)
+		
+		if self.endVisibilityNode:value() == true then
+			self.path.keyframes['visibility']:deleteNode(self.endVisibilityKeyframe)
+			self.path.timelists['visibility']:deleteNode(self.endVisibilityNode)
 		end
 
 		controllers.undo.endGroup("Path Recorded Motion")
@@ -231,11 +231,11 @@ end
 function Path:setVisibility(time, visible)
 
 	-- Add the new value to the list
-	local frame = self.timelists.visibility:setValueForTime(time, visible)
-	local keyframe = self.keyframes.visibility:setValueForTime(time, frame)
-	frame:setMetadata('keyframeVisibility', keyframe)
-	assert(frame:metadata('keyframeVisibility') == keyframe, "make sure we've set this right: frame to keyframe")
-	assert(keyframe:value() == frame, "make sure we've set this right: keyfreame to frame")
+	local node = self.timelists.visibility:setValueForTime(time, visible)
+	local keyframe = self.keyframes.visibility:setValueForTime(time, node)
+	node:setMetadata('keyframeVisibility', keyframe)
+	assert(node:metadata('keyframeVisibility') == keyframe, "make sure we've set this right: node to keyframe")
+	assert(keyframe:value() == node, "make sure we've set this right: keyfreame to frame")
 	
 	-- Run through the visibility list and remove redundancies
 	local it = self.timelists.visibility:begin()	
@@ -246,7 +246,7 @@ function Path:setVisibility(time, visible)
 	
 		local nextVisible = it:current():next():value()
 		
-		if nextVisible == currentVisible then -- next frame isn't needed!
+		if nextVisible == currentVisible then -- next node isn't needed!
 		
 			local nodeToDelete = it:current():next()
 			local keyframeToDelete = nodeToDelete:metadata('keyframeVisibility')

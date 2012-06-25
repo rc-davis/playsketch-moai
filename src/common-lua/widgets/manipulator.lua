@@ -18,7 +18,7 @@
 --]]
 
 --constants
-local actions = {SCALE=1, ROTATE=2, TRANSLATE=3, PIVOTADJUST=4}
+local actions = {SCALE='scale', ROTATE='rotate', TRANSLATE='translate', PIVOTADJUST='pivotadjust'}
 --local pivotAdjustDiameterPcnt = 0.2 --as percentage of the width of the box
 local translateDiameterPcnt = 0.5
 local rotationDiameterPcnt = 0.9
@@ -167,7 +167,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					controllers.interfacestate.setState(STATES.RECORDING)
 					
 					if prop.startRecordingCallback then
-						prop.startRecordingCallback(controllers.timeline.currentTime())
+						prop.startRecordingCallback(controllers.timeline.currentTime(), prop.currentAction)
 					end
 				else
 					controllers.undo.startGroup("Manipulator Keyframe Drag")
@@ -327,7 +327,7 @@ end
 
 widgets.manipulator = newManipulator(	function(d) interactormodel.updateKeyframe(d) end,
 										function(d) interactormodel.recordingUpdate(d) end,
-										function(t) interactormodel.recordingStarts(t) end,
+										function(t, action) interactormodel.recordingStarts(t, action) end,
 										function(t) interactormodel.recordingFinished(t) end)
 
 return widgets.manipulator

@@ -62,10 +62,10 @@ end
 local recordedMotionSession = nil
 local recordingState = { loc={} }
 
-function interactormodel.recordingStarts(time)
+function interactormodel.recordingStarts(time, action)
 	assert(recordedMotionSession == nil, "no other recording sessions going on")
 	assert(controllers.interfacestate.currentPath() ~= nil, "Shouldn't start recording without a path")
-	recordedMotionSession = controllers.interfacestate.currentPath():startRecordedMotion(time)
+	recordedMotionSession = controllers.interfacestate.currentPath():startRecordedMotion(time, action)
 	recordingState.s,
 	recordingState.r,
 	recordingState.t,
@@ -88,21 +88,17 @@ function interactormodel.recordingUpdate(data)
 	local updateS, updateR, updateT = nil,nil,nil
 	if data.dScale then
 		recordingState.s = recordingState.s + data.dScale
-		updateS = recordingState.s
+		recordedMotionSession:addMotion(data.time, recordingState.s)
 	end
 	if data.dAngle then
 		recordingState.r = recordingState.r + data.dAngle
-		updateR = recordingState.r
+		recordedMotionSession:addMotion(data.time, recordingState.r)
 	end
 	if data.dx and data.dy then 
 		recordingState.t.x = recordingState.t.x + data.dx
 		recordingState.t.y = recordingState.t.y + data.dy
-		updateT = recordingState.t
+		recordedMotionSession:addMotion(data.time, recordingState.t)
 	end
-	--todo: visibility?
-
-	recordedMotionSession:addMotion(data.time, updateS, updateR, updateT)
-	
 end
 
 function interactormodel.recordingFinished(time)
