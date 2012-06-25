@@ -26,7 +26,8 @@
 require "widgets/widgets"
 
 controllers.selection = {}
-controllers.selection.selectedSet = {} -- {stroke -> drawable} for easy lookups
+
+local _selectedSet = {} -- {stroke -> drawable} for easy lookups
 
 
 -- startStroke(): begin a new selection lasso stroke
@@ -46,7 +47,7 @@ function controllers.selection.startStroke()
 	local cached_points = {}
 	for _,o in pairs(interactormodel.selectableDrawables(controllers.timeline.currentTime())) do
 		cached_points[o] = o:correctedPointsAtCurrentTime()
-		controllers.selection.selectedSet = {}
+		_selectedSet = {}
 	end
 
 	--addPoint(x,y):	Add a point to the selection lasso.
@@ -118,7 +119,7 @@ function controllers.selection.startStroke()
 					o_matches = o_matches or ( (crossing_counts[i][j] + inferred_count)%2 == 1)
 				
 				end
-				if o_matches then controllers.selection.selectedSet[o.stroke] = o end
+				if o_matches then _selectedSet[o.stroke] = o end
 			end
 		end
 		
@@ -131,10 +132,10 @@ function controllers.selection.startStroke()
 	-- doneStroke(): 	For when the lasso is finished. 
 	function selection_stroke:doneStroke()
 		drawingLayer:removeProp (self.prop)
-		if util.tableIsEmpty(controllers.selection.selectedSet) then
+		if util.tableIsEmpty(_selectedSet) then
 			interactormodel.selectionCleared()
 		else
-			local fixedSet = util.dictionaryValuesToArray(controllers.selection.selectedSet)
+			local fixedSet = util.dictionaryValuesToArray(_selectedSet)
 			interactormodel.selectionMade(fixedSet)
 		end
 	end
@@ -150,20 +151,24 @@ end
 
 
 function controllers.selection.setSelectedDrawables(drawablesList)
-	controllers.selection.selectedSet = {}	
+	_selectedSet = {}	
 	for _,d in pairs(drawablesList) do
-		controllers.selection.selectedSet[d.stroke] = d
+		_selectedSet[d.stroke] = d
 	end
 end
 
 function controllers.selection.clearSelection()
-	controllers.selection.selectedSet = {}
+	_selectedSet = {}
 	interactormodel.selectionCleared()
 end
 
 
 function controllers.selection.isSelected(stroke)
-	return controllers.selection.selectedSet[stroke] ~= nil
+	return _selectedSet[stroke] ~= nil
+end
+
+function controllers.selection.getSelectedDrawables()
+	return util.dictionaryValuesToArray(_selectedSet)
 end
 
 

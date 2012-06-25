@@ -146,8 +146,8 @@ function interactormodel.makeNewUserPath()
 	 -- arbitrarily limit us to 8 paths to fit in the UI
 	if #interactormodel.getUserPaths() >= 8 then return end
 
-	local drawableArray = util.dictionaryValuesToArray(controllers.selection.selectedSet)
-	local path = basemodel.createNewPath(drawableArray, nil, controllers.timeline.currentTime(), true)
+	local drawablesList = controllers.selection.getSelectedDrawables()
+	local path = basemodel.createNewPath(drawableList, nil, controllers.timeline.currentTime(), true)
 	path.isUserPath = true --HACK
 	path.id = nextId
 	nextId = nextId + 1
