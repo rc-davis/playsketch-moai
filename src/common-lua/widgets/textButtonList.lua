@@ -74,6 +74,16 @@ function TextButtonList:addItem(textLabel, id)
 	return newIndex
 end
 
+function TextButtonList:setSelectedObject(id)
+	if id == nil then return self:setSelected(nil) end
+	for i,b in pairs(self.buttons) do
+		if b.buttonListId == id then
+			return self:setSelected(i)
+		end
+	end
+	assert(false, "No matching object found for setSelectedObject")
+end		
+
 function TextButtonList:setSelected(index)
 	if index == self.selectionIndex then return end
 
