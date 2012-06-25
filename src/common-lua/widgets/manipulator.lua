@@ -160,9 +160,11 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					prop.currentAction = actions.SCALE
 				end
 				
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				if controllers.interfacestate.state() == STATES.RECORDING_BUTTON_DOWN then
 				
 					prop:setInheritsFromPath(nil) -- so the manipulator doesn't jump around while we're using it
+					
+					controllers.interfacestate.setState(STATES.RECORDING)
 					
 					if prop.startRecordingCallback then
 						prop.startRecordingCallback(controllers.timeline.currentTime())
@@ -183,7 +185,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				local data = {time = controllers.timeline.currentTime()}
 
 				local xCenter,yCenter
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				if controllers.interfacestate.state() == STATES.RECORDING then
 					xCenter,yCenter = prop:getLoc()
 				else
 					xCenter,yCenter = prop:modelToWorld(prop:getLoc())
@@ -230,7 +232,7 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 					data.pivotDx,data.pivotDy = dx,dy
 				end
 				
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				if controllers.interfacestate.state() == STATES.RECORDING then
 					prop:repositionManually(data)
 					
 					if prop.recordingUpdateCallback then
@@ -252,10 +254,11 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 				prop.touchID = nil
 				prop.currentAction = nil
 				prop.touchLoc = nil
-				if widgets.modifierButton.state == widgets.modifierButton.states.RECORD_DOWN then
+				if controllers.interfacestate.state() == STATES.RECORDING then
 
-					--todo: hook back up to recording! (should happen in interfacecontroller)
-				
+					controllers.interfacestate.setState(STATES.RECORDING_BUTTON_DOWN)
+					prop:setInheritsFromPath(controllers.interfacestate.currentPath())
+
 					if prop.doneRecordingCallback then
 						prop.doneRecordingCallback(controllers.timeline.currentTime())
 					end
@@ -276,11 +279,12 @@ local function newManipulator(	keyframeUpdateCallback, recordingUpdateCallback,
 		
 			--Find any one of the path's drawables that we can inherit from to keep the motion in sync
 			local anyDrawable = util.anyItem(path:allDrawables())
+			assert(anyDrawable ~= nil, "We need a drawable to attach to!")
 			local drawablePathProp = anyDrawable.paths[path]
 	
 			-- TODO: This is a terrible way of doing this. INHERIT_TRANSFORM inherits EVERYTHING
-			-- We'd really rather inherit the location and scale
-			-- Need to investigate why that wasn't working...
+			-- We'd really rather inherit the location and rotation and not the scale
+			-- That doesn't work, so we'll inherit everything, then adjust the scale we are drawing at.
 			self:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
 			self:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, drawablePathProp, MOAIProp2D.TRANSFORM_TRAIT)
 		else		
