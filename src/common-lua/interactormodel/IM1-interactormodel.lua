@@ -72,7 +72,6 @@ function interactormodel.recordingStarts(time)
 	recordingState.r,
 	recordingState.t,
 	recordingState.v = controllers.interfacestate.currentPath():stateAtTime(time)
-	controllers.playback.setPathToNotAnimate(controllers.interfacestate.currentPath())
 
 	if not controllers.timeline.playing then
 		controllers.timeline.play()
@@ -115,7 +114,6 @@ function interactormodel.recordingFinished(time)
 	controllers.timeline.pause()	
 	recordedMotionSession:endSession(time)
 	recordedMotionSession = nil
-	controllers.playback.setPathToNotAnimate(nil)
 
 end
 

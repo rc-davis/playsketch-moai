@@ -33,7 +33,6 @@ end
 
 local activeThreads = {}
 local activeAnimations = {}
-local pathToNotAnimate = nil
 
 function controllers.playback.startPlaying(time)
 	
@@ -60,10 +59,6 @@ function controllers.playback.stopPlaying()
 	activeThreads = {}
 	activeAnimations = {}
 
-end
-
-function controllers.playback.setPathToNotAnimate(path)
-	pathToNotAnimate = path
 end
 
 function controllers.playback.startPlayingPath(path, time)
