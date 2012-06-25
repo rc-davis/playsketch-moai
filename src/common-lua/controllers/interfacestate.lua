@@ -21,9 +21,10 @@
 
 
 
-controllers.state = {}
+controllers.interfacestate = {}
 
 
+--[[
 controllers.state.all = {
 	
 	NONE					=	1,
@@ -65,4 +66,18 @@ local function refreshInterface()
 end
 
 
-return controllers.state
+--]]
+
+
+local _currentPath
+
+function controllers.interfacestate.currentPath()
+	return _currentPath
+end
+
+function controllers.interfacestate.setCurrentPath(path)
+	_currentPath = path
+end
+
+
+return controllers.interfacestate
