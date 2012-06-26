@@ -76,9 +76,16 @@ function Stroke:doneStroke()
 		miny = math.min(miny,self.points[j+1])
 		maxy = math.max(maxy,self.points[j+1])
 	end
-	
-	self.deck:setRect (minx, miny, maxx, maxy)
-	
+
+	--Center it on zero
+	self.centerPoint = { x=(minx+maxx)/2, y=(miny+maxy)/2 }
+	local width,height = maxx-minx,maxy-miny
+	for j=1,#self.points,2 do
+		self.points[j] = self.points[j] - self.centerPoint.x
+		self.points[j+1] = self.points[j+1] - self.centerPoint.y
+	end
+	self.deck:setRect (-width/2, -height/2, width/2, height/2)
+
 	-- If anyone wants to keep this stroke around, they'll need to be responsible for adding it
 	drawingLayer:removeProp(self.prop)
 end
