@@ -152,7 +152,7 @@ function Drawable:currentlyVisible()
 end
 
 function Drawable:centrePointOffsetForPath(path)
-	local propPath = self.paths[path]
+	local pathProp = self.paths[path]
 	if pathProp.parentPath == nil then return path.centerPoint
 	else return {	x = path.centerPoint.x - pathProp.parentPath.centerPoint.x,
 					y = path.centerPoint.y - pathProp.parentPath.centerPoint.y }
@@ -166,7 +166,7 @@ function Drawable:refreshDisplayOfPath(path, s, r, t, v)
 	pathProp:setRot(r)
 	local centrePointOffset = self:centrePointOffsetForPath(path)
 	pathProp:setLoc (	t.x + centrePointOffset.x,
-						t.y + centrePointOffset.y,
+						t.y + centrePointOffset.y )
 	
 	-- We have to set the drawable's visibility manually since it doesn't inherit the way we want
 	-- TODO: we probably don't want to run this so often
