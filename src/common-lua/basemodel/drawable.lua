@@ -27,7 +27,7 @@ basemodel.drawable = {}
 local Drawable = {}
 
 -- Clone the Drawable prototype
--- stroke should be centred on 0,0
+-- stroke should be centerd on 0,0
 function basemodel.drawable.newFromStroke(stroke)
 	return util.clone(Drawable):init(stroke)
 end
@@ -151,7 +151,7 @@ function Drawable:currentlyVisible()
 	return self.visible
 end
 
-function Drawable:centrePointOffsetForPath(path)
+function Drawable:centerPointOffsetForPath(path)
 	local pathProp = self.paths[path]
 	if pathProp.parentPath == nil then return path.centerPoint
 	else return {	x = path.centerPoint.x - pathProp.parentPath.centerPoint.x,
@@ -164,9 +164,9 @@ function Drawable:refreshDisplayOfPath(path, s, r, t, v)
 	local pathProp = self.paths[path]
 	pathProp:setScl(s,s)
 	pathProp:setRot(r)
-	local centrePointOffset = self:centrePointOffsetForPath(path)
-	pathProp:setLoc (	t.x + centrePointOffset.x,
-						t.y + centrePointOffset.y )
+	local centerPointOffset = self:centerPointOffsetForPath(path)
+	pathProp:setLoc (	t.x + centerPointOffset.x,
+						t.y + centerPointOffset.y )
 	
 	-- We have to set the drawable's visibility manually since it doesn't inherit the way we want
 	-- TODO: we probably don't want to run this so often

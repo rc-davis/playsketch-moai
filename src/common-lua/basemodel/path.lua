@@ -321,15 +321,15 @@ end
 function Path:setDisplayTranslation(loc,duration)
 	if duration == 0 then
 		for _,d in pairs(self.drawables) do
-			local centrePointOffset = d:centrePointOffsetForPath(self)
+			local centerPointOffset = d:centerPointOffsetForPath(self)
 			d:propForPath(self):setLoc(loc.x + self.centerPoint.x, loc.y + self.centerPoint.y)
 		end
 	else
 		local animations = {}
 		for _,d in pairs(self.drawables) do
-			local centrePointOffset = d:centrePointOffsetForPath(self)
-			local a = d:propForPath(self):seekLoc(	loc.x + centrePointOffset.x,
-									 				loc.y + centrePointOffset.y,
+			local centerPointOffset = d:centerPointOffsetForPath(self)
+			local a = d:propForPath(self):seekLoc(	loc.x + centerPointOffset.x,
+									 				loc.y + centerPointOffset.y,
 													 duration, MOAIEaseType.LINEAR)
 			table.insert(animations, a)
 		end
