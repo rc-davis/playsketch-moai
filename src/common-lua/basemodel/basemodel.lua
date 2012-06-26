@@ -54,6 +54,9 @@ function basemodel.addNewDrawable(stroke, time)
 								function () table.insert(allDrawables, drawable) end )
 	table.insert(allDrawables, drawable)
 
+	-- Require that stroke have a centerPoint
+	if stroke.centerPoint == nil then stroke.centerPoint = {x=0,y=0} end
+
 	-- create a new path to contain its location
 	local path = basemodel.createNewPath({drawable}, nil, time, false, stroke.centerPoint)
 	
@@ -93,6 +96,10 @@ end
 
 
 function basemodel.createNewPath(drawablesSet, index, time, defaultVisibility, centerPoint)
+
+	assert( drawablesSet ~= nil and  time ~= nil and centerPoint ~= nil, 
+		"basemodel.createNewPath requires drawables, time, and centerPoint")
+
 
 	controllers.undo.startGroup("Create New Path")
 

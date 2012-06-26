@@ -35,6 +35,9 @@ end
 --Path methods
 function Path:init(index, defaultVisibility, centerPoint)
 
+	assert( index ~= nil and defaultVisibility ~= nil and centerPoint ~= nil, 
+		"Require all arguments to Path:init")
+
 	self.class = "Path"
 
 	self.timelists = {	scale=basemodel.timelist.new(1),
