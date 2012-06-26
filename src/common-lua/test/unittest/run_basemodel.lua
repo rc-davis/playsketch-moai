@@ -97,7 +97,7 @@ startSection("Testing basemodel")
 		verify(#basemodel.allPaths() == 0, "Start with empty path set")
 		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
 		local drawable1 = basemodel.addNewDrawable({ prop=MOAIProp2D.new () }, 10)
-		local path1 = basemodel.createNewPath({drawable1}, nil, 10) --create new empty path
+		local path1 = basemodel.createNewPath({drawable1}, nil, 10, true, {x=0,y=0}) --create new empty path
 		verify(path1:keyframeTimelist('visibility'):size() == 0, "No keyframes on an empty path")
 		
 		-- set 10 to visible
@@ -193,10 +193,10 @@ startSection("Testing basemodel")
 		verify(#basemodel.allDrawables() == 0, "Start with empty drawables set")
 		local drawable1 = basemodel.addNewDrawable({ prop=MOAIProp2D.new () }, 10)
 		local path1 = basemodel:allPaths()[1]
-		local path2 = basemodel.createNewPath({drawable1}, nil, 0)	-- path1, path2
-		local path3 = basemodel.createNewPath({drawable1}, 1, 0) -- path3, path1, path2
-		local path4 = basemodel.createNewPath({drawable1}, 4, 0) -- path3, path1, path2, path4
-		local path5 = basemodel.createNewPath({drawable1}, 3, 0) -- path3, path1, path5, path2, path4
+		local path2 = basemodel.createNewPath({drawable1}, nil, 0, true, {x=0,y=0})	-- path1, path2
+		local path3 = basemodel.createNewPath({drawable1}, 1, 0, true, {x=0,y=0}) -- path3, path1, path2
+		local path4 = basemodel.createNewPath({drawable1}, 4, 0, true, {x=0,y=0}) -- path3, path1, path2, path4
+		local path5 = basemodel.createNewPath({drawable1}, 3, 0, true, {x=0,y=0}) -- path3, path1, path5, path2, path4
 
 		verify(path3.index == 1, "Path 3 should have index 1")
 		verify(path1.index == 2, "Path 1 should have index 2")
@@ -229,9 +229,9 @@ startSection("Testing basemodel")
 		local drawable2 = basemodel.addNewDrawable({ prop=MOAIProp2D.new () }, 10)
 		local drawable3 = basemodel.addNewDrawable({ prop=MOAIProp2D.new () }, 11)
 		local drawable4 = basemodel.addNewDrawable({ prop=MOAIProp2D.new () }, 12)
-		local path2 = basemodel.createNewPath({drawable3, drawable2}, nil, 0)
-		local path3 = basemodel.createNewPath({drawable3, drawable2}, nil, 0)
-		local path4 = basemodel.createNewPath({drawable4}, nil, 0)
+		local path2 = basemodel.createNewPath({drawable3, drawable2}, nil, 0, true, {x=0,y=0})
+		local path3 = basemodel.createNewPath({drawable3, drawable2}, nil, 0, true, {x=0,y=0})
+		local path4 = basemodel.createNewPath({drawable4}, nil, 0, true, {x=0,y=0})
 
 		verify(#basemodel.allDrawables() == 3, "Should have added 3 new drawables")
 		verify(#basemodel.allPaths() == 6, "Should have six new paths")
