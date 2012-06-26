@@ -135,7 +135,15 @@ function interactormodel.makeNewUserPath()
 	if #interactormodel.getUserPaths() >= 8 then return end
 
 	local drawablesList = controllers.selection.getSelectedDrawables()
-	local path = basemodel.createNewPath(drawablesList, nil, controllers.timeline.currentTime(), true)
+	
+	-- Make up a (fixed) centerpoint for the new path
+	local xSum,ySum = 0,0
+	for _,d in pairs(drawablesList) do
+		local x,y = d:correctedLocAtCurrentTime()
+		xSum,ySum = xSum+x,ySum+y
+	end
+	local centerPoint = { x = xSum/#drawablesList, y = ySum/#drawablesList }	
+	local path = basemodel.createNewPath(drawablesList, nil, controllers.timeline.currentTime(), true, centerPoint)
 	path.isUserPath = true --HACK
 	path.id = nextId
 	nextId = nextId + 1
