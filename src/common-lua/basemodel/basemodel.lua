@@ -55,10 +55,10 @@ function basemodel.addNewDrawable(stroke, time)
 	table.insert(allDrawables, drawable)
 
 	-- create a new path to contain its location
-	local path = basemodel.createNewPath({drawable}, nil, time, false)
+	local path = basemodel.createNewPath({drawable}, nil, time, false, stroke.centerPoint)
 	
 	-- set path to location
-	path:addKeyframedMotion(time, 1, 0, location, nil, nil)
+	path:addKeyframedMotion(time, 1, 0, {x=0,y=0}, nil, nil)
 
 	-- set visibility to come on only at current time
 	path:setVisibility(time, true)
@@ -92,7 +92,7 @@ function basemodel.addNewDrawables(strokeList, timeList)
 end
 
 
-function basemodel.createNewPath(drawablesSet, index, time, defaultVisibility)
+function basemodel.createNewPath(drawablesSet, index, time, defaultVisibility, centerPoint)
 
 	controllers.undo.startGroup("Create New Path")
 
@@ -102,7 +102,7 @@ function basemodel.createNewPath(drawablesSet, index, time, defaultVisibility)
 	assert(index <= #allPaths + 1, "path index must fall within the paths list")
 	assert(#drawablesSet > 0, "createNewPath needs some drawables to apply to")
 
-	local path = basemodel.path.newPath(index, defaultVisibility)
+	local path = basemodel.path.newPath(index, defaultVisibility, centerPoint)
 	table.insert(allPaths, index, path)
 	controllers.undo.addAction(	'Table Insert Path',
 								function () table.remove(allPaths, index) end,

@@ -27,13 +27,13 @@ basemodel.path = {}
 local Path = {}
 
 -- Clone the Path prototype
-function basemodel.path.newPath(index, defaultVisibility)
-	return util.clone(Path):init(index, defaultVisibility)
+function basemodel.path.newPath(index, defaultVisibility, centerPoint)
+	return util.clone(Path):init(index, defaultVisibility, centerPoint)
 end
 
 
 --Path methods
-function Path:init(index, defaultVisibility)
+function Path:init(index, defaultVisibility, centerPoint)
 
 	self.class = "Path"
 
@@ -51,6 +51,8 @@ function Path:init(index, defaultVisibility)
 	self.drawables = {}
 	self.cache = {}
 	self:displayAtTime(0)
+	
+	self.centerPoint = centerPoint
 
 	return self
 
@@ -319,12 +321,16 @@ end
 function Path:setDisplayTranslation(loc,duration)
 	if duration == 0 then
 		for _,d in pairs(self.drawables) do
-			d:propForPath(self):setLoc(loc.x, loc.y)
+			local centrePointOffset = d:centrePointOffsetForPath(self)
+			d:propForPath(self):setLoc(loc.x + self.centerPoint.x, loc.y + self.centerPoint.y)
 		end
 	else
 		local animations = {}
 		for _,d in pairs(self.drawables) do
-			local a = d:propForPath(self):seekLoc(loc.x, loc.y, duration, MOAIEaseType.LINEAR)	
+			local centrePointOffset = d:centrePointOffsetForPath(self)
+			local a = d:propForPath(self):seekLoc(	loc.x + centrePointOffset.x,
+									 				loc.y + centrePointOffset.y,
+													 duration, MOAIEaseType.LINEAR)
 			table.insert(animations, a)
 		end
 		return animations

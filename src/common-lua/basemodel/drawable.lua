@@ -64,6 +64,7 @@ function Drawable:addPath(path)
 	-- TODO: this might be a good place to optimize if adding new transforms is slow
 	self:redoPathHierarchy()
 	
+	--test.helpers.addDebugGrid(self.paths[path])	
 end
 
 function Drawable:removePath(path)
@@ -99,7 +100,6 @@ function Drawable:delete()
 	
 end
 
------------------ PRIVATE
 
 function Drawable:pathOrdersUpdated(pathlist)
 	
@@ -124,9 +124,11 @@ function Drawable:redoPathHierarchy()
 	for i=1,#sortedPaths do
 		local prop1 = sortedPaths[i][2]
 		prop1:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		prop1.parentPath = nil
 		if i < #sortedPaths then
 			local prop2 = sortedPaths[i+1][2]		
 			prop1:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop2, MOAIProp2D.TRANSFORM_TRAIT)
+			prop1.parentPath = sortedPaths[i+1][1]
 		end
 	end
 	
@@ -149,12 +151,22 @@ function Drawable:currentlyVisible()
 	return self.visible
 end
 
+function Drawable:centrePointOffsetForPath(path)
+	local propPath = self.paths[path]
+	if pathProp.parentPath == nil then return path.centerPoint
+	else return {	x = path.centerPoint.x - pathProp.parentPath.centerPoint.x,
+					y = path.centerPoint.y - pathProp.parentPath.centerPoint.y }
+	end
+end
+
 
 function Drawable:refreshDisplayOfPath(path, s, r, t, v)
 	local pathProp = self.paths[path]
 	pathProp:setScl(s,s)
 	pathProp:setRot(r)
-	pathProp:setLoc(t.x, t.y)
+	local centrePointOffset = self:centrePointOffsetForPath(path)
+	pathProp:setLoc (	t.x + centrePointOffset.x,
+						t.y + centrePointOffset.y,
 	
 	-- We have to set the drawable's visibility manually since it doesn't inherit the way we want
 	-- TODO: we probably don't want to run this so often
