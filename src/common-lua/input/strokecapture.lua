@@ -89,7 +89,9 @@ local function upCallback(id,x,y)
 				controllers.interfacestate.setState(STATES.DRAWABLES_SELECTED)
 			end
 		else
-			interactormodel.newDrawableCreated(	stroke )
+			if not util.tableIsEmpty(stroke.points) then 
+				interactormodel.newDrawableCreated(	stroke )
+			end
 			controllers.interfacestate.setState(STATES.NEUTRAL)
 		end
 	end
