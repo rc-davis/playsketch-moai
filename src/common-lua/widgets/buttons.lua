@@ -22,7 +22,7 @@
 -- 						flips through the images in imgUpPathList and passes the index of 
 --						the current image to the callbacks
 local function newButtonInternal( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, imgDisabled,
+					imgUpPathList, imgDownPathList, imgDisabled,
 					callbackDown, callbackUp, callbackMoved)
 
 	assert(widgets.layer, "must call widgets.init() before creating new buttons")
@@ -33,9 +33,13 @@ local function newButtonInternal( centerX, centerY, width, height,
 	widgets.layer:insertProp ( b )	
 
 	-- load up down images
-	local graphicsDown = MOAIGfxQuad2D.new ()
-	graphicsDown:setTexture (imgDownPath)
-	graphicsDown:setRect ( -width/2, -height/2, width/2, height/2 )
+	local graphicsDown = {}
+	for i=1,#imgDownPathList do
+		graphicsDown[i] = MOAIGfxQuad2D.new ()
+		graphicsDown[i]:setTexture (imgDownPathList[i])
+		graphicsDown[i]:setRect ( -width/2, -height/2, width/2, height/2 )
+	end
+
 	
 	local graphics = {}
 	for i=1,#imgUpPathList do
@@ -90,7 +94,7 @@ local function newButtonInternal( centerX, centerY, width, height,
 				if not b.isEnabled then return true end
 				b.touchID = id
 				b.touchX,b.touchY = px,py				
-				b:setDeck(graphicsDown)
+				b:setDeck(graphicsDown[b.index])
 				if b.callbackDown then
 					b.callbackDown(b, px, py)
 				end
@@ -139,7 +143,7 @@ function widgets.newSimpleButton( centerX, centerY, width, height,
 					imgUpPath, imgDownPath, imgDisabled, callbackUp, callbackDown)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
-					{imgUpPath}, imgDownPath, imgDisabled,
+					{imgUpPath}, {imgDownPath}, imgDisabled,
 					nil, nil, nil)
 	b.callbackUp =	function(_, _, _) 
 						if b.callbackUp_Simple then b.callbackUp_Simple(b) end
@@ -157,10 +161,10 @@ end
 -- newToggleButton(): 	Flips through the images in imgUpPathList
 -- 						the callback has the form: callback(button)
 function widgets.newToggleButton( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, imgDisabled, callbackUp )
+					imgUpPathList, imgDownPathList, imgDisabled, callbackUp )
 					
 	local b = newButtonInternal( centerX, centerY, width, height, 
-					imgUpPathList, imgDownPath, imgDisabled,
+					imgUpPathList, imgDownPathList, imgDisabled,
 					nil, nil, nil)
 
 	b.state = 1	
@@ -177,7 +181,7 @@ function widgets.newSimpleDragableButton( centerX, centerY, width, height,
 					imgUpPath, imgDownPath, imgDisabled, callbackDrag)
 
 	local b = newButtonInternal(centerX, centerY, width, height,
-					{imgUpPath}, imgDownPath, imgDisabled, nil, nil, nil)
+					{imgUpPath}, {imgDownPath}, imgDisabled, nil, nil, nil)
 	b.callbackMoved = function (_,dx,dy,px,py) 
 						b:moveLoc(dx,dy,0)
 						if b.callbackDrag then b.callbackDrag(b,dx,dy) end

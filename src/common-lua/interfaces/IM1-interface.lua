@@ -29,7 +29,7 @@ MOAIGfxDevice.setClearColor( 0.796875 , 0.84765625, 0.890625 )
 --timeline sliders
 playButton = widgets.newToggleButton(-SCALED_WIDTH/2+64,-SCALED_HEIGHT/2+64, 128, 128, 
 							{"resources/IM1/play.png", "resources/IM1/pause.png"},
-							"resources/IM1/play_pause_down.png", 
+							{"resources/IM1/play_down.png", "resources/IM1/pause_down.png"}, 
 							"resources/button_play_disabled.png",
 							controllers.timeline.playPause)
 
