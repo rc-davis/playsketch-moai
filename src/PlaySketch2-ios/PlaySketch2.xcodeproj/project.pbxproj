@@ -345,6 +345,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "PlaySketch2" */;
 			buildPhases = (
+				46CA585C159AF60600211CE5 /* ShellScript */,
 				03E27D9413C7C05B00EE3B0D /* ShellScript */,
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
@@ -527,6 +528,19 @@
 			shellPath = /bin/bash;
 			shellScript = ./package.sh;
 			showEnvVarsInLog = 0;
+		};
+		46CA585C159AF60600211CE5 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /usr/bin/python;
+			shellScript = "import plistlib, os\n\nprint \"Opening Info.plist\"\npath = os.environ['INFOPLIST_FILE']\nlist = plistlib.readPlist(path)\n\nprint \"Updating Version\"\nold_version = int(list['CFBundleVersion'])\nnew_version = old_version + 1\n\nprint \"Saving out Info.plist\"\nlist['CFBundleVersion'] = str(new_version)\nplistlib.writePlist(list, path)\n\nprint \"! Updated !\"\nprint \"Old version: \", old_version\nprint \"New version: \", new_version";
 		};
 /* End PBXShellScriptBuildPhase section */
 
