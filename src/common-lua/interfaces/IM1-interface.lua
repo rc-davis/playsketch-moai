@@ -51,8 +51,10 @@ g_pathList = widgets.textButtonList.new(320, -128, 128, 512, 64, controllers.int
 g_addPathButton = widgets.textButton.new(320, 224, 128, 64, "new path", 
 	function ()
 		local p = interactormodel.makeNewUserPath()
-		local index = g_pathList:addItem("Path " .. p.id, p)
-		g_pathList:setSelected(index)
+		if p then
+			local index = g_pathList:addItem("Path " .. p.id, p)
+			g_pathList:setSelected(index)
+		end
 	end)
 g_deletePathButton = widgets.textButton.new(320, 160, 128, 64, "delete path", interactormodel.deleteSelectedPath)
 
