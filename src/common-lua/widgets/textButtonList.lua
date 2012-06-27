@@ -51,12 +51,12 @@ end
 
 
 function TextButtonList:onDraw( index, xOff, yOff, xFlip, yFlip )
-	MOAIGfxDevice.setPenColor (0.957, 0.973, 0.808)
+	MOAIGfxDevice.setPenColor (0.7,0.7,0.7)
 	MOAIDraw.fillRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
 
-	MOAIGfxDevice.setPenWidth(1)
-	MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
+	MOAIGfxDevice.setPenWidth(2)
+	MOAIGfxDevice.setPenColor ( 0.95, 0.95, 0.95)
 	MOAIDraw.drawRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
 end

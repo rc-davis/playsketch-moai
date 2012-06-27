@@ -20,6 +20,10 @@
 
 widgets.keyframes = {}
 
+local visibilityColor	=	{	0.7,	0.3,	0.3	}
+local scaleColor 		=	{	0.3,	0.7,	0.3	}
+local rotateColor		=	{	0.3,	0.3,	0.7	}
+local translateColor	=	{	0.65,	0.65,	0.3	}
 
 function widgets.keyframes:init(centerX,centerY,width,height)
 
@@ -51,7 +55,7 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 		local spanStartPx = nil
 		while not it:done() do		
 			local timePx =	timeToPx(it:current():time())
-			MOAIGfxDevice.setPenColor (r, g, b, 0.5)
+			MOAIGfxDevice.setPenColor (r, g, b, 1)
 			MOAIDraw.fillRect(	timePx-keyframeWidth/2, self.frame.origin.y + heightOffsetStart, 
 								timePx+keyframeWidth/2, self.frame.origin.y + heightOffsetEnd)
 								
@@ -75,7 +79,7 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 		local spanStartPx = timeToPx(0)
 		it:next()
 
-		MOAIGfxDevice.setPenColor (r, g, b, 0.5)
+		MOAIGfxDevice.setPenColor (r, g, b, 1)
 		
 		while not it:done() do
 			local timePx =	timeToPx(it:current():time())
@@ -114,19 +118,19 @@ function widgets.keyframes:onDraw( index, xOff, yOff, xFlip, yFlip )
 		drawKeyframes(	path:keyframeTimelist('scale'):begin(),
 						0,
 						self.frame.size.height*1/4,
-						1,0,0)
+						unpack(scaleColor))
 		drawKeyframes(	path:keyframeTimelist('rotate'):begin(),
 						self.frame.size.height*1/4,
 						self.frame.size.height*2/4,
-						0,1,0)
+						unpack(rotateColor))
 		drawKeyframes(	path:keyframeTimelist('translate'):begin(),
 						self.frame.size.height*2/4,
 						self.frame.size.height*3/4,
-						0,0,1)
+						unpack(translateColor))
 		drawVisibility(	path:keyframeTimelist('visibility'):begin(),
 						self.frame.size.height*3/4,
 						self.frame.size.height*4/4,
-						1, 0.1, 0.5)
+						unpack(visibilityColor))
 	end
 end
 

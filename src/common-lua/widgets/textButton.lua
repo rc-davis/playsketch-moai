@@ -27,7 +27,7 @@ end
 -- load shared resources once
 local charcodes = 'asdfghjklqwertyuiopzxcvbnm0123456789 -'
 local font = MOAIFont.new ()
-font:loadFromTTF ( 'resources/arial-rounded.TTF', charcodes, 16, 163 )
+font:loadFromTTF ( 'resources/arial-rounded.TTF', charcodes, 48, 163 )
 
 
 function TextButton:init( centerX, centerY, width, height, text, callbackUp )
@@ -51,7 +51,7 @@ function TextButton:init( centerX, centerY, width, height, text, callbackUp )
 	self.textbox = MOAITextBox.new ()
 	self.textbox:setFont ( font )
 	self.textbox:setTextSize (18)
-	self.textbox:setColor (0.3, 0.3, 0.3)
+	self.textbox:setColor (1,1,1)
 	self.textbox:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
 	self.textbox:setYFlip ( true )
 	self.textbox:setRect(	-width/2, -height/2, width/2, height/2)
@@ -80,31 +80,27 @@ end
 function TextButton:setEnabled(enabled)
 	self.enabled = enabled
 	if not enabled then
-		self.textbox:setColor(0.85, 0.75, 0.75)
+		self.textbox:setColor(0.55,0.55,0.55)
 	else
-		self.textbox:setColor(0.3, 0.3, 0.3)
+		self.textbox:setColor(1,1,1)
 	end
 end
 
 function TextButton:onDraw( index, xOff, yOff, xFlip, yFlip )
 	if self.touchID then
-		MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
+		MOAIGfxDevice.setPenColor (1,0,0)
 	elseif self.highlighted == true then
-		MOAIGfxDevice.setPenColor (0.90, 0.90, 0.90)
+		MOAIGfxDevice.setPenColor (0.7,0.3,0.3)
 	elseif self.enabled == false then
-		MOAIGfxDevice.setPenColor (0.85, 0.85, 0.85)
+		MOAIGfxDevice.setPenColor (0.7,0.7,0.7)
 	else
-		MOAIGfxDevice.setPenColor (0.957, 0.973, 0.808)
+		MOAIGfxDevice.setPenColor (0.3,0.3,0.3)
 	end
 	MOAIDraw.fillRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
 
-	if self.touchID then
-		MOAIGfxDevice.setPenColor (0.957, 0.973, 0.808)
-	else
-		MOAIGfxDevice.setPenColor (0.686, 0.729, 0.769)
-	end
-	MOAIGfxDevice.setPenWidth(1)	
+	MOAIGfxDevice.setPenWidth(2)
+	MOAIGfxDevice.setPenColor ( 0.95, 0.95, 0.95)
 	MOAIDraw.drawRect (	-self.frame.size.width/2, -self.frame.size.height / 2,
 						 self.frame.size.width/2,  self.frame.size.height / 2)
 end

@@ -22,7 +22,7 @@
 
 
 -- background colour
-MOAIGfxDevice.setClearColor( 0.796875 , 0.84765625, 0.890625 )
+MOAIGfxDevice.setClearColor( 0.95, 0.95, 0.95 )
 
 
 
