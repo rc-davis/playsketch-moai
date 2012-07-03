@@ -40,6 +40,9 @@ function ui.init()
 	
 	-- Initialize our View Hierarchy
 	ui.view.initViewSystem(ui.viewport, scaledWidth, scaledHeight)
+	
 end
 
+
 return ui
+

@@ -44,6 +44,38 @@ function ui.view.initViewSystem(viewport, width, height)
 	MOAISim.pushRenderPass ( uiLayer )
 	
 	ui.view.window = ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
+	
+	--Register the base window for touch events! (This gets ugly)
+	if MOAIInputMgr.device.mouseLeft and MOAIInputMgr.device.pointer then
+	
+		MOAIInputMgr.device.mouseLeft:setCallback(
+			function ()
+				x,y = uiLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+				if MOAIInputMgr.device.mouseLeft:down() then
+					ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_DOWN, x, y)
+				else
+					ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_UP, x, y)
+				end
+			end)
+	
+		MOAIInputMgr.device.pointer:setCallback(
+			function ()
+				x,y = uiLayer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
+				ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_MOVE, x, y)
+			end)
+
+	elseif MOAIInputMgr.device.touch then
+	
+		MOAIInputMgr.device.touch:setCallback(
+			function ( eventType, id, x_wnd, y_wnd, tapCount )
+				x,y = uiLayer:wndToWorld ( x_wnd, y_wnd  )
+				ui.view.window:internalTouchEvent ( eventType, x, y )
+			end )
+	
+	else
+		assert(false, "No supported input devices found!")
+	end
+	
 end
 
 
@@ -68,8 +100,6 @@ function ViewObject:init(frameRect)
 	
 	self.children = {}
 
-
-
 	-- Set its location
 	self.frame = ui.rect.new(0,0,0,0)
 	self:setFrame(frameRect)
@@ -82,7 +112,7 @@ function ViewObject:setFrame(frameRect)
 	util.copyIntoTable( frameRect, self.frame )
 	self.prop:setLoc(self.frame.origin.x, self.frame.origin.y)
 	self.deck:setRect(0,0,self.frame.size.width, self.frame.size.height)
-	
+
 end
 
 
@@ -118,6 +148,45 @@ function ViewObject:onDraw()
 	if self.backgroundColor then
 		MOAIGfxDevice.setPenColor ( unpack ( self.backgroundColor ) )
 		MOAIDraw.fillRect ( 0, 0, self.frame.size.width, self.frame.size.height )
+	end
+
+end
+
+
+function ViewObject:touchEvent(eventType, x, y)
+
+	--This should be overridden by a subclass that wants touch events!
+	if eventType == MOAITouchSensor.TOUCH_DOWN then
+		print ( "TOUCHED", self, x, y)
+	end
+end
+
+
+function ViewObject:internalTouchEvent(eventType, x, y)
+	
+	-- Find the top-most subview that it hits
+	-- If there isn't one, then it must hit us, so call our own :touchEvent()
+
+	if self.prop:inside(x,y) then	
+
+		local hit = false
+		local i = #self.children
+
+		while i > 0 and hit == false do
+
+			if self.children[i].prop:inside(x,y) then
+				self.children[i]:internalTouchEvent(eventType, x, y)
+				hit = true
+			end
+			i = i - 1
+			
+		end
+		
+		if hit == false then
+			-- Pass the actual event on to the view that matches it, translating the points
+			self:touchEvent(eventType, self.prop:worldToModel(x, y))
+		end
+		
 	end
 
 end
