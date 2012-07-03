@@ -52,16 +52,16 @@ function ui.view.initViewSystem(viewport, width, height)
 			function ()
 				x,y = uiLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
 				if MOAIInputMgr.device.mouseLeft:down() then
-					ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_DOWN, x, y)
+					ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_DOWN, x, y)
 				else
-					ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_UP, x, y)
+					ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_UP, x, y)
 				end
 			end)
 	
 		MOAIInputMgr.device.pointer:setCallback(
 			function ()
 				x,y = uiLayer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
-				ui.view.window:internalTouchEvent(MOAITouchSensor.TOUCH_MOVE, x, y)
+				ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_MOVE, x, y)
 			end)
 
 	elseif MOAIInputMgr.device.touch then
@@ -69,7 +69,7 @@ function ui.view.initViewSystem(viewport, width, height)
 		MOAIInputMgr.device.touch:setCallback(
 			function ( eventType, id, x_wnd, y_wnd, tapCount )
 				x,y = uiLayer:wndToWorld ( x_wnd, y_wnd  )
-				ui.view.window:internalTouchEvent ( eventType, x, y )
+				ui.view.window:internalTouchEvent ( id, eventType, x, y )
 			end )
 	
 	else
@@ -153,7 +153,7 @@ function ViewObject:onDraw()
 end
 
 
-function ViewObject:touchEvent(eventType, x, y)
+function ViewObject:touchEvent(id, eventType, x, y)
 
 	--This should be overridden by a subclass that wants touch events!
 	if eventType == MOAITouchSensor.TOUCH_DOWN then
@@ -162,7 +162,7 @@ function ViewObject:touchEvent(eventType, x, y)
 end
 
 
-function ViewObject:internalTouchEvent(eventType, x, y)
+function ViewObject:internalTouchEvent(id, eventType, x, y)
 	
 	-- Find the top-most subview that it hits
 	-- If there isn't one, then it must hit us, so call our own :touchEvent()
@@ -175,7 +175,7 @@ function ViewObject:internalTouchEvent(eventType, x, y)
 		while i > 0 and hit == false do
 
 			if self.children[i].prop:inside(x,y) then
-				self.children[i]:internalTouchEvent(eventType, x, y)
+				self.children[i]:internalTouchEvent(id, eventType, x, y)
 				hit = true
 			end
 			i = i - 1
@@ -184,7 +184,7 @@ function ViewObject:internalTouchEvent(eventType, x, y)
 		
 		if hit == false then
 			-- Pass the actual event on to the view that matches it, translating the points
-			self:touchEvent(eventType, self.prop:worldToModel(x, y))
+			self:touchEvent(id, eventType, self.prop:worldToModel(x, y))
 		end
 		
 	end
