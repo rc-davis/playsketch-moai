@@ -99,6 +99,7 @@ function ViewObject:init(frameRect)
 	uiLayer:insertProp(self.prop)
 	
 	self.children = {}
+	self.receivesTouches = true
 
 	-- Set its location
 	self.frame = ui.rect.new(0,0,0,0)
@@ -174,7 +175,7 @@ function ViewObject:internalTouchEvent(id, eventType, x, y)
 
 		while i > 0 and hit == false do
 
-			if self.children[i].prop:inside(x,y) then
+			if self.children[i].prop:inside(x,y) and self.children[i].receivesTouches then
 				self.children[i]:internalTouchEvent(id, eventType, x, y)
 				hit = true
 			end
@@ -182,7 +183,7 @@ function ViewObject:internalTouchEvent(id, eventType, x, y)
 			
 		end
 		
-		if hit == false then
+		if hit == false and self.receivesTouches then
 			-- Pass the actual event on to the view that matches it, translating the points
 			self:touchEvent(id, eventType, self.prop:worldToModel(x, y))
 		end
