@@ -27,6 +27,7 @@ function ui.init()
 	local scaledWidth = 768
 	local scaledHeight = 1024
 
+	print("Opening window: ", nativeWidth, nativeHeight)
 	MOAISim.openWindow ( "playsketch2", nativeWidth, nativeHeight )
 
 	-- set up viewport
@@ -38,7 +39,7 @@ function ui.init()
 	require "ui/view"
 	
 	-- Initialize our View Hierarchy
-	
+	ui.view.init(ui.viewport, scaledWidth, scaledHeight)
 end
 
 return ui
