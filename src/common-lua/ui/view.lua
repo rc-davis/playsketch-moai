@@ -102,3 +102,22 @@ function ViewObject:addSubview(subviewObject)
 	table.insert(self.children, subviewObject)
 
 end
+
+
+function ViewObject:setBackgroundColor( r, g, b, a )
+
+	self.backgroundColor = { r, g, b, a }
+	self.deck:setDrawCallback( function () self:onDraw() end )
+
+end
+
+
+function ViewObject:onDraw()
+-- Only called AFTER we have set a background color
+
+	if self.backgroundColor then
+		MOAIGfxDevice.setPenColor ( unpack ( self.backgroundColor ) )
+		MOAIDraw.fillRect ( 0, 0, self.frame.size.width, self.frame.size.height )
+	end
+
+end
