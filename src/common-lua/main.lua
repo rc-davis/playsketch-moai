@@ -18,31 +18,15 @@
 
 --]]
 
+require "ui/ui"
 require "util/util"
-require "widgets/widgets"
 require "controllers/controllers"
-require "input/input"
 require "test/test"
 
--- set up a window
-WIDTH = MOAIEnvironment.screenWidth or 512
-HEIGHT = MOAIEnvironment.screenHeight or 683 
-SCALED_WIDTH = 768
-SCALED_HEIGHT = 1024
+-- Set up the infrastructure for our interface hierarchy
+ui.init()
 
-MOAISim.openWindow ( "playsketch2", WIDTH, HEIGHT )
 
--- set up viewport
-viewport = MOAIViewport.new ()
-viewport:setScale ( SCALED_WIDTH, SCALED_HEIGHT )
-viewport:setSize ( WIDTH, HEIGHT )
-
--- set up a layer to draw to
-drawingLayer = MOAILayer2D.new ()
-drawingLayer:setViewport ( viewport )
-MOAISim.pushRenderPass ( drawingLayer )
-
-widgets.init(viewport) -- this needs to go after our drawing layer is made
 
 --LOAD AN INTERFACE HERE!
 require "interactormodel/IM1-interactormodel" 
