@@ -37,6 +37,7 @@ function ui.init()
 
 	-- Import all of the parts of this package once the layer has been created
 	require "ui/view"
+	require "ui/label"
 	
 	-- Initialize our View Hierarchy
 	ui.view.initViewSystem(ui.viewport, scaledWidth, scaledHeight)
