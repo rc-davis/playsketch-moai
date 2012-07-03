@@ -105,7 +105,7 @@ function ViewObject:init(frameRect)
 	ui.view.layer:insertProp(self.prop)
 	
 	self.children = {}
-	self.receivesTouches = true
+	self:setReceivesTouches(true)
 
 	-- Set its location
 	self.frame = ui.rect.new(0,0,0,0)
@@ -161,6 +161,13 @@ function ViewObject:onDraw()
 end
 
 
+function ViewObject:setReceivesTouches(receivesTouches)
+
+	self.receivesTouches = receivesTouches
+	
+end
+
+
 function ViewObject:touchEvent(id, eventType, x, y)
 
 	--This should be overridden by a subclass that wants touch events!
@@ -174,6 +181,7 @@ function ViewObject:internalTouchEvent(id, eventType, x, y)
 	
 	-- Find the top-most subview that it hits
 	-- If there isn't one, then it must hit us, so call our own :touchEvent()
+
 
 	if self.prop:inside(x,y) then	
 
