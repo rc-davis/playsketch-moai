@@ -39,7 +39,7 @@ function ui.init()
 	require "ui/view"
 	
 	-- Initialize our View Hierarchy
-	ui.view.init(ui.viewport, scaledWidth, scaledHeight)
+	ui.view.initViewSystem(ui.viewport, scaledWidth, scaledHeight)
 end
 
 return ui
