@@ -43,7 +43,7 @@ function ui.view.initViewSystem(viewport, width, height)
 	uiLayer:setViewport ( viewport )
 	MOAISim.pushRenderPass ( uiLayer )
 	
-	ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
+	ui.view.window = ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
 end
 
 
@@ -62,7 +62,13 @@ function ViewObject:init(frameRect)
 	
 	-- Create a prop with these bounds
 	self.prop = MOAIProp2D.new ()
+	self.deck = MOAIScriptDeck.new ()
+	self.prop:setDeck ( self.deck )
 	uiLayer:insertProp(self.prop)
+	
+	self.children = {}
+
+
 
 	-- Set its location
 	self.frame = ui.rect.new(0,0,0,0)
@@ -74,10 +80,25 @@ end
 function ViewObject:setFrame(frameRect)
 
 	util.copyIntoTable( frameRect, self.frame )
-	self.prop:setFrame( self.frame.origin.x, 
-						self.frame.origin.y, 
-						self.frame.origin.x + self.frame.size.width,
-						self.frame.origin.y + self.frame.size.height )
-
+	self.prop:setLoc(self.frame.origin.x, self.frame.origin.y)
+	self.deck:setRect(0,0,self.frame.size.width, self.frame.size.height)
+	
 end
 
+
+function ViewObject:getFrame()
+
+	return util.clone(self.frame)
+	
+end
+
+
+function ViewObject:addSubview(subviewObject)
+
+	assert( subviewObject:isa( self:class( ) ), "Need to add things that descend from ViewObject")
+	assert( subviewObject.parent == nil, "Shouldn't be already added to a parent!")
+	subviewObject.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.prop, MOAIProp2D.TRANSFORM_TRAIT)
+	subviewObject.parent = self
+	table.insert(self.children, subviewObject)
+
+end
