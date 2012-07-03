@@ -47,7 +47,7 @@ end
 
 function Label:init(frame, text, size, color)
 
-	self:superClass():init(frame)
+	self:superClass().init(self, frame)
 	
 	-- Create our textbox prop
 	self.textbox = MOAITextBox.new ()
@@ -89,4 +89,4 @@ function Label:setColor(color)
 end
 
 
-return ui.rect
+return ui.label
