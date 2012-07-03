@@ -90,6 +90,18 @@ function util.clone(t)
 	return l
 end
 
+
+function util.copyIntoTable(from, to)
+	for k,v in pairs(from) do
+		if type(v) ~= "table" then
+			to[k] = v
+		else
+			util.copyIntoTable(from[k], to[k])
+		end
+	end
+end
+
+
 --predicate like: function(key,value) return true end
 function util.any(tab, predicate)
 	for k,v in pairs(tab) do
