@@ -38,12 +38,12 @@ function ui.init()
 	-- Import all of the parts of this package once the layer has been created
 	require "ui/view"
 	require "ui/label"
+	require "ui/button"
 	
 	-- Initialize our View Hierarchy
 	ui.view.initViewSystem(ui.viewport, scaledWidth, scaledHeight)
 	
 end
-
 
 return ui
 
