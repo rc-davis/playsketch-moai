@@ -33,6 +33,7 @@ ui.view = {}
 
 ui.view.layer = nil
 
+local touchRecipient = {}
 
 local ViewObject = util.objects.defineType("ViewObject", util.objects.BaseObject)
 
@@ -55,27 +56,60 @@ function ui.view.initViewSystem(viewport, width, height)
 	if MOAIInputMgr.device.mouseLeft and MOAIInputMgr.device.pointer then
 	
 		MOAIInputMgr.device.mouseLeft:setCallback(
+		
 			function ()
+		
 				x,y = ui.view.layer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+		
 				if MOAIInputMgr.device.mouseLeft:down() then
-					ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_DOWN, x, y)
-				else
-					ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_UP, x, y)
+		
+					touchRecipient[1] = ui.view.window:internalTouchEventStart(1, MOAITouchSensor.TOUCH_DOWN, x, y)
+		
+				elseif touchRecipient[1] then
+		
+					touchRecipient[1]:touchEvent(1, MOAITouchSensor.TOUCH_UP, touchRecipient[1].prop:worldToModel(x, y))
+					touchRecipient[1] = nil
+		
 				end
 			end)
 	
 		MOAIInputMgr.device.pointer:setCallback(
+		
 			function ()
-				x,y = ui.view.layer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
-				ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_MOVE, x, y)
+		
+				if touchRecipient[1] then
+		
+					x,y = ui.view.layer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
+					touchRecipient[1]:touchEvent(1, MOAITouchSensor.TOUCH_MOVE, touchRecipient[1].prop:worldToModel(x, y))
+		
+				end
+		
 			end)
 
 	elseif MOAIInputMgr.device.touch then
 	
 		MOAIInputMgr.device.touch:setCallback(
+		
 			function ( eventType, id, x_wnd, y_wnd, tapCount )
+		
 				x,y = ui.view.layer:wndToWorld ( x_wnd, y_wnd  )
-				ui.view.window:internalTouchEvent ( id, eventType, x, y )
+		
+				if eventType == MOAITouchSensor.TOUCH_DOWN then 
+				
+					assert(touchRecipient[id] == nil, "shouldn't have a touch input for this id")
+					touchRecipient[id] = ui.view.window:internalTouchEvent ( id, eventType, x, y )
+
+				elseif touchRecipient[id] then 
+				
+					touchRecipient[id]:touchEvent(1, eventType, touchRecipient[id].prop:worldToModel(x, y))
+
+					--clear it if needed
+					if eventType ~= MOAITouchSensor.TOUCH_MOVE then
+						touchRecipient[id] = nil
+					end
+
+				end
+
 			end )
 	
 	else
@@ -177,32 +211,36 @@ function ViewObject:touchEvent(id, eventType, x, y)
 end
 
 
-function ViewObject:internalTouchEvent(id, eventType, x, y)
+function ViewObject:internalTouchEventStart(id, eventType, x, y)
 	
 	-- Find the top-most subview that it hits
 	-- If there isn't one, then it must hit us, so call our own :touchEvent()
+	-- Return the view that is handling the event
 
-
+	local hit = nil
+		
 	if self.prop:inside(x,y) then	
 
-		local hit = false
 		local i = #self.children
 
-		while i > 0 and hit == false do
+		while i > 0 and hit == nil do
 
 			if self.children[i].prop:inside(x,y) and self.children[i].receivesTouches then
-				self.children[i]:internalTouchEvent(id, eventType, x, y)
-				hit = true
+				hit = self.children[i]:internalTouchEventStart(id, eventType, x, y)
 			end
 			i = i - 1
 			
 		end
 		
-		if hit == false and self.receivesTouches then
+		if hit == nil and self.receivesTouches then
+
 			-- Pass the actual event on to the view that matches it, translating the points
 			self:touchEvent(id, eventType, self.prop:worldToModel(x, y))
+			hit = self
+
 		end
 		
 	end
 
+	return hit
 end
