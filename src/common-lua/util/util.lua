@@ -15,6 +15,7 @@
 
 	Random utilities
 	
+	- objects.lua		Defines our object inheritance hierarchy
 	- debugging.lua:	Debugging helpers
 	- pickle.lua		writing tables to disk and loading them back up
 	
@@ -23,6 +24,7 @@
 
 util = {}
 
+require "util/objects"
 require "util/debugging"
 require "util/pickle"
 

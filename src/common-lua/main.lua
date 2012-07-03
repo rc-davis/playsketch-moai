@@ -18,6 +18,7 @@
 
 --]]
 
+require "util/util"
 require "widgets/widgets"
 require "controllers/controllers"
 require "input/input"
