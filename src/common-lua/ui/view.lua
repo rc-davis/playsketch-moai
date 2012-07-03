@@ -31,17 +31,23 @@ require "ui/rect"
 
 ui.view = {}
 
+ui.view.layer = nil
+
+
 local ViewObject = util.objects.defineType("ViewObject", util.objects.BaseObject)
-local uiLayer
+
+function ui.view.class()
+	return ViewObject
+end
 
 -- Call this once to initialize the view system
 function ui.view.initViewSystem(viewport, width, height)
 
 	-- set up a layer to draw to
 	print("Creating drawing layer")
-	uiLayer = MOAILayer2D.new ()
-	uiLayer:setViewport ( viewport )
-	MOAISim.pushRenderPass ( uiLayer )
+	ui.view.layer = MOAILayer2D.new ()
+	ui.view.layer:setViewport ( viewport )
+	MOAISim.pushRenderPass ( ui.view.layer )
 	
 	ui.view.window = ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
 	
@@ -50,7 +56,7 @@ function ui.view.initViewSystem(viewport, width, height)
 	
 		MOAIInputMgr.device.mouseLeft:setCallback(
 			function ()
-				x,y = uiLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+				x,y = ui.view.layer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
 				if MOAIInputMgr.device.mouseLeft:down() then
 					ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_DOWN, x, y)
 				else
@@ -60,7 +66,7 @@ function ui.view.initViewSystem(viewport, width, height)
 	
 		MOAIInputMgr.device.pointer:setCallback(
 			function ()
-				x,y = uiLayer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
+				x,y = ui.view.layer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
 				ui.view.window:internalTouchEvent(1, MOAITouchSensor.TOUCH_MOVE, x, y)
 			end)
 
@@ -68,7 +74,7 @@ function ui.view.initViewSystem(viewport, width, height)
 	
 		MOAIInputMgr.device.touch:setCallback(
 			function ( eventType, id, x_wnd, y_wnd, tapCount )
-				x,y = uiLayer:wndToWorld ( x_wnd, y_wnd  )
+				x,y = ui.view.layer:wndToWorld ( x_wnd, y_wnd  )
 				ui.view.window:internalTouchEvent ( id, eventType, x, y )
 			end )
 	
@@ -96,7 +102,7 @@ function ViewObject:init(frameRect)
 	self.prop = MOAIProp2D.new ()
 	self.deck = MOAIScriptDeck.new ()
 	self.prop:setDeck ( self.deck )
-	uiLayer:insertProp(self.prop)
+	ui.view.layer:insertProp(self.prop)
 	
 	self.children = {}
 	self.receivesTouches = true
