@@ -132,8 +132,9 @@ end
 
 function ViewObject:addSubview(subviewObject)
 
-	assert( subviewObject:isa( self:class( ) ), "Need to add things that descend from ViewObject")
-	assert( subviewObject.parent == nil, "Shouldn't be already added to a parent!")
+	assert( subviewObject:isa( ViewObject:class( ) ), "Need to add things that descend from ViewObject" )
+	assert( subviewObject.parent == nil, "Shouldn't be already added to a parent!" )
+	assert( subviewObject ~= self, "can't add a view to itself!" )
 	subviewObject.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.prop, MOAIProp2D.TRANSFORM_TRAIT)
 	subviewObject.parent = self
 	table.insert(self.children, subviewObject)
