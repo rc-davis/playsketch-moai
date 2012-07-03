@@ -141,9 +141,9 @@ function ViewObject:addSubview(subviewObject)
 end
 
 
-function ViewObject:setBackgroundColor( r, g, b, a )
+function ViewObject:setBackgroundColor( color )
 
-	self.backgroundColor = { r, g, b, a }
+	self.backgroundColor = color
 	self.deck:setDrawCallback( function () self:onDraw() end )
 
 end
