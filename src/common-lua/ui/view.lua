@@ -183,6 +183,13 @@ function ViewObject:setBackgroundColor( color )
 
 end
 
+function ViewObject:setBorderColor( color )
+
+	self.borderColor = color
+	self.deck:setDrawCallback( function () self:onDraw() end )
+
+end
+
 
 function ViewObject:onDraw()
 -- Only called AFTER we have set a background color
@@ -190,6 +197,11 @@ function ViewObject:onDraw()
 	if self.backgroundColor then
 		MOAIGfxDevice.setPenColor ( unpack ( self.backgroundColor ) )
 		MOAIDraw.fillRect ( 0, 0, self.frame.size.width, self.frame.size.height )
+	end
+
+	if self.backgroundColor then
+		MOAIGfxDevice.setPenColor ( unpack ( self.borderColor ) )
+		MOAIDraw.drawRect ( 0, 0, self.frame.size.width, self.frame.size.height )
 	end
 
 end

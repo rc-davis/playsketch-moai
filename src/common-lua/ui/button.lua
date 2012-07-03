@@ -47,6 +47,7 @@ function Button:init( frame )
 	self.backgroundColors = {}
 	self.backgroundColors[MOAITouchSensor.TOUCH_UP] = { 0.5, 0.5, 0.5 }
 	self.backgroundColors[MOAITouchSensor.TOUCH_DOWN] = { 1.0, 0.5, 0.5 }
+	self.borderColor = { 0.2, 0.2, 0.2 }
 	
 	self:setBackgroundColor(self.backgroundColors[MOAITouchSensor.TOUCH_UP])
 
