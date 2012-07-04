@@ -131,7 +131,7 @@ function controllers.selection.startStroke()
 
 	-- doneStroke(): 	For when the lasso is finished. 
 	function selection_stroke:doneStroke()
-		drawingLayer:removeProp (self.prop)
+		ui.drawing.animationLayer:removeProp (self.prop)
 		if util.tableIsEmpty(_selectedSet) then
 			interactormodel.selectionCleared()
 		else
@@ -142,7 +142,7 @@ function controllers.selection.startStroke()
 
 	--cancel():	Cancel the drawing of the selection stroke	
 	function selection_stroke:cancel()
-		drawingLayer:removeProp (self.prop)
+		ui.drawing.animationLayer:removeProp (self.prop)
 		controllers.selection.clearSelection()
 	end
 
