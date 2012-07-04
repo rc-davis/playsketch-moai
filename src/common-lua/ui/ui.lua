@@ -24,15 +24,15 @@ function ui.init()
 	-- set up a window
 	local nativeWidth = MOAIEnvironment.screenWidth or 512
 	local nativeHeight = MOAIEnvironment.screenHeight or 683 
-	local scaledWidth = 768
-	local scaledHeight = 1024
+	ui.scaledWidth = 768
+	ui.scaledHeight = 1024
 
 	print("Opening window: ", nativeWidth, nativeHeight)
 	MOAISim.openWindow ( "playsketch2", nativeWidth, nativeHeight )
 
 	-- set up viewport
 	ui.viewport = MOAIViewport.new ()
-	ui.viewport:setScale ( scaledWidth, scaledHeight )
+	ui.viewport:setScale ( ui.scaledWidth, ui.scaledHeight )
 	ui.viewport:setSize ( nativeWidth, nativeHeight )
 
 	-- Import all of the parts of this package once the layer has been created
@@ -41,7 +41,7 @@ function ui.init()
 	require "ui/button"
 	
 	-- Initialize our View Hierarchy
-	ui.view.initViewSystem(ui.viewport, scaledWidth, scaledHeight)
+	ui.view.initViewSystem(ui.viewport, ui.scaledWidth, ui.scaledHeight)
 	
 end
 
