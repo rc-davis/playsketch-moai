@@ -39,6 +39,7 @@ function ui.init()
 	require "ui/view"
 	require "ui/label"
 	require "ui/button"
+	require "ui/list"
 	
 	-- Initialize our View Hierarchy
 	ui.view.initViewSystem(ui.viewport, ui.scaledWidth, ui.scaledHeight)
