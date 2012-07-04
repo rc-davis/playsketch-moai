@@ -40,11 +40,11 @@ function Drawable:init(stroke)
 	self.prop = stroke.prop
 	self.visible = true
 	self.paths = {}
-	drawingLayer:insertProp (self.prop)
+	ui.drawing.animationLayer:insertProp (self.prop)
 	
 	controllers.undo.addAction(	"Init Drawable",
-								function() drawingLayer:removeProp (self.prop) end,
-								function() drawingLayer:insertProp (self.prop) end )
+								function() ui.drawing.animationLayer:removeProp (self.prop) end,
+								function() ui.drawing.animationLayer:insertProp (self.prop) end )
 	
 	return self
 end
@@ -53,7 +53,7 @@ function Drawable:addPath(path)
 
 	--create a new proxy Prop for it
 	self.paths[path] = MOAIProp2D.new ()
-	drawingLayer:insertProp(self.paths[path])
+	ui.drawing.animationLayer:insertProp(self.paths[path])
 	path.drawables[self] = self
 
 	controllers.undo.addAction(	"Add Path to Drawable",
@@ -71,7 +71,7 @@ function Drawable:removePath(path)
 
 	--create a new proxy Prop for it
 	path.drawables[self] = nil
-	drawingLayer:removeProp(self.paths[path])
+	ui.drawing.animationLayer:removeProp(self.paths[path])
 	self.paths[path] = nil	
 	
 	controllers.undo.addAction(	"Remove Path from Drawable",
@@ -87,7 +87,7 @@ end
 
 function Drawable:delete()
 
-	drawingLayer:removeProp(self.prop)
+	ui.drawing.animationLayer:removeProp(self.prop)
 	
 	--remove paths
 	for path,_ in pairs(self.paths) do

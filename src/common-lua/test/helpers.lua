@@ -62,7 +62,7 @@ function test.helpers.addDebugGrid(prop)
 	newprop = MOAIProp2D.new ()
 	newprop:setDeck ( test.helpers.gridImg )
 	newprop:setLoc (0,0)
-	drawingLayer:insertProp (newprop)
+	ui.view.layer:insertProp (newprop)
 	newprop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, prop, MOAIProp2D.TRANSFORM_TRAIT)	
 end
 

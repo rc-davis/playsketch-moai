@@ -54,7 +54,7 @@ end
 
 
 print("Setting up environment")
-drawingLayer = MOAILayer2D.new ()
+ui = { drawing = { animationLayer = MOAILayer2D.new () } }
 
 
 

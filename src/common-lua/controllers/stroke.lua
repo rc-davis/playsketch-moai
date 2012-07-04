@@ -41,7 +41,7 @@ function Stroke:init()
 	self.penWidth = 4.0
 
 	self.deck:setDrawCallback(function () self:onDraw() end)
-	drawingLayer:insertProp ( self.prop )
+	ui.drawing.animationLayer:insertProp ( self.prop )
 	return self
 
 end
@@ -87,13 +87,13 @@ function Stroke:doneStroke()
 	self.deck:setRect (-width/2, -height/2, width/2, height/2)
 
 	-- If anyone wants to keep this stroke around, they'll need to be responsible for adding it
-	drawingLayer:removeProp(self.prop)
+	ui.drawing.animationLayer:removeProp(self.prop)
 end
 
 
 --cancel():	Cancel the drawing of the stroke	
 function Stroke:cancel()
-	drawingLayer:removeProp (self.prop)
+	ui.drawing.animationLayer:removeProp (self.prop)
 end
 
 
