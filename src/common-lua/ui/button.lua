@@ -18,7 +18,7 @@
 --]]
 
 ui.button = {}
-
+ui.button.DISABLED = "DISABLED"
 
 local Button = util.objects.defineType("Button", ui.view.class())
 
@@ -43,15 +43,19 @@ function Button:init( frame )
 
 	self:superClass().init(self, frame)
 	self.callbacks = {}
-	
+
 	self.backgroundColors = {}
-	self.backgroundColors[MOAITouchSensor.TOUCH_UP] = { 0.5, 0.5, 0.5 }
-	self.backgroundColors[MOAITouchSensor.TOUCH_DOWN] = { 1.0, 0.5, 0.5 }
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, { 0.5, 0.5, 0.5 })
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, { 1.0, 0.5, 0.5 })
+	self:setBackgroundColorForState(ui.button.DISABLED, { 0.3, 0.3, 0.3 })
+
 	self.borderColor = { 0.2, 0.2, 0.2 }
-	
-	self:setBackgroundColor(self.backgroundColors[MOAITouchSensor.TOUCH_UP])
+
+	self.state = MOAITouchSensor.TOUCH_UP
+	self:refreshState()
 
 end
+
 
 function Button:setCallback( state, func )
 
@@ -60,14 +64,33 @@ function Button:setCallback( state, func )
 end
 
 
+function Button:setBackgroundColorForState( state, color )
+
+	-- MOAITouchSensor values or ui.button.DISABLED
+	self.backgroundColors[state] = color
+
+end
+
+
+function Button:refreshState()
+
+	if self.backgroundColors[self.state] then
+		self:setBackgroundColor(self.backgroundColors[self.state])
+	else
+		self:setBackgroundColor( { 1, 1, 1 } )
+	end
+end
+
+
 function Button:touchEvent(id, eventType, x, y)
+
+	if self.state == ui.button.DISABLED then return end
+
+	self.state = eventType
+	self:refreshState()
 
 	if self.callbacks[eventType] then 
 		self.callbacks[eventType](id, x, y)
-	end
-	
-	if self.backgroundColors[eventType] then
-		self:setBackgroundColor(self.backgroundColors[eventType])
 	end
 	
 end
@@ -87,6 +110,7 @@ function Button:setText(text)
 		self.textLabel = ui.label.new ( ui.rect.new(0, 0, self.frame.size.width, self.frame.size.height), text, 20, { 0, 0, 0 } )
 		self.textLabel:setReceivesTouches(false)
 		self:addSubview(self.textLabel)
+
 	else
 	
 		self.textLabel:setText(text)
@@ -95,5 +119,17 @@ function Button:setText(text)
 
 end
 
+
+function Button:setEnabled(enabled)
+
+	if enabled == true then 
+		self.state = MOAITouchSensor.TOUCH_UP
+	else
+		self.state = ui.button.DISABLED
+	end
+	
+	self:refreshState()
+	
+end
 
 return ui.button
