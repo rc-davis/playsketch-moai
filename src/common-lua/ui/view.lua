@@ -51,7 +51,8 @@ function ui.view.initViewSystem(viewport, width, height)
 	MOAISim.pushRenderPass ( ui.view.layer )
 	
 	ui.view.window = ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
-	
+	ui.view.layer:insertProp(ui.view.window.prop) -- Have to do this one manually since there's no superview
+
 	--Register the base window for touch events! (This gets ugly)
 	if MOAIInputMgr.device.mouseLeft and MOAIInputMgr.device.pointer then
 	
@@ -137,7 +138,8 @@ function ViewObject:init(frameRect)
 	self.deck = MOAIScriptDeck.new ()
 	self.prop:setDeck ( self.deck )
 	ui.view.layer:insertProp(self.prop)
-	
+	self.prop:setVisible(false)
+		
 	self.children = {}
 	self:setReceivesTouches(true)
 
@@ -171,7 +173,18 @@ function ViewObject:addSubview(subviewObject)
 	assert( subviewObject ~= self, "can't add a view to itself!" )
 	subviewObject.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.prop, MOAIProp2D.TRANSFORM_TRAIT)
 	subviewObject.parent = self
+	subviewObject.prop:setVisible(true)
 	table.insert(self.children, subviewObject)
+
+end
+
+
+function ViewObject:removeFromSuperview()
+
+	util.tableDelete(self.parent.children, self)
+	self.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+	self.parent = nil
+	subviewObject.prop:setVisible(false)
 
 end
 
@@ -199,7 +212,7 @@ function ViewObject:onDraw()
 		MOAIDraw.fillRect ( 0, 0, self.frame.size.width, self.frame.size.height )
 	end
 
-	if self.backgroundColor then
+	if self.borderColor then
 		MOAIGfxDevice.setPenColor ( unpack ( self.borderColor ) )
 		MOAIDraw.drawRect ( 0, 0, self.frame.size.width, self.frame.size.height )
 	end
