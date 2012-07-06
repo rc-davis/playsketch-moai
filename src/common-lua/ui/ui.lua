@@ -39,6 +39,7 @@ function ui.init()
 	require "ui/view"
 	require "ui/label"
 	require "ui/button"
+	require "ui/imagebutton"
 	require "ui/list"
 	require "ui/drawing"
 	require "ui/modifier"
