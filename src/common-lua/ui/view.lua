@@ -52,6 +52,7 @@ function ui.view.initViewSystem(viewport, width, height)
 	
 	ui.view.window = ui.view.new(ui.rect.new(-width/2, -height/2, width, height))
 	ui.view.layer:insertProp(ui.view.window.prop) -- Have to do this one manually since there's no superview
+	ui.view.window.inRootedHierarchy = true
 
 	--Register the base window for touch events! (This gets ugly)
 	if MOAIInputMgr.device.mouseLeft and MOAIInputMgr.device.pointer then
@@ -137,8 +138,6 @@ function ViewObject:init(frameRect)
 	self.prop = MOAIProp2D.new ()
 	self.deck = MOAIScriptDeck.new ()
 	self.prop:setDeck ( self.deck )
-	ui.view.layer:insertProp(self.prop)
-	self.prop:setVisible(false)
 		
 	self.children = {}
 	self:setReceivesTouches(true)
@@ -146,6 +145,10 @@ function ViewObject:init(frameRect)
 	-- Set its location
 	self.frame = ui.rect.new(0,0,0,0)
 	self:setFrame(frameRect)
+	
+	self.inRootedHierarchy = false
+	
+
 
 end
 
@@ -166,15 +169,49 @@ function ViewObject:getFrame()
 end
 
 
+-- Private function for fixing our attr-links in subviews after changing the hierarchy
+local function recursively_setAttrLink(subview)
+
+	if subview.parent and subview.parent.inRootedHierarchy then
+
+		ui.view.layer:insertProp(subview.prop) -- Have to do this one manually since there's no superview
+		subview.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, subview.parent.prop, MOAIProp2D.TRANSFORM_TRAIT)
+		subview.inRootedHierarchy = true
+
+	else
+
+		subview.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
+		ui.view.layer:removeProp(subview.prop)
+		subview.inRootedHierarchy = false
+
+	end
+	
+	for _,child in pairs(subview.children) do 
+
+		recursively_setAttrLink(child)
+
+	end
+	
+end
+
+
+
+
 function ViewObject:addSubview(subviewObject)
 
 	assert( subviewObject:isa( ViewObject:class( ) ), "Need to add things that descend from ViewObject" )
 	assert( subviewObject.parent == nil, "Shouldn't be already added to a parent!" )
 	assert( subviewObject ~= self, "can't add a view to itself!" )
-	subviewObject.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.prop, MOAIProp2D.TRANSFORM_TRAIT)
+
+	-- Remove our subview from any pre-existing hierarchies
+	if subviewObject.inRootedHierarchy == true then
+		subviewObject:removeFromSuperview()
+	end
+
 	subviewObject.parent = self
-	subviewObject.prop:setVisible(true)
 	table.insert(self.children, subviewObject)
+
+	recursively_setAttrLink(subviewObject)
 
 end
 
@@ -182,9 +219,9 @@ end
 function ViewObject:removeFromSuperview()
 
 	util.tableDelete(self.parent.children, self)
-	self.prop:clearAttrLink(MOAIProp2D.INHERIT_TRANSFORM)
 	self.parent = nil
-	subviewObject.prop:setVisible(false)
+	
+	recursively_setAttrLink(self)
 
 end
 
