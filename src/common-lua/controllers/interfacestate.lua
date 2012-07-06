@@ -81,6 +81,11 @@ function controllers.interfacestate.setCurrentPath(path)
 		controllers.selection.setSelectedDrawables(path:allDrawables())
 
 		controllers.interfacestate.setState(STATES.PATH_SELECTED)
+	
+	elseif _state ~= STATES.NEUTRAL then
+
+		controllers.interfacestate.setState(STATES.NEUTRAL)
+	
 	end
 	
 	assert(refreshCurrentPath, "Your interface file should define refreshCurrentPath(newPath) to respond to state changes")
