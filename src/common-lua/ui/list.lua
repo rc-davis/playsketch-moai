@@ -107,8 +107,17 @@ function List:removeIndex(i)
 
 	assert(i > 0 and i <= #self.items, "Need a valid index to remove")
 	self.items[i]:removeFromSuperview()
-	table.delete(self.items, i)
-	self:refreshItemList()	
+	table.remove(self.items, i)
+	self:refreshItemFrames()	
+
+end
+
+
+function List:removeItem(o)
+
+	assert( o , "We need an object to remove" )
+	local i = util.indexOf( self.items, o )
+	self:removeIndex(i)
 
 end
 
