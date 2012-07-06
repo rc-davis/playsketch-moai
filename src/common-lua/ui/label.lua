@@ -49,42 +49,42 @@ function Label:init(frame, text, size, color)
 
 	self:superClass().init(self, frame)
 	
-	-- Create our textbox prop
-	self.textbox = MOAITextBox.new ()
-	self.textbox:setFont ( font )
-	self.textbox:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
+	-- Remove the superclass's default prop:
+	self.prop = nil
+
+	-- Create our textbox prop in its place
+	self.prop = MOAITextBox.new ()
 
 	--Set its properties
-	self.textbox:setRect(0, 0, frame.size.width, frame.size.height)
-	self.textbox:setLoc (0, 0)
-	self.textbox:setYFlip ( true )
+	self.prop:setFont ( font )
+	self.prop:setAlignment(MOAITextBox.CENTER_JUSTIFY, MOAITextBox.CENTER_JUSTIFY)
+	self.prop:setRect(0, 0, frame.size.width, frame.size.height)
+	self.prop:setLoc (0, 0)
+	self.prop:setYFlip ( true )
 	self:setText(text)
 	self:setSize(size)
 	self:setColor(color)
 	
-	-- Make text dependent on self's location
-	self.textbox:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, self.prop, MOAIProp2D.TRANSFORM_TRAIT)
-	ui.view.layer:insertProp(self.textbox)
 end
 
 
 function Label:setText(text)
 
-	self.textbox:setString(text)
+	self.prop:setString(text)
 
 end
 
 
 function Label:setSize(size)
 
-	self.textbox:setTextSize (size)
+	self.prop:setTextSize (size)
 	
 end
 
 
 function Label:setColor(color)
 
-	self.textbox:setColor (unpack(color))
+	self.prop:setColor (unpack(color))
 
 end
 
