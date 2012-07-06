@@ -24,14 +24,6 @@ controllers.timeline.playing = false
 
 
 
--- setSlider(slider): Associates the timeline controller with the specified slider widget
-function controllers.timeline.setButtons(playButton)
-	controllers.timeline.playButton = playButton
-	widgets.slider:setValueSpan(controllers.timeline.span.min, 
-											controllers.timeline.span.max)
-end
-
-
 --sliderMoved(slider, time): Respond to the slider having been moved manually
 function controllers.timeline.sliderMoved(slider, new_time)
 	assert(new_time >= controllers.timeline.span.min and
@@ -77,7 +69,9 @@ function controllers.timeline.play()
 	assert(not controllers.timeline.playing, 
 			"Timeline should be paused before calling controllers.timeline.play()")
 	controllers.timeline.playing = true
-	controllers.timeline.playButton:setIndex(2)
+	if startedPlaying ~= nil then
+		startedPlaying()
+	end
 
 	controllers.playback.startPlaying(controllers.timeline.currentTime())
 
@@ -93,7 +87,9 @@ function controllers.timeline.pause()
 	assert(controllers.timeline.playing, 
 			"Timeline should be playing before calling controllers.timeline.pause()")
 	controllers.timeline.playing = false
-	controllers.timeline.playButton:setIndex(1)	
+	if stoppedPlaying ~= nil then
+		stoppedPlaying()
+	end
 	
 	widgets.slider:stop()
 
