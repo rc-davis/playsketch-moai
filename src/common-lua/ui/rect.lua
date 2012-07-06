@@ -45,4 +45,11 @@ function Rect:toString()
 end
 
 
+function Rect:toPoints()
+
+	return self.origin.x, self.origin.y, self.origin.x + self.size.width, self.origin.y + self.size.height
+	
+end
+
+
 return ui.rect
