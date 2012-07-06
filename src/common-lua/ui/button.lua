@@ -45,13 +45,15 @@ function Button:init( frame )
 	self.callbacks = {}
 
 	self.backgroundColors = {}
-	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, { 0.5, 0.5, 0.5 })
-	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, { 1.0, 0.5, 0.5 })
-	self:setBackgroundColorForState(ui.button.DISABLED, { 0.3, 0.3, 0.3 })
+	self.backgroundColors[true],self.backgroundColors[false] = {},{}
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, false, { 0.5, 0.5, 0.5 })
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, false, { 1.0, 0.5, 0.5 })
+	self:setBackgroundColorForState(ui.button.DISABLED, false, { 0.3, 0.3, 0.3 })
 
 	self.borderColor = { 0.2, 0.2, 0.2 }
 
 	self.state = MOAITouchSensor.TOUCH_UP
+	self.highlighted = false
 	self:refreshState()
 
 end
@@ -64,21 +66,27 @@ function Button:setCallback( state, func )
 end
 
 
-function Button:setBackgroundColorForState( state, color )
+function Button:setBackgroundColorForState( state, highlighted, color )
 
 	-- MOAITouchSensor values or ui.button.DISABLED
-	self.backgroundColors[state] = color
+	self.backgroundColors[highlighted][state] = color
+
+end
+
+
+function Button:getBackgroundColorForState( state, highlighted)
+
+	if self.backgroundColors[highlighted][state] then
+		return self.backgroundColors[highlighted][state]
+	else return { 1, 1, 1 } end
 
 end
 
 
 function Button:refreshState()
 
-	if self.backgroundColors[self.state] then
-		self:setBackgroundColor(self.backgroundColors[self.state])
-	else
-		self:setBackgroundColor( { 1, 1, 1 } )
-	end
+	self:setBackgroundColor(self:getBackgroundColorForState(self.state, self.highlighted ) )
+
 end
 
 
@@ -130,6 +138,15 @@ function Button:setEnabled(enabled)
 	
 	self:refreshState()
 	
+end
+
+
+function Button:setHighlighted(highlighted)
+
+	self.highlighted = highlighted
+	
+	self:refreshState()
+
 end
 
 return ui.button
