@@ -156,7 +156,6 @@ end
 
 
 function Manipulator:touchDown(id,px,py)
-print("TOUCHED", px, py)
 
 	if not self.prop:inside(px,py) or not self.visible then return false end
 
@@ -300,8 +299,6 @@ function Manipulator:setInheritsFromPath(path)
 		-- reset everything back to zero
 		self.prop:setLoc(0,0)
 		self.prop:setRot(90)
-		
-		print("LOC!!!", self.prop:getLoc())
 	
 		--Find any one of the path's drawables that we can inherit from to keep the motion in sync
 		local anyDrawable = util.anyItem(path:allDrawables())
@@ -314,8 +311,6 @@ function Manipulator:setInheritsFromPath(path)
 		self.prop:clearAttrLink ( MOAIProp2D.INHERIT_TRANSFORM )
 		self.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, drawablePathProp, MOAIProp2D.TRANSFORM_TRAIT)
 		
-		
-		print("LOC!!!after", self.prop:getLoc())		
 	else		
 		-- copy position information from current path
 		local newx,newy = self.prop:modelToWorld(self.prop:getLoc())

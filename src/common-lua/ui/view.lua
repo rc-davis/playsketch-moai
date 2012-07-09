@@ -299,7 +299,7 @@ function ViewObject:touchEvent(id, eventType, x, y)
 
 	--This should be overridden by a subclass that wants touch events!
 	if eventType == MOAITouchSensor.TOUCH_DOWN then
-		print ( "TOUCHED", self, x, y)
+		
 	end
 end
 
