@@ -17,6 +17,8 @@
 
 --]]
 
+require "util/util"
+
 ui.rect = {}
 
 local Rect = util.objects.defineType("Rect", util.objects.BaseType)
