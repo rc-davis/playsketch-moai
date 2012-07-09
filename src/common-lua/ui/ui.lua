@@ -29,6 +29,7 @@ require "ui/drawing"
 require "ui/modifier"
 require "ui/slider"
 require "ui/manipulator"
+require "ui/keyframes"
 
 function ui.init()
 
