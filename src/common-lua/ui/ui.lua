@@ -19,6 +19,17 @@
 
 ui = {}
 
+require "ui/view"
+require "ui/label"
+require "ui/button"
+require "ui/image"
+require "ui/imagebutton"
+require "ui/list"
+require "ui/drawing"
+require "ui/modifier"
+require "ui/slider"
+require "ui/manipulator"
+
 function ui.init()
 
 	-- set up a window
@@ -35,20 +46,8 @@ function ui.init()
 	ui.viewport:setScale ( ui.scaledWidth, ui.scaledHeight )
 	ui.viewport:setSize ( nativeWidth, nativeHeight )
 
-	-- Import all of the parts of this package once the layer has been created
-	require "ui/view"
-	require "ui/label"
-	require "ui/button"
-	require "ui/image"
-	require "ui/imagebutton"
-	require "ui/list"
-	require "ui/drawing"
-	require "ui/modifier"
-	require "ui/slider"
-	
 	-- Initialize our View Hierarchy
-	ui.view.initViewSystem(ui.viewport, ui.scaledWidth, ui.scaledHeight)
-	
+	ui.view.initViewSystem(ui.viewport, ui.scaledWidth, ui.scaledHeight)	
 	
 end
 

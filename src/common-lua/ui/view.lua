@@ -61,17 +61,30 @@ function ui.view.initViewSystem(viewport, width, height)
 		
 			function ()
 		
-				x,y = ui.view.layer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
-		
 				if MOAIInputMgr.device.mouseLeft:down() then
 		
+					--Brute-force pass along to our manipulator
+					local xMan,yMan = ui.drawing.animationLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+					if ui.manipulator:get():touchDown ( 1, xMan, yMan ) then return end
+
+					--otherwise give it to the view hierarchy
+					local x,y = ui.view.layer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
 					touchRecipient[1] = ui.view.window:internalTouchEventStart(1, MOAITouchSensor.TOUCH_DOWN, x, y)
-		
-				elseif touchRecipient[1] then
-		
-					touchRecipient[1]:touchEvent(1, MOAITouchSensor.TOUCH_UP, touchRecipient[1].prop:worldToModel(x, y))
-					touchRecipient[1] = nil
-		
+
+				else
+				
+					--Brute-force pass along to our manipulator
+					local xMan,yMan = ui.drawing.animationLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+					if ui.manipulator:get():touchUp ( 1, xMan, yMan ) then return end
+				
+					--otherwise give it to the view hierarchy
+					if touchRecipient[1] then	
+						
+						local x,y = ui.view.layer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+						touchRecipient[1]:touchEvent(1, MOAITouchSensor.TOUCH_UP, touchRecipient[1].prop:worldToModel(x, y))
+						touchRecipient[1] = nil
+						
+					end	
 				end
 			end)
 	
@@ -79,11 +92,17 @@ function ui.view.initViewSystem(viewport, width, height)
 		
 			function ()
 		
+				
+				--Brute-force pass along to our manipulator
+				local xMan,yMan = ui.drawing.animationLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+				if ui.manipulator:get():touchMoved ( 1, xMan, yMan ) then return end
+		
+				--otherwise give it to the view hierarchy
 				if touchRecipient[1] then
-		
-					x,y = ui.view.layer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )
+					
+					local x,y = ui.view.layer:wndToWorld ( MOAIInputMgr.device.pointer:getLoc () )		
 					touchRecipient[1]:touchEvent(1, MOAITouchSensor.TOUCH_MOVE, touchRecipient[1].prop:worldToModel(x, y))
-		
+
 				end
 		
 			end)
@@ -94,8 +113,20 @@ function ui.view.initViewSystem(viewport, width, height)
 		
 			function ( eventType, id, x_wnd, y_wnd, tapCount )
 		
-				x,y = ui.view.layer:wndToWorld ( x_wnd, y_wnd  )
+				-- brute-force pass it along to the manipulator
+				local xMan,yMan = ui.drawing.animationLayer:wndToWorld (MOAIInputMgr.device.pointer:getLoc ())
+				local usedByManipulator = false
+				if eventType == MOAITouchSensor.TOUCH_DOWN then 
+					usedByManipulator = ui.manipulator:get():touchDown ( id, xMan, yMan )
+				elseif eventType == MOAITouchSensor.TOUCH_UP then 
+					usedByManipulator = ui.manipulator:get():touchUp ( id, xMan, yMan )
+				elseif eventType == MOAITouchSensor.TOUCH_MOVE then 
+					usedByManipulator = ui.manipulator:get():touchMove ( id, xMan, yMan )
+				end
+				if usedByManipulator then return end
 		
+				--otherwise give it to the view hierarchy		
+				local x,y = ui.view.layer:wndToWorld ( x_wnd, y_wnd  )
 				if eventType == MOAITouchSensor.TOUCH_DOWN then 
 				
 					assert(touchRecipient[id] == nil, "shouldn't have a touch input for this id")
