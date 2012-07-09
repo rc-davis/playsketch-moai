@@ -53,9 +53,9 @@ function controllers.interfacestate.setState(newstate)
 	
 	if newstate == STATES.PATH_SELECTED then
 		assert(_currentPath, "We should have a non-nil current path if we are in PATH_SELECTED")
-		widgets.manipulator:attachToPath(_currentPath)
+		ui.manipulator.get():attachToPath(_currentPath)
 	elseif not controllers.interfacestate.isAManipulatorState() then
-		widgets.manipulator:hide()
+		ui.manipulator.get():hide()
 	end
 	
 	if newstate == STATES.NEUTRAL then
