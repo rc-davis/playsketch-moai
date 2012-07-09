@@ -23,8 +23,6 @@
 	
 --]]
 
-require "widgets/widgets"
-
 controllers.selection = {}
 
 local _selectedSet = {} -- {stroke -> drawable} for easy lookups
