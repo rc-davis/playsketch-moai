@@ -44,6 +44,7 @@ function ui.init()
 	require "ui/list"
 	require "ui/drawing"
 	require "ui/modifier"
+	require "ui/slider"
 	
 	-- Initialize our View Hierarchy
 	ui.view.initViewSystem(ui.viewport, ui.scaledWidth, ui.scaledHeight)
