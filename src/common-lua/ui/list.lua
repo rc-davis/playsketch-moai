@@ -33,7 +33,7 @@ end
 function ui.list.new( frame )
 
 	local o = List:create()
-	o:init(frame, text, size, color)
+	o:init( frame )
 	return o
 	
 end

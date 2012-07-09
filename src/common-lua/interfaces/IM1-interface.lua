@@ -62,7 +62,7 @@ local pathToButtonMap = {}
 local pathList = ui.list.new ( ui.rect.new( 640, 128, 128, 512 ) )
 ui.view.window:addSubview ( pathList )
 pathList:setBackgroundColor( {0.7, 0.7, 0.7 } )
-pathList:setBorderColor( {0, 0, 0 } )
+pathList:setBorderColor( { 0.95, 0.95, 0.95 } )
 
 
 

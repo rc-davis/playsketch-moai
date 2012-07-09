@@ -46,11 +46,15 @@ function Button:init( frame )
 
 	self.backgroundColors = {}
 	self.backgroundColors[true],self.backgroundColors[false] = {},{}
-	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, false, { 0.5, 0.5, 0.5 })
-	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, false, { 1.0, 0.5, 0.5 })
-	self:setBackgroundColorForState(ui.button.DISABLED, false, { 0.3, 0.3, 0.3 })
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, false, { 0.3, 0.3, 0.3 })
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, false, { 1.0, 0, 0 })
+	self:setBackgroundColorForState(ui.button.DISABLED, false, { 0.7, 0.7, 0.7 })
 
-	self.borderColor = { 0.2, 0.2, 0.2 }
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_UP, true, { 0.7, 0.3, 0.3 })
+	self:setBackgroundColorForState(MOAITouchSensor.TOUCH_DOWN, true, { 1.0, 0, 0 })
+	self:setBackgroundColorForState(ui.button.DISABLED, true, { 0.7, 0.7, 0.7 })
+
+	self.borderColor = {  0.95, 0.95, 0.95 }
 
 	self.state = MOAITouchSensor.TOUCH_UP
 	self.highlighted = false
@@ -87,6 +91,14 @@ function Button:refreshState()
 
 	self:setBackgroundColor(self:getBackgroundColorForState(self.state, self.highlighted ) )
 
+	if self.textLabel then
+		if self.state == ui.button.DISABLED then
+			self.textLabel:setColor ( { 0.55, 0.55, 0.55 } )
+		else
+			self.textLabel:setColor ( { 1.0, 1.0, 1.0 } )
+		end
+	end
+
 end
 
 
@@ -94,7 +106,10 @@ function Button:touchEvent(id, eventType, x, y)
 
 	if self.state == ui.button.DISABLED then return end
 
-	self.state = eventType
+	if eventType ~= MOAITouchSensor.TOUCH_MOVE then
+		self.state = eventType
+	end
+	
 	self:refreshState()
 
 	if self.callbacks[eventType] then 
