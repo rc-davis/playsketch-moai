@@ -25,64 +25,117 @@
 MOAIGfxDevice.setClearColor( 0.95, 0.95, 0.95 )
 
 
+ui.drawing.init ( ui.rect.new(0, 128, 640, 896 ) )
+
+
 
 --timeline sliders
-playButton = widgets.newToggleButton(-SCALED_WIDTH/2+64,-SCALED_HEIGHT/2+64, 128, 128, 
-							{"resources/IM1/play.png", "resources/IM1/pause.png"},
-							{"resources/IM1/play_down.png", "resources/IM1/pause_down.png"}, 
-							"resources/button_play_disabled.png",
-							controllers.timeline.playPause)
 
-widgets.slider:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128, 128, 64,
+playButton = ui.imagebutton.new(ui.rect.new(0, 0, 128, 128))
+playButton:setImageForState(MOAITouchSensor.TOUCH_UP, "resources/IM1/play.png")
+playButton:setImageForState(MOAITouchSensor.TOUCH_DOWN, "resources/IM1/play_down.png")
+playButton:setCallback(MOAITouchSensor.TOUCH_UP, controllers.timeline.playPause )
+ui.view.window:addSubview ( playButton )
+
+
+slider = ui.slider.new(		ui.rect.new ( 128, 0, 640, 128 ), 
+							0, 15, 
 							"resources/IM1/slider.png",
 							"resources/IM1/slider_button.png", 
-							"resources/IM1/slider_button_down.png", 
-							 controllers.timeline.sliderMoved,
-							 controllers.timeline.sliderMoveFinished)
+							"resources/IM1/slider_button_down.png",
+							64)
+slider:setValueChangedCallback ( controllers.timeline.sliderMoved )
+slider:setValueChangeFinishedCallback ( controllers.timeline.sliderMoveFinished )
+ui.view.window:addSubview ( slider ) 
+controllers.timeline.setSlider ( slider )
 
-controllers.timeline.setButtons(playButton)
---TODO:remove this
+keyframes = ui.keyframes.new( ui.rect.new( 32, 16, 640 - (32*2), 128 - 16*2 ) )
+slider:addSubview ( keyframes )
+
+
 
 
 
 
 -- Create a list of the paths along the right side of the screen
-g_pathList = widgets.textButtonList.new(320, -128, 128, 512, 64, controllers.interfacestate.setCurrentPath)
-g_addPathButton = widgets.textButton.new(320, 224, 128, 64, "new path", 
+local pathToButtonMap = {}
+local pathList = ui.list.new ( ui.rect.new( 640, 128, 128, 512 ) )
+ui.view.window:addSubview ( pathList )
+pathList:setBackgroundColor( {0.7, 0.7, 0.7 } )
+pathList:setBorderColor( {0, 0, 0 } )
+
+
+
+-- add path button
+local addPathButton = ui.button.new ( ui.rect.new( 640, 640, 128, 64 ) )
+addPathButton:setText ( "new path" )
+addPathButton:setCallback ( MOAITouchSensor.TOUCH_UP, 
 	function ()
 		local p = interactormodel.makeNewUserPath()
 		if p then
-			local index = g_pathList:addItem("Path " .. p.id, p)
-			g_pathList:setSelected(index)
+			local newbutton = ui.button.new ( ui.rect.new(0, 0, 128, 64 ) )
+			newbutton:setCallback ( MOAITouchSensor.TOUCH_UP, 
+				function()
+					controllers.interfacestate.setCurrentPath(p)
+				end )
+			newbutton:setText("Path " .. p.id)
+			pathList:addItem(newbutton)
+			pathToButtonMap[p] = newbutton
+			controllers.interfacestate.setCurrentPath(p)
 		end
+	end )
+ui.view.window:addSubview ( addPathButton )
+
+
+
+-- delete path button
+local deletePathButton = ui.button.new ( ui.rect.new( 640, 704, 128, 64 ) )
+deletePathButton:setText ( "delete path" )
+deletePathButton:setCallback ( MOAITouchSensor.TOUCH_UP, 
+	function ()
+		local button = pathToButtonMap[controllers.interfacestate.currentPath()]
+		pathList:removeItem(button)
+		interactormodel.deleteSelectedPath()
 	end)
-g_deletePathButton = widgets.textButton.new(320, 160, 128, 64, "delete path", interactormodel.deleteSelectedPath)
+ui.view.window:addSubview ( deletePathButton )
 
 
--- undo redo buttons
-g_undoButton = widgets.textButton.new(320, 480, 128, 64, "Undo", controllers.undo.performUndo)
-g_redoButton = widgets.textButton.new(320, 416, 128, 64, "Redo", controllers.undo.performRedo)
+-- undo button
+local undoButton = ui.button.new ( ui.rect.new( 640, 960, 128, 64 ) )
+undoButton:setText ( "Undo" )
+undoButton:setCallback ( MOAITouchSensor.TOUCH_UP, controllers.undo.performUndo )
+ui.view.window:addSubview ( undoButton )
+
+
+-- redo button
+local redoButton = ui.button.new ( ui.rect.new( 640, 896, 128, 64 ) )
+redoButton:setText ( "Redo" )
+redoButton:setCallback ( MOAITouchSensor.TOUCH_UP, controllers.undo.performRedo )
+ui.view.window:addSubview ( redoButton )
 
 
 -- clear button
-g_clearButton = widgets.textButton.new(320, 352, 128, 64, "Clear All", 
+local clearButton = ui.button.new ( ui.rect.new( 640, 832, 128, 64 ) )
+clearButton:setText ( "Clear All" )
+clearButton:setCallback ( MOAITouchSensor.TOUCH_UP, 
 	function () 
 		interactormodel.clearAll()
-		g_pathList:clearAll()
+		pathList:clearAll()
+		pathToButtonMap = {}
 		controllers.interfacestate.setState(STATES.NEUTRAL)
-	end)
+	end )
+ui.view.window:addSubview ( clearButton )
 
 
--- visibility toggle button
-g_visibilityButton = widgets.textButton.new(320, 288, 128, 64, "toggle visibility", interactormodel.toggleSelectedPathVisibility)
-
-
---keyframes visualization
-widgets.keyframes:init(64, -SCALED_HEIGHT/2+64, SCALED_WIDTH-128-64, 64)
+-- toggle visibility button
+local visibilityButton = ui.button.new ( ui.rect.new( 640, 768, 128, 64 ) )
+visibilityButton:setText ( "toggle visibility" )
+visibilityButton:setCallback ( MOAITouchSensor.TOUCH_UP, interactormodel.toggleSelectedPathVisibility )
+ui.view.window:addSubview ( visibilityButton )
 
 
 --initialize modifier button to do both recording and selection
-g_modifier = widgets.modifierButton.new(-SCALED_WIDTH/2+192/2, 400, 192, 192, 
+local modifier = ui.modifier.new(ui.rect.new(0, 832, 192, 192),
 	function () 
 		if not controllers.interfacestate.isAManipulatorState() then
 			controllers.interfacestate.setState(STATES.SELECT_BUTTON_DOWN)
@@ -97,27 +150,33 @@ g_modifier = widgets.modifierButton.new(-SCALED_WIDTH/2+192/2, 400, 192, 192,
 			controllers.interfacestate.setState(STATES.PATH_SELECTED)
 		end
 	end )
+ui.view.window:addSubview( modifier )
+
+
+
+
+
 
 
 ---------- Implement the functions for refreshing the interface required by the other controllers
 
 function refreshToNewState(newstate)
-
-	g_addPathButton:setEnabled(not controllers.selection.selectionIsEmpty())
-	g_deletePathButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
-	g_visibilityButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
-	g_undoButton:setEnabled(controllers.undo.canPerformUndo())
-	g_redoButton:setEnabled(controllers.undo.canPerformRedo())
-	g_clearButton:setEnabled( not util.tableIsEmpty(basemodel.allPaths()) or not util.tableIsEmpty(basemodel.allDrawables()))
+	print("REFRESHING")
+	addPathButton:setEnabled(not controllers.selection.selectionIsEmpty())
+	deletePathButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
+	visibilityButton:setEnabled(controllers.interfacestate.currentPath() ~= nil)
+	undoButton:setEnabled(controllers.undo.canPerformUndo())
+	redoButton:setEnabled(controllers.undo.canPerformRedo())
+	clearButton:setEnabled( not util.tableIsEmpty(basemodel.allPaths()) or not util.tableIsEmpty(basemodel.allDrawables()))
 
 	if newstate == STATES.PATH_SELECTED then	
-		g_modifier:setImages("resources/IM1/modifier_button_record.png",
+		modifier:setImages("resources/IM1/modifier_button_record.png",
 						"resources/IM1/modifier_button_record_down.png")
 	elseif newstate == STATES.NEUTRAL then
-		g_modifier:setImages("resources/IM1/modifier_button_select.png",
+		modifier:setImages("resources/IM1/modifier_button_select.png",
 						"resources/IM1/modifier_button_select_down.png")
 	elseif newstate == STATES.DRAWABLES_SELECTED then
-		g_modifier:forceUp()
+		modifier:forceUp()
 	end
 
 	controllers.playback.refresh()
@@ -125,23 +184,47 @@ end
 
 
 function refreshCurrentPath(newPath)
-	g_pathList:setSelectedObject(newPath)
+	pathList:setSelected(pathToButtonMap[newPath])
+
 end
 
 
 function refreshAfterUndo()
 	--brute-force redo the path list
-	g_pathList:clearAll()
+	pathList:clearAll()
+	pathToButtonMap = {}
 	for _,path in pairs(interactormodel.getUserPaths()) do
-		g_pathList:addItem("Path " .. path.id, path)
+		local newbutton = ui.button.new ( ui.rect.new(0, 0, 128, 64 ) )
+		newbutton:setCallback ( MOAITouchSensor.TOUCH_UP, 
+			function()
+				controllers.interfacestate.setCurrentPath(path)
+			end )
+		newbutton:setText("Path " .. path.id)
+		pathList:addItem(newbutton)
+		pathToButtonMap[path] = newButton
 	end
 	
 	controllers.interfacestate.setState(STATES.NEUTRAL)
 end
 
 
+function startedPlaying()
+
+	playButton:setImageForState(MOAITouchSensor.TOUCH_UP, "resources/IM1/pause.png")
+	playButton:setImageForState(MOAITouchSensor.TOUCH_DOWN, "resources/IM1/pause_down.png")
+
+end
+
+
+function stoppedPlaying()
+
+	playButton:setImageForState(MOAITouchSensor.TOUCH_UP, "resources/IM1/play.png")
+	playButton:setImageForState(MOAITouchSensor.TOUCH_DOWN, "resources/IM1/play_down.png")
+
+end
+
+
 -----------------
 -- start in a neutral state
 controllers.interfacestate.setState(STATES.NEUTRAL)
-
 
