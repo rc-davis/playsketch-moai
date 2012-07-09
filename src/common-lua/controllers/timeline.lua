@@ -22,10 +22,19 @@ controllers.timeline = {}
 controllers.timeline.span = {min=0, max=15}
 controllers.timeline.playing = false
 
+local slider = nil
+
+
+function controllers.timeline.setSlider ( _slider )
+
+	slider = _slider
+	
+end
 
 
 --sliderMoved(slider, time): Respond to the slider having been moved manually
-function controllers.timeline.sliderMoved(slider, new_time)
+function controllers.timeline.sliderMoved(new_time)
+
 	assert(new_time >= controllers.timeline.span.min and
 			new_time <= controllers.timeline.span.max,
 			"slider should stay within timeline's bounds")
@@ -35,7 +44,7 @@ function controllers.timeline.sliderMoved(slider, new_time)
 	controllers.playback.jumpToTime(new_time)
 end
 
-function controllers.timeline.sliderMoveFinished(slider, new_time)
+function controllers.timeline.sliderMoveFinished( new_time)
 
 	--TODO: only snap here?
 
@@ -49,7 +58,7 @@ end
 
 -- currentTime():	Global way of exposing the current timeline time! Use this!
 function controllers.timeline.currentTime()
-	return widgets.slider:currentValue()
+	return slider:currentValue()
 end
 
 
@@ -75,9 +84,8 @@ function controllers.timeline.play()
 
 	controllers.playback.startPlaying(controllers.timeline.currentTime())
 
-	widgets.slider:setValue(controllers.timeline.span.max,
-											controllers.timeline.span.max - 
-											widgets.slider:currentValue())
+	slider:play ( )
+
 end
 
 
@@ -91,10 +99,10 @@ function controllers.timeline.pause()
 		stoppedPlaying()
 	end
 	
-	widgets.slider:stop()
+	slider:stop()
 
 	controllers.playback.stopPlaying()
-	controllers.playback.jumpToTime(widgets.slider:currentValue()) -- to snap off
+	controllers.playback.jumpToTime(slider:currentValue()) -- to snap off
 
 end
 
